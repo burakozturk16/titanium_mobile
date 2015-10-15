@@ -7,6 +7,10 @@
 #ifdef USE_TI_UILISTVIEW
 
 #import "TiParentingProxy.h"
+@protocol TiUIListViewDelegateView <NSObject>
+@required
+- (void)updateSearchResults:(id)unused;
+@end
 
 @class TiViewProxy;
 @class TiUIListView;
@@ -15,7 +19,12 @@
 
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block;
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated;
+- (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block maintainPosition:(BOOL)maintain;
+- (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated maintainPosition:(BOOL)maintain;
+- (void)dispatchBlock:(void(^)(UITableView *tableView))block;
 - (id)dispatchBlockWithResult:(id(^)(void))block;
+- (id<TiUIListViewDelegateView>) delegateView;
+//-(void)hideDeleteButton:(id)args;
 
 @end
 
@@ -23,12 +32,15 @@
 
 @property (nonatomic, readwrite, assign) id<TiUIListViewDelegate> delegate;
 @property (nonatomic, readwrite, assign) NSUInteger sectionIndex;
+@property (nonatomic, readwrite, assign) BOOL hideWhenEmpty;
+@property (nonatomic, readwrite, assign) BOOL showHeaderWhenHidden;
 
 // Private API. Used by ListView directly. Not for public comsumption
 - (NSDictionary *)itemAtIndex:(NSUInteger)index;
 - (void) deleteItemAtIndex:(NSUInteger)index;
 - (void) addItem:(NSDictionary*)item atIndex:(NSUInteger)index;
 - (BOOL)isHidden;
+-(id)length;
 
 - (void)appendItems:(id)args;
 - (void)insertItemsAt:(id)args;

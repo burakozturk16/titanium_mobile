@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/titanium-network"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
 	<classpathentry kind="src" path="gen"/>
@@ -10,6 +9,10 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-dist"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/titanium-geolocation"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium-media"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium-network"/>
+	<classpathentry kind="lib" path="lib/googleplayservices.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium-image"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/akylas-charts"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

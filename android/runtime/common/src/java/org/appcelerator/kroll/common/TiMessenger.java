@@ -44,10 +44,19 @@ import android.os.Message;
 public class TiMessenger implements Handler.Callback
 {
 	private static final String TAG = "TiMessenger";
-	private static final int MSG_RUN = 3000;
+	public static final int MSG_RUN = 3000;
+	public static final int MSG_RUN_COMMAND = 3001;
 
 	protected static TiMessenger mainMessenger;
 	protected static TiMessenger runtimeMessenger;
+	
+	public static interface Command<T> {
+        public T execute();
+    }
+
+    public static interface CommandNoReturn {
+        public void execute();
+    }
 
 	protected static ThreadLocal<TiMessenger> threadLocalMessenger = new ThreadLocal<TiMessenger>() {
 		protected TiMessenger initialValue()
@@ -158,6 +167,25 @@ public class TiMessenger implements Handler.Callback
 	{
 		return threadLocalMessenger.get().sendBlockingMessage(message, mainMessenger, asyncArg, -1);
 	}
+	
+	public static Object sendBlockingMainCommand(Command command)
+    {
+        return threadLocalMessenger.get().sendBlockingMessage(mainMessenger.getCommandMessage(command), mainMessenger, command, -1);
+    }
+	
+	public static Object sendBlockingMainCommand(CommandNoReturn command)
+    {
+        return threadLocalMessenger.get().sendBlockingMessage(mainMessenger.getCommandMessage(command), mainMessenger, command, -1);
+    }
+	public static void sendMainCommand(Command command)
+    {
+        threadLocalMessenger.get().sendMessage(mainMessenger.getCommandMessage(command));
+    }
+    
+    public static void sendMainCommand(CommandNoReturn command)
+    {
+        threadLocalMessenger.get().sendMessage(mainMessenger.getCommandMessage(command));
+    }
 
 	/**
 	 * Sends a message to an {@link java.util.concurrent.ArrayBlockingQueue#ArrayBlockingQueue(int) ArrayBlockingQueue}, 
@@ -222,6 +250,7 @@ public class TiMessenger implements Handler.Callback
 	{
 		return handler;
 	}
+	
 
 	/**
 	 * Sends a message to an {@link java.util.concurrent.ArrayBlockingQueue#ArrayBlockingQueue(int) ArrayBlockingQueue}, and dispatch messages on the current
@@ -337,7 +366,14 @@ public class TiMessenger implements Handler.Callback
 	{
 		sendMessage(handler.obtainMessage(MSG_RUN, runnable));
 	}
-
+	
+	private Message getCommandMessage(Command command) {
+	    return handler.obtainMessage(MSG_RUN_COMMAND, command);
+	}
+	private Message getCommandMessage(CommandNoReturn command) {
+        return handler.obtainMessage(MSG_RUN_COMMAND, command);
+    }
+	
 	public void setCallback(Handler.Callback callback)
 	{
 		this.callback = callback;
@@ -345,11 +381,31 @@ public class TiMessenger implements Handler.Callback
 
 	public boolean handleMessage(Message message)
 	{
-		if (message.what == MSG_RUN) {
-			((Runnable)message.obj).run();
+		if (message.what == MSG_RUN_COMMAND) {
+		    Object obj = message.obj;
+		    AsyncResult result = null;
+		    if (obj instanceof AsyncResult) {
+                result = (AsyncResult) message.obj;
+                obj = result.getArg();
+		    }
+		    if (obj instanceof CommandNoReturn) {
+		        ((CommandNoReturn) obj).execute();
+		        if (result != null) {
+	                result.setResult(null);
+		        }
+		    } else if (obj instanceof Command) {
+		        Object theResult = ((Command) obj).execute();
+                if (result != null) {
+                    result.setResult(theResult);
+                }
+		    }
 
 			return true;
-		}
+		} else if (message.what == MSG_RUN) {
+            ((Runnable)message.obj).run();
+
+            return true;
+        }
 
 		if (callback != null) {
 			return callback.handleMessage(message);

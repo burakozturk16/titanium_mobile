@@ -137,6 +137,8 @@ void V8Util::openJSErrorDialog(TryCatch &tryCatch)
 	jstring errorMessage = TypeConverter::jsValueToJavaString(env, message->Get());
 	jstring resourceName = TypeConverter::jsValueToJavaString(env, message->GetScriptResourceName());
 	jstring sourceLine = TypeConverter::jsValueToJavaString(env, message->GetSourceLine());
+	jstring traceString = TypeConverter::jsValueToJavaString(env, tryCatch.StackTrace());
+	
 
 	env->CallStaticVoidMethod(
 		JNIUtil::krollRuntimeClass,
@@ -146,9 +148,11 @@ void V8Util::openJSErrorDialog(TryCatch &tryCatch)
 		resourceName,
 		message->GetLineNumber(),
 		sourceLine,
-		message->GetEndColumn());
+		message->GetEndColumn(),
+		traceString);
 
 	env->DeleteLocalRef(title);
+	env->DeleteLocalRef(traceString);
 	env->DeleteLocalRef(errorMessage);
 	env->DeleteLocalRef(resourceName);
 	env->DeleteLocalRef(sourceLine);

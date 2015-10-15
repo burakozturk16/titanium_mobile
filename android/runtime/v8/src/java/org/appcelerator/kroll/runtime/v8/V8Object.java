@@ -48,6 +48,16 @@ public class V8Object extends KrollObject
 	}
 
 	@Override
+	public Object getProperty(String name)
+	{
+		if (!KrollRuntime.isInitialized()) {
+			Log.w(TAG, "Runtime disposed, cannot set property '" + name + "'");
+			return null;
+		}
+		return nativeGetProperty(ptr, name);
+	}
+
+	@Override
 	public boolean fireEvent(KrollObject source, String type, Object data, boolean bubbles, boolean reportSuccess, int code, String message)
 	{
 		if (!KrollRuntime.isInitialized()) {
@@ -117,6 +127,7 @@ public class V8Object extends KrollObject
 	private static native Object nativeCallProperty(long ptr, String propertyName, Object[] args);
 	private static native boolean nativeRelease(long ptr);
 
+	private native Object nativeGetProperty(long ptr, String name);
 	private native void nativeSetProperty(long ptr, String name, Object value);
 	private native boolean nativeFireEvent(long ptr, Object source, long sourcePtr, String event, Object data, boolean bubble, boolean reportSuccess, int code, String errorMessage);
 	private native void nativeSetWindow(long ptr, Object windowProxyObject);

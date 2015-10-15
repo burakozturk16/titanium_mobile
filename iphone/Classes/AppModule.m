@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -30,6 +30,7 @@ extern NSString * const TI_APPLICATION_DESCRIPTION;
 extern NSString * const TI_APPLICATION_COPYRIGHT;
 extern NSString * const TI_APPLICATION_GUID;
 extern BOOL const TI_APPLICATION_ANALYTICS;
+extern long long const TI_APPLICATION_BUILD_DATE;
 
 @implementation AppModule
 
@@ -46,8 +47,9 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 {
     UIApplication * app = [UIApplication sharedApplication];
     TiApp * appDelegate = [TiApp app];
+#ifndef TI_USE_AUTOLAYOUT
     [TiLayoutQueue resetQueue];
-    
+#endif
     /* Begin backgrounding simulation */
     [appDelegate applicationWillResignActive:app];
     [appDelegate applicationDidEnterBackground:app];
@@ -64,7 +66,9 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
         [nc removeObserver:thisModule];
     }
     /* Because of other issues, we must leak the modules as well as the runtime */
+#ifndef __clang_analyzer__
     [delegateModules copy];
+#endif
     [delegateModules removeAllObjects];
     
     /* Disconnect the Kroll bridge, and spoof the shutdown */
@@ -96,8 +100,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 - (void)_configure
 {
 	[super _configure];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(accessibilityVoiceOverStatusChanged:)
-										name:UIAccessibilityVoiceOverStatusChanged object:nil];
+	
 }
 
 -(NSString*)apiName
@@ -105,11 +108,8 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     return @"Ti.App";
 }
 
--(void)addEventListener:(NSArray*)args
+-(id)internalAddEventListener:(NSString *)type withListener:(id)listener onlyOnce:(BOOL)onlyOnce
 {
-	NSString *type = [args objectAtIndex:0];
-	id listener = [args objectAtIndex:1];
-	
 	if (appListeners==nil)
 	{
 		appListeners = [[NSMutableDictionary alloc] init];
@@ -137,10 +137,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 		[l release];
 	}
 	[l addObject:entry];
+    [self _listenerAdded:type count:[l count]];
 	[entry release];
+    return self;
 }
 
--(void)removeEventListener:(NSArray*)args
+-(id)removeEventListener:(NSArray*)args
 {
 	NSString *type = [args objectAtIndex:0];
 	id listener = [args objectAtIndex:1];
@@ -148,7 +150,6 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	ListenerEntry *entry = nil;
 	
 	NSMutableArray *l = [appListeners objectForKey:type];
-
 	BOOL needsScanning;
 	do
 	{
@@ -170,7 +171,51 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	}
 	
 	[[self _host] removeListener:listener context:pageContext];
-} 
+    [self _listenerRemoved:type count:[l count]];
+    return self;
+}
+
+-(void)_listenerAdded:(NSString*)type count:(NSInteger)count
+{
+    if (count == 1) {
+        if ([type isEqualToString:@"significanttimechange"])
+        {
+            TiThreadPerformBlockOnMainThread(^{
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(timeChanged:) name:UIApplicationSignificantTimeChangeNotification object:nil];
+            }, NO);
+            
+        } else if ([type isEqualToString:@"accessibilitychanged"]) {
+            TiThreadPerformBlockOnMainThread(^{
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(accessibilityVoiceOverStatusChanged:) name:UIAccessibilityVoiceOverStatusChanged object:nil];
+            }, NO);
+        } else if ([type isEqualToString:@"keyboardFrameChanged"]) {
+            TiThreadPerformBlockOnMainThread(^{
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(accessibilityVoiceOverStatusChanged:) name:UIKeyboardWillChangeFrameNotification object:nil];
+            }, NO);
+        }
+    }
+}
+
+-(void)_listenerRemoved:(NSString*)type count:(NSInteger)count
+{
+    if (count == 0) {
+        if ([type isEqualToString:@"significanttimechange"])
+        {
+            TiThreadPerformBlockOnMainThread(^{
+                [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationSignificantTimeChangeNotification object:nil];
+            }, NO);
+            
+        } else if ([type isEqualToString:@"accessibilitychanged"]) {
+            TiThreadPerformBlockOnMainThread(^{
+                [[NSNotificationCenter defaultCenter] removeObserver:self name:UIAccessibilityVoiceOverStatusChanged object:nil];
+            }, NO);
+        } else if ([type isEqualToString:@"keyboardFrameChanged"]) {
+            TiThreadPerformBlockOnMainThread(^{
+                [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillChangeFrameNotification object:nil];
+            }, NO);
+        }
+    }
+}
 
 -(BOOL)_hasListeners:(NSString *)type
 {
@@ -295,32 +340,33 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 //To fire the keyboard frame change event.
 -(void)keyboardFrameChanged:(NSNotification*) notification
 {
-    BOOL hasEvent = [self _hasListeners:@"keyboardframechanged"];
-    if (!hasEvent)
+    if (![self _hasListeners:@"keyboardframechanged"])
     {
         return;
     }
     
     NSDictionary *userInfo = [notification userInfo];
-    
+    NSNumber* duration = [userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey];
     CGRect keyboardEndFrame = [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    // window for keyboard
-    UIWindow *keyboardWindow = [[[UIApplication sharedApplication] windows] lastObject];  
-    
-    keyboardEndFrame = [keyboardWindow convertRect:keyboardEndFrame fromWindow:nil];
+    if (![TiUtils isIOS8OrGreater]) {
+        // window for keyboard
+        UIWindow *keyboardWindow = [[[UIApplication sharedApplication] windows] lastObject];
+        
+        keyboardEndFrame = [keyboardWindow convertRect:keyboardEndFrame fromWindow:nil];
+    }
     
     NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                                [TiUtils rectToDictionary:keyboardEndFrame], @"keyboardFrame",
-                                nil];
+                           [TiUtils rectToDictionary:keyboardEndFrame], @"keyboardFrame",
+                           duration, @"animationDuration",
+                           nil];
+    
     
     [self fireEvent:@"keyboardframechanged" withObject:event];
 }
 
 - (void)timeChanged:(NSNotification*)notiication
 {
-    if ([self _hasListeners:@"significanttimechange"]) {
-        [self fireEvent:@"significanttimechange" withObject:nil];
-    }
+    [self fireEvent:@"significanttimechange" withObject:nil];
 }
 
 #pragma mark Internal Memory Management
@@ -395,8 +441,6 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     [nc addObserver:self selector:@selector(willShutdown:) name:kTiWillShutdownNotification object:nil];
     [nc addObserver:self selector:@selector(willShutdownContext:) name:kTiContextShutdownNotification object:nil];
 
-    [nc addObserver:self selector:@selector(keyboardFrameChanged:) name:UIKeyboardDidChangeFrameNotification object:nil];
-    [nc addObserver:self selector:@selector(timeChanged:) name:UIApplicationSignificantTimeChangeNotification object:nil];
     
     [super startup];
 }
@@ -412,9 +456,9 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)paused:(id)sender
 {
-	if ([self _hasListeners:@"paused"])
+	if ([self _hasListeners:@"pause"])
 	{
-		[self fireEvent:@"paused" withObject:nil];
+		[self fireEvent:@"pause" withObject:nil];
 	}
 }
 
@@ -423,9 +467,9 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	// make sure we force any changes made on suspend in case we don't come back
 	[[NSUserDefaults standardUserDefaults] synchronize];
 	
-	if ([self _hasListeners:@"pause"])
+	if ([self _hasListeners:@"suspend"])
 	{
-		[self fireEvent:@"pause" withObject:nil];
+		[self fireEvent:@"suspend" withObject:nil];
 	}
 }
 
@@ -439,9 +483,17 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)resumed:(id)sender
 {
-	if ([self _hasListeners:@"resumed"])
+	if ([self _hasListeners:@"unsuspend"])
 	{
-		[self fireEvent:@"resumed" withObject:nil];
+		[self fireEvent:@"unsuspend" withObject:nil];
+	}
+}
+
+-(void)errored:(NSNotification *)notification
+{
+	if ([self _hasListeners:@"uncaughtException"])
+	{
+		[self fireEvent:@"uncaughtException" withObject:[notification userInfo]];
 	}
 }
 
@@ -498,10 +550,8 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 - (void)accessibilityVoiceOverStatusChanged:(NSNotification *)notification
 {
-	if ([self _hasListeners:@"accessibilitychanged"]) {
 		NSDictionary *event = [NSDictionary dictionaryWithObject:[self accessibilityEnabled] forKey:@"enabled"];
 		[self fireEvent:@"accessibilitychanged" withObject:event];
-	}
 }
 
 -(id)arguments:(id)args
@@ -589,6 +639,42 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	return NUMBOOL(TI_APPLICATION_ANALYTICS);
 }
 
+-(id)buildDate
+{
+    if (TI_APPLICATION_BUILD_DATE == -1) {
+        NUMLONGLONG([[NSDate date] timeIntervalSince1970]);
+    }
+	return NUMLONGLONG(TI_APPLICATION_BUILD_DATE);
+}
+
+-(id)buildNumber
+{
+	return [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+}
+
+-(id)versionName
+{
+	return [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+}
+
+
+-(id)fullInfo
+{
+    return @{
+        @"version": [self version],
+        @"versionName": [self versionName],
+        @"buildDate": [self buildDate],
+        @"buildNumber": [self buildNumber],
+        @"deployType": [self deployType],
+        @"description": [self description],
+        @"copyright": [self copyright],
+        @"publisher": [self publisher],
+        @"id": [self id],
+        @"name": [self name],
+        @"installId": [self installId]
+    };
+}
+
 -(NSNumber*)keyboardVisible
 {
     return NUMBOOL([[[TiApp app] controller] keyboardVisible]);
@@ -608,6 +694,15 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     [[TiApp app] setForceSplashAsSnapshot:flag];
 }
 
+-(void)clearImageMemoryCache:(id)args
+{
+    [[ImageLoader sharedLoader] clearMemoryCache];
+}
+
+-(void)clearImageDiskCache:(id)args
+{
+    [[ImageLoader sharedLoader] clearDiskCache];
+}
 -(void)clearImageCache:(id)args
 {
     [[ImageLoader sharedLoader] clearCache];

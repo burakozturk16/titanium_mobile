@@ -8,7 +8,9 @@ package ti.modules.titanium.ui.widget.picker;
 
 import java.util.ArrayList;
 
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.PickerProxy;
@@ -26,6 +28,8 @@ public abstract class TiUIPicker extends TiUIView
 	public abstract void selectRow(int columnIndex, int rowIndex, boolean animated);
 	public abstract int getSelectedRowIndex(int columnIndex);
 	protected abstract void refreshNativeView();
+	
+	public void openPicker() {};
 
 	// When the whole set of columns has been changed out.
 	public void onModelReplaced()
@@ -59,4 +63,23 @@ public abstract class TiUIPicker extends TiUIView
 			selectRow(colnum, rownum, false);
 		}
 	}
+	
+    protected void handlePreselectedRows(Object[] preselectedRows){
+        
+    }
+    
+    @Override
+    public void didRealize() {
+        if (proxy.hasProperty(TiC.PROPERTY_SELECTED_ROW)) {
+            Object value = proxy.getProperty(TiC.PROPERTY_SELECTED_ROW);
+            if (value instanceof Object[]) {
+                handlePreselectedRows((Object[])value);
+//                if (params.length == 2) {
+//                    selectRow(TiConvert.toInt(params[0]), TiConvert.toInt(params[1]), false);
+//                } else if (params.length >= 3) {
+//                    selectRow(TiConvert.toInt(params[0]), TiConvert.toInt(params[1]), TiConvert.toBoolean(params[2]));
+//                }
+            }
+        }
+    }
 }

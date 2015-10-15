@@ -1,2 +1,2 @@
-version = '3.4.0.AKYLAS'
+version = '5.2.0.AKYLAS'
 module_apiversion = '2'

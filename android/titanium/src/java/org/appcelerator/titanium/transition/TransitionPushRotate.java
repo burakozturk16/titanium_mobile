@@ -6,7 +6,6 @@ import java.util.List;
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.RotationProperty;
 import org.appcelerator.titanium.animation.TranslationProperty;
-import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
 

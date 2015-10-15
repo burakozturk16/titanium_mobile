@@ -28,11 +28,11 @@
                     [tiview processTouchesMoved:[event allTouches] withEvent:event];
 
                 }
-                else if (touch.phase == UITouchPhaseCancelled) {
+                else if (touch.phase == UITouchPhaseEnded) {
                     [tiview processTouchesEnded:[event allTouches] withEvent:event];
 
                 }
-                else if (touch.phase == UITouchPhaseEnded) {
+                else if (touch.phase == UITouchPhaseCancelled) {
                     [tiview processTouchesCancelled:[event allTouches] withEvent:event];
 
                 }

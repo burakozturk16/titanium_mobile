@@ -1,0 +1,7 @@
+<project name="audio" default="build">
+	<import file="../../build/build-module.xml"/>
+	
+	<path id="dependencies">
+		<path path="${dist.classes.dir}/filesystem"/>
+	</path>
+</project>

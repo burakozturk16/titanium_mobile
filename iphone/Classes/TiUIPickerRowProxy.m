@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -21,7 +21,7 @@
     return @"Ti.UI.PickerRow";
 }
 
--(UIView*)viewWithFrame:(CGRect)theFrame reusingView:(UIView*)theView
+-(UIView*)viewWithFrame:(CGRect)theFrame reusingView:(UIView*)theView withFont:( WebFont *)pickerFont
 {
     //The picker on IOS seems to consist of 3 tableViews (or some derivative of it) each of which calls the
     //delegate method. So we have a singleView from our proxy residing in 3 superViews.
@@ -40,10 +40,9 @@
 
         if (pickerLabel == nil) {
             pickerLabel = [[[UILabel alloc] initWithFrame:theFrame] autorelease];
-            [pickerLabel setTextAlignment:UITextAlignmentLeft];
+            [pickerLabel setTextAlignment:NSTextAlignmentLeft];
             [pickerLabel setBackgroundColor:[UIColor clearColor]];
-            float fontSize = [TiUtils floatValue:[self valueForUndefinedKey:@"fontSize"] def:18.0];
-            [pickerLabel setFont:[UIFont boldSystemFontOfSize:fontSize]];
+            [pickerLabel setFont:[pickerFont font]];
         }
         [pickerLabel setText:title];
         return pickerLabel;
@@ -55,7 +54,11 @@
             CGSize size = myview.bounds.size;
             if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
             {
+#ifndef TI_USE_AUTOLAYOUT
+                CGSize size = [[self view] sizeThatFits:CGSizeMake(1000,1000)];
+#else
                 CGSize size = [self autoSizeForSize:CGSizeMake(1000,1000)];
+#endif
                 if (size.width==0 || size.height == 0)
                 {
                     size = [UIScreen mainScreen].bounds.size;

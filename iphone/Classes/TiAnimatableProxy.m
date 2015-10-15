@@ -95,7 +95,7 @@
 
 -(void)cancelRunning {
     pthread_rwlock_rdlock(&runningLock);
-    if ([_pendingAnimations count] == 0) {
+    if ([_runningAnimations count] == 0) {
         pthread_rwlock_unlock(&runningLock);
         return;
     }
@@ -117,8 +117,8 @@
 
 -(void)cancelAnimation:(TiAnimation *)animation shouldReset:(BOOL)reset
 {
-    if (reset) [self resetProxyPropertiesForAnimation:animation];
     [self animationDidComplete:animation];
+    if (reset) [self resetProxyPropertiesForAnimation:animation];
 }
 
 -(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
@@ -150,7 +150,7 @@
 {
     if (animation.animation)
     {
-        TiThreadPerformOnMainThread(^{
+        TiThreadPerformBlockOnMainThread(^{
             [animation.animation cancel];
             animation.animation = nil;
         }, YES);
@@ -160,6 +160,9 @@
 
 -(void)handlePendingAnimation
 {
+    if (![self readyToAnimate]) {
+        return;
+    }
     pthread_rwlock_rdlock(&pendingLock);
     if ([_pendingAnimations count] == 0) {
         pthread_rwlock_unlock(&pendingLock);
@@ -222,17 +225,39 @@
     hlsAnimation.delegate = animation;
     hlsAnimation.lockingUI = NO;
     animation.animation = hlsAnimation;
+    
+    NSDictionary* fromProps = [animation fromPropertiesForAnimatableProxy:self];
+    if ([fromProps count] > 0) {
+        [self setFakeApplyProperties:YES];
+        [self applyProperties:fromProps];
+        [self setFakeApplyProperties:NO];
+    }
+    
     [self playAnimation:hlsAnimation withRepeatCount:[animation repeatCount] afterDelay:[animation delay]];
+}
+
+-(BOOL)canAnimateWithoutParent
+{
+    return NO;
+}
+
+-(BOOL)readyToAnimate
+{
+    return NO;
 }
 
 -(void)animate:(id)arg
 {
-	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
+    TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
     if (newAnimation == nil) return;
+    if (!parent && ![self canAnimateWithoutParent]) {
+        [newAnimation simulateFinish:self];
+        return;
+    }
     [self rememberProxy:newAnimation];
-	pthread_rwlock_rdlock(&pendingLock);
+    pthread_rwlock_rdlock(&pendingLock);
     [_pendingAnimations addObject:newAnimation];
-	pthread_rwlock_unlock(&pendingLock);
+    pthread_rwlock_unlock(&pendingLock);
     [self handlePendingAnimation];
 }
 

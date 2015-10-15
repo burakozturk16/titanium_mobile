@@ -1,10 +1,6 @@
 package yaochangwei.pulltorefreshlistview.widget;
+import com.nhaarman.listviewanimations.itemmanipulation.DynamicStickyListHeadersListView;
 
-/**
- * @author Yaochangwei (yaochangwei@gmail.com)
- * 
- *  Refreshable ListView base class. 
- */
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -12,9 +8,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.widget.ListView;
 
-public class RefreshableListView extends ListView {
+public class RefreshableListView extends DynamicStickyListHeadersListView {
 
 	private static final int STATE_NORMAL = 0;
 	private static final int STATE_READY = 1;
@@ -31,7 +26,8 @@ public class RefreshableListView extends ListView {
 	protected ListBottomView mListBottomView;
 
 	private int mActivePointerId;
-	private float mLastY;
+    private float mLastX;
+    private float mLastY;
 
 	private int mState;
 
@@ -45,12 +41,10 @@ public class RefreshableListView extends ListView {
 
 	public RefreshableListView(Context context) {
 		super(context);
-		initialize();
 	}
 	
 	public RefreshableListView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		initialize();
 	}
 
 	public RefreshableListView(Context context, AttributeSet attrs, int defStyle) {
@@ -270,7 +264,7 @@ public class RefreshableListView extends ListView {
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
-		if ((mListHeaderView == null && mListBottomView == null) || mState == STATE_UPDATING) {
+		if ((mListHeaderView == null && mListBottomView == null) || mState == STATE_UPDATING || isInteracting()) {
 			return super.dispatchTouchEvent(ev);
 		}
 		final int action = ev.getAction() & MotionEventCompat.ACTION_MASK;
@@ -295,27 +289,31 @@ public class RefreshableListView extends ListView {
 			final int activePointerId = mActivePointerId;
 			final int activePointerIndex = MotionEventCompat
 					.findPointerIndex(ev, activePointerId);
-			final float y = MotionEventCompat.getY(ev, activePointerIndex);
-			final int deltaY = (int) (y - mLastY);
-			mLastY = y;
+            final float y = MotionEventCompat.getY(ev, activePointerIndex);
+            final float x = MotionEventCompat.getX(ev, activePointerIndex);
+            final int deltaX = (int) (x - mLastX);
+            final int deltaY = (int) (y - mLastY);
+            mLastX = x;
+            mLastY = y;
 
 			if (mState == STATE_READY && mListHeaderView != null) {
 				
-				if (deltaY <= 0 || Math.abs(y) < mTouchSlop) {
-					mState = STATE_NORMAL;
-				} else {
-					mState = STATE_PULL;
-					ev.setAction(MotionEvent.ACTION_CANCEL);
-					super.dispatchTouchEvent(ev);
+	            if (deltaY > 0 && Math.abs(y) >= mTouchSlop && Math.abs(deltaY) > Math.abs(deltaX)) {
+	                mState = STATE_PULL;
+                    ev.setAction(MotionEvent.ACTION_CANCEL);
+                    super.dispatchTouchEvent(ev);
+	            } else {
+                    mState = STATE_NORMAL;
+					
 				}
 			} else if (mState == UP_STATE_READY && mListBottomView != null) {
 
-				if (deltaY >= 0 || Math.abs(y) < mTouchSlop) {
-					mState = STATE_NORMAL;
+				if (deltaY < 0 && Math.abs(y) >= mTouchSlop && Math.abs(deltaY) > Math.abs(deltaX)) {
+				    mState = UP_STATE_PULL;
+                    ev.setAction(MotionEvent.ACTION_CANCEL);
+                    super.dispatchTouchEvent(ev);
 				} else {
-					mState = UP_STATE_PULL;
-					ev.setAction(MotionEvent.ACTION_CANCEL);
-					super.dispatchTouchEvent(ev);
+                    mState = STATE_NORMAL;
 				}
 			}
 

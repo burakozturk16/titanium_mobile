@@ -18,10 +18,8 @@
 	UIControlState thumbImageState;
 	UIControlState rightTrackImageState;
 	UIControlState leftTrackImageState;
-    TiDimension leftTrackLeftCap;
-    TiDimension leftTrackTopCap;
-    TiDimension rightTrackLeftCap;
-    TiDimension rightTrackTopCap;
+    TiCap leftTrackCap;
+    TiCap rightTrackCap;
 }
 
 - (IBAction)sliderChanged:(id)sender;

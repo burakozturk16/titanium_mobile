@@ -26,15 +26,14 @@
 @implementation TiUISearchBarProxy
 @synthesize canHaveSearchDisplayController;
 
-
-NSArray* keySequence;
-
--(NSArray*)keySequence
+-(NSArray *)keySequence
 {
-	if (keySequence == nil) {
-		keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"barColor"]] retain];
-	}
-	return keySequence;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"barColor"]] retain];;
+    });
+    return keySequence;
 }
 
 
@@ -51,6 +50,11 @@ NSArray* keySequence;
 	[super _configure];
 }
 
+-(void)viewDidDetach
+{
+    canHaveSearchDisplayController = NO;
+}
+
 
 -(void)blur:(id)args
 {
@@ -60,6 +64,15 @@ NSArray* keySequence;
 -(void)focus:(id)args
 {
 	[self makeViewPerformSelector:@selector(focus:) withObject:args createIfNeeded:YES waitUntilDone:NO];
+}
+
+- (void)windowWillClose
+{
+    if([self viewInitialized])
+    {
+        [self makeViewPerformSelector:@selector(blur:) withObject:nil createIfNeeded:NO waitUntilDone:YES];
+    }
+    [super windowWillClose];
 }
 
 -(void)setShowCancel:(id)value withObject:(id)object
@@ -100,9 +113,9 @@ NSArray* keySequence;
     return [NSMutableDictionary dictionaryWithObjectsAndKeys:@"prompt",@"promptid",@"hintText",@"hinttextid",nil];
 }
 
--(TiDimension)defaultAutoHeightBehavior:(id)unused
+-(TiDimension)defaultAutoWidthBehavior:(id)unused
 {
-    return TiDimensionAutoSize;
+    return TiDimensionAutoFill;
 }
 
 -(TiSearchDisplayController*)searchController {

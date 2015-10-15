@@ -7,6 +7,7 @@
 //
 
 #import "TiHLSLayerAnimationStep.h"
+#import "HLSAnimationStep+Protected.h"
 
 @implementation TiHLSLayerAnimationStep
 

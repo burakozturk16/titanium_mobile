@@ -5,6 +5,12 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
+
+#ifdef TI_USE_AUTOLAYOUT
+#import "TiLayoutDimension.h"
+#import "LayoutConstraint.h"
+#else
+
 #import "TiBase.h"
 #include <math.h>
 
@@ -20,7 +26,8 @@ typedef enum {
 	TiDimensionTypeAuto,
     TiDimensionTypeAutoSize,
     TiDimensionTypeAutoFill,
-	TiDimensionTypePercent,
+    TiDimensionTypePercent,
+    TiDimensionTypeMatch
 } TiDimensionType;
 
 /**
@@ -39,6 +46,7 @@ extern const TiDimension TiDimensionZero;
 extern const TiDimension TiDimensionAuto;
 extern const TiDimension TiDimensionAutoSize;
 extern const TiDimension TiDimensionAutoFill;
+extern const TiDimension TiDimensionMatch;
 extern const TiDimension TiDimensionUndefined;
 
 TiDimension TiDimensionMake(TiDimensionType type, CGFloat value);
@@ -83,7 +91,6 @@ TI_INLINE bool TiDimensionIsUndefined(TiDimension dimension)
 {
 	return dimension.type == TiDimensionTypeUndefined;
 }
-
 TI_INLINE bool TiDimensionEqual(TiDimension dimension1, TiDimension dimension2)
 {
 	if (dimension1.type != dimension2.type)
@@ -105,7 +112,7 @@ TI_INLINE BOOL TiDimensionDidCalculateValue(TiDimension dimension,CGFloat boundi
 			*result = dimension.value;
 			return YES;
 		case TiDimensionTypePercent:
-			*result = ceilf(dimension.value * boundingValue);
+			*result = floorf(dimension.value * boundingValue);
 			return YES;
         case TiDimensionTypeAutoFill:
 			*result = boundingValue;
@@ -196,23 +203,23 @@ TI_INLINE CGFloat TiDimensionCalculateMargins(TiDimension dimension1, TiDimensio
 //TODO: Do these ALL have to be TI_INLINE?
 TI_INLINE CGRect TiDimensionLayerContentCenter(TiDimension top, TiDimension left, TiDimension bottom, TiDimension right, CGSize imageSize)
 {
-	CGRect result;
-	result.origin.y = TiDimensionCalculateRatio(top,imageSize.height);
-	result.size.height = 1.0 - TiDimensionCalculateRatio(bottom,imageSize.height) - result.origin.y;
-	result.origin.x = TiDimensionCalculateRatio(left,imageSize.width);
-	result.size.width = 1.0 - TiDimensionCalculateRatio(right,imageSize.width) - result.origin.x;
-
-	return result;
+    CGRect result;
+    result.origin.y = TiDimensionCalculateRatio(top,imageSize.height);
+    result.size.height = 1.0 / imageSize.height;
+    result.origin.x = TiDimensionCalculateRatio(left,imageSize.width);
+    result.size.width = 1.0 / imageSize.width;
+    
+    return result;
 }
 TI_INLINE CGRect TiDimensionLayerContentCenterFromInsents(UIEdgeInsets insents, CGSize imageSize)
 {
-	CGRect result;
-	result.origin.y = insents.top / imageSize.height;
-	result.size.height = 1.0 - insents.bottom / imageSize.height - result.origin.y;
-	result.origin.x = insents.left / imageSize.width;
-	result.size.width = 1.0 - insents.right / imageSize.width - result.origin.x;
+    CGRect result;
+    result.origin.y = insents.top / imageSize.height;
+    result.size.height = 1.0 / imageSize.height;
+    result.origin.x = insents.left / imageSize.width;
+    result.size.width = 1.0 / imageSize.width;
     
-	return result;
+    return result;
 }
 
 TI_INLINE UIEdgeInsets TiUIEdgeInsets(TiDimension top, TiDimension left, TiDimension bottom, TiDimension right, CGSize imageSize)
@@ -225,3 +232,5 @@ TI_INLINE UIEdgeInsets TiUIEdgeInsets(TiDimension top, TiDimension left, TiDimen
     
 	return result;
 }
+
+#endif

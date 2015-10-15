@@ -8,6 +8,7 @@
 #import "TiViewController.h"
 #import "TiApp.h"
 #import "TiViewProxy.h"
+#import "TiModalNavViewController.h"
 
 @interface ControllerWrapperView : UIView
 @property (nonatomic,assign) TiViewProxy* proxy;
@@ -19,31 +20,47 @@
 -(void)setFrame:(CGRect)frame
 {
     BOOL needsLayout = NO;
+//    BOOL needsDirtyItAll = NO;
     
     // this happens when a controller resizes its view
-	if (!CGRectIsEmpty(frame) && [self.proxy isKindOfClass:[TiViewProxy class]])
-	{
+    if (!CGRectIsEmpty(frame) && [self.proxy isKindOfClass:[TiViewProxy class]])
+    {
         CGRect currentframe = [self frame];
         if (!CGRectEqualToRect(frame, currentframe))
         {
             needsLayout = YES;
+//            needsDirtyItAll = CGRectIsEmpty(currentframe);
             CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
             [(TiViewProxy*)self.proxy setSandboxBounds:bounds];
         }
-	}
+    }
     [super setFrame:frame];
     if (needsLayout) {
-        if ([[self.layer animationKeys] count] > 0) {
-            [(TiViewProxy*)self.proxy performBlockWithoutLayout:^{
-                [(TiViewProxy*)self.proxy parentSizeWillChange];
-            }];
-            
-            [(TiViewProxy*)self.proxy refreshViewOrParent];
-        }
-        else {
-            [(TiViewProxy*)self.proxy parentSizeWillChange];
-        }
+//        if (needsDirtyItAll) {
+//            [(TiViewProxy*)self.proxy dirtyItAll];
+//            [(TiViewProxy*)self.proxy refreshViewOrParent];
+//            
+//        } else {
+            if ([[self.layer animationKeys] count] > 0) {
+                [(TiViewProxy*)self.proxy performBlockWithoutLayout:^{
+                    [(TiViewProxy*)self.proxy parentSizeWillChange];
+                }];
+                
+                [(TiViewProxy*)self.proxy refreshViewOrParent];
+            }
+            else {
+                [(TiViewProxy*)self.proxy willChangeSize];
+            }
+//        }
     }
+}
+
+-(UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event{
+    UIView *hitView = [super hitTest:point withEvent:event];
+    if(hitView == self) {
+        return nil;
+    }
+    return hitView;
 }
 
 @end
@@ -65,6 +82,17 @@
     [super dealloc];
 }
 
+#if IS_XCODE_7
+-(NSArray<id<UIPreviewActionItem>> *)previewActionItems
+{
+    if ([self previewActions] == nil) {
+        [self setPreviewActions:[NSArray array]];
+    }
+    
+    return [self previewActions];
+}
+#endif
+
 -(void)updateOrientations
 {
     id object = [_proxy valueForUndefinedKey:@"orientationModes"];
@@ -81,6 +109,16 @@
 -(void)detachProxy
 {
     _proxy = nil;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    BOOL statusBarHidden = [self prefersStatusBarHidden];
+    
+    //fixes a bug on ios8 where the statusbar would get hidden on the first landscape orientation change
+    [[UIApplication sharedApplication] setStatusBarHidden:!statusBarHidden withAnimation:UIStatusBarAnimationNone];
+    [[UIApplication sharedApplication] setStatusBarHidden:statusBarHidden withAnimation:UIStatusBarAnimationNone];
 }
 
 #ifdef DEVELOPER
@@ -133,21 +171,21 @@
     return YES;
 }
 
-- (NSUInteger)supportedInterfaceOrientations {
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     /*
      If we are in a navigation controller, let us match so it doesn't get freaked 
      out in when pushing/popping. We are going to force orientation anyways.
      */
-    if ([self navigationController] != nil) {
+    if ([self navigationController] != nil && ![[self navigationController]isKindOfClass:[TiModalNavViewController class]]) {
         return [[self navigationController] supportedInterfaceOrientations];
     }
     //This would be for modal.
-    return _supportedOrientations;
+    return (UIInterfaceOrientationMask)_supportedOrientations;
 }
 
 - (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
-    return [[[TiApp app] controller] preferredInterfaceOrientationForPresentation];
+    return [[[TiApp app] controller] lastValidOrientation:_supportedOrientations];
 }
 
 -(void)loadView
@@ -175,23 +213,24 @@
 
 -(void)viewWillAppear:(BOOL)animated
 {
-   	if ([_proxy respondsToSelector:@selector(viewWillAppear:)]) {
-        [(id)_proxy viewWillAppear:animated];
+    [super viewWillAppear:animated];
+   	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+        [(id<TiWindowProtocol>)_proxy viewWillAppear:animated];
     }
     else {
         [_proxy parentWillShow];
+        [_proxy refreshViewIfNeeded];
     }
-    [super viewWillAppear:animated];
 }
 -(void)viewWillDisappear:(BOOL)animated
 {
-    if ([_proxy respondsToSelector:@selector(viewWillDisappear:)]) {
-        [(id)_proxy viewWillDisappear:animated];
+    [super viewWillDisappear:animated];
+   	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+        [(id<TiWindowProtocol>)_proxy viewWillDisappear:animated];
     }
     else {
         [_proxy parentWillHide];
     }
-    [super viewWillDisappear:animated];
 }
 -(void)viewDidAppear:(BOOL)animated
 {
@@ -275,6 +314,9 @@
 {
     if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
         return [(id<TiWindowProtocol>)_proxy preferredStatusBarStyle];
+    } else if ([[[TiApp app] controller] topContainerController] != nil) {
+        // Prefer the style of the most recent view controller.
+        return [[[[TiApp app] controller] topContainerController] preferredStatusBarStyle];
     } else {
         return UIStatusBarStyleDefault;
     }
@@ -289,5 +331,7 @@
 {
     return UIStatusBarAnimationNone;
 }
-
+- (BOOL)disablesAutomaticKeyboardDismissal {
+    return NO;
+}
 @end

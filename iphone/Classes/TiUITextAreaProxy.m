@@ -14,13 +14,6 @@
     UIEdgeInsets _padding;
 }
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiUITextWidgetProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"enabled",
-                                              @"scrollable",@"editable",@"autoLink",
-                                              @"borderStyle", nil]];
-}
 
 #pragma mark Defaults
 
@@ -47,6 +40,11 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
     if (view != nil)
         [(TiUITextArea*)view setPadding:_padding];
     [self contentsWillChange];
+    [self replaceValue:value forKey:@"padding" notification:NO];
+}
+
+-(id)padding {
+    return [self valueForUndefinedKey:@"padding"];
 }
 
 -(void)configurationSet
@@ -66,7 +64,7 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
         CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
         maxSize.width -= _padding.left + _padding.right;
         
-        UILineBreakMode breakMode = UILineBreakModeWordWrap;
+        NSLineBreakMode breakMode = NSLineBreakByWordWrapping;
         id fontValue = [self valueForKey:@"font"];
         UIFont * font;
         if (fontValue!=nil)
@@ -85,6 +83,12 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
         return resultSize;
     }
     return CGSizeZero;
+}
+
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+{
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    [(TiUITextArea*)view updateCaretPosition];
 }
 
 @end

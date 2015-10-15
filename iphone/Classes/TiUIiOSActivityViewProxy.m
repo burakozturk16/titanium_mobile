@@ -1,7 +1,6 @@
 #import "TiUIiOSActivityViewProxy.h"
 #import "ActivityProxy.h"
 #import "TiUIiOSActivityProxy.h"
-#import "RDActivityViewController.h"
 
 #import "TiApp.h"
 #import "TiUtils.h"
@@ -11,7 +10,7 @@
 
 @implementation TiUIiOSActivityViewProxy
 {
-    RDActivityViewController* _controller;
+    CMDActivityViewController* _controller;
     NSMutableArray* _excluded;
     NSMutableArray* _items;
     NSMutableArray* _activities;
@@ -45,6 +44,7 @@
 -(void)detach {
     if (_controller) {
         [_controller removeFromParentViewController];
+        _controller.completionHandler = nil;
         RELEASE_TO_NIL(_controller);
     }
 }
@@ -68,11 +68,11 @@
 }
 
 
--(RDActivityViewController*)controller
+-(CMDActivityViewController*)controller
 {
     if (_controller == nil) {
-        _controller = [[RDActivityViewController alloc]  initWithDelegate:self maximumNumberOfItems:MAX_ITEMS applicationActivities:_activities];
-        
+        _controller = [[CMDActivityViewController alloc] initWithNumberOfItems:MAX_ITEMS applicationActivities:nil];
+        _controller.delegate = self;
         if (_excluded != nil) {
             [_controller setExcludedActivityTypes:_excluded];
         }
@@ -83,9 +83,8 @@
             }
             [self fireEvent:@"completed" withObject:event];
             [event release];
-            _controller.completionHandler = nil;
-            [self forgetSelf];
             [self detach];
+            [self forgetSelf];
         };
     }
     return _controller;
@@ -162,7 +161,7 @@
     [self detachItems];
     if (theItems) {
         _items = [[NSMutableArray alloc] initWithCapacity:[theItems count]];
-        id<TiEvaluator> context = [self executionContext];
+        //        id<TiEvaluator> context = [self executionContext];
         for (id obj in theItems) {
             if (obj == nil) continue;
             UIImage* img = [TiUtils image:obj proxy:self];
@@ -189,33 +188,11 @@
 -(void) show:(id)args
 {
     [self rememberSelf];
- 	ENSURE_UI_THREAD_1_ARG(args)
-	[[TiApp app] showModalController:[self controller] animated:YES];
+    ENSURE_UI_THREAD_1_ARG(args)
+    [[TiApp app] showModalController:[self controller] animated:YES];
 }
 
 #pragma mark - UIActivityItemSource Protocol
-
-- (NSArray *)activityViewController:(RDActivityViewController *)activityViewController itemsForActivityType:(NSString *)activityType {
-    if (_itemForActivityType) {
-        NSArray* args = _items?@[activityType, _items]:@[activityType];
-        id result = [_itemForActivityType call:args thisObject:nil];
-        NSMutableArray* realItems = [NSMutableArray arrayWithCapacity:[result count]];
-        [result enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            if ([obj isKindOfClass:[TiBlob class]]) {
-                [realItems addObject:[(TiBlob*)obj representedObject]];
-            } else if ([obj isKindOfClass:[TiFile class]]) {
-                if ((TiFile*)obj)
-                    [realItems addObject:[[(TiFile*)obj blob] representedObject]];
-            }
-            else {
-                [realItems addObject:obj];
-            }
-        }];
-        return realItems;
-    }
-    return _items;
-}
-
 - (NSString *)activityViewController:(UIActivityViewController *)activityViewController subjectForActivityType:(NSString *)activityType
 {
     if (_subjectForActivityType) {
@@ -239,6 +216,35 @@
 
 - (id)activityViewControllerPlaceholderItem:(UIActivityViewController *)activityViewController {
     return [NSDictionary dictionary];
+}
+
+#pragma mark - CMDActivityViewControllerDelegate
+
+- (NSArray *)activityViewControllerPlaceholderItems:(CMDActivityViewController *)controller {
+    
+    return _items;
+}
+
+- (NSArray *)activityViewController:(CMDActivityViewController *)controller itemsForActivityType:(NSString *)activityType {
+    if (_itemForActivityType) {
+        NSArray* args = _items?@[activityType, _items]:@[activityType];
+        id result = [_itemForActivityType call:args thisObject:nil];
+        NSMutableArray* realItems = [NSMutableArray arrayWithCapacity:[result count]];
+        [result enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            if ([obj isKindOfClass:[TiBlob class]]) {
+                [realItems addObject:[(TiBlob*)obj representedObject]];
+            } else if ([obj isKindOfClass:[TiFile class]]) {
+                if ((TiFile*)obj)
+                    [realItems addObject:[[(TiFile*)obj blob] representedObject]];
+            }
+            else {
+                [realItems addObject:obj];
+            }
+        }];
+        return realItems;
+    }
+    return _items;
+    
 }
 
 @end

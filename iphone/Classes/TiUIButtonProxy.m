@@ -16,23 +16,6 @@
     UIEdgeInsets _padding;
 }
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"style", @"title",
-                                              @"color", @"highlightedColor", @"selectedColor",
-                                              @"enabled", @"selected", @"style",
-                                              @"image", @"backgroundHighlightedImage",
-                                              @"backgroundDisabledImage", @"backgroundSelectedImage",
-                                              @"backgroundFocusedImage", @"verticalAlign",
-                                              @"textAlign", @"font", @"backgroundPaddingLeft",
-                                              @"backgroundPaddingRight",
-                                              @"backgroundPaddingBottom", @"backgroundPaddingTop",
-                                              @"shadowOffset", @"shadowRadius", @"shadowColor",
-                                              @"padding",
-                                              @"wordWrap", @"borderWidth", nil]];
-}
-
 -(id)init
 {
     if (self = [super init]) {
@@ -91,38 +74,9 @@
 	return button;
 }
 
--(CGFloat) verifyWidth:(CGFloat)suggestedWidth
-{
-	switch((int)styleCache)
-	{
-		case UITitaniumNativeItemInfoLight:
-		case UITitaniumNativeItemInfoDark:
-			return 18;
-		case UITitaniumNativeItemDisclosure:
-			return 29;
-		default: {
-			break;
-		}
-	}
-	return suggestedWidth;
+-(UIButton*)button {
+    return [(TiUIButton*)view button];
 }
-
--(CGFloat) verifyHeight:(CGFloat)suggestedHeight
-{
-	switch((int)styleCache)
-	{
-		case UITitaniumNativeItemInfoLight:
-		case UITitaniumNativeItemInfoDark:
-			return 19;
-		case UITitaniumNativeItemDisclosure:
-			return 31;
-		default: {
-			break;
-		}
-	}
-	return suggestedHeight;
-}
-
 
 -(UIViewAutoresizing) verifyAutoresizing:(UIViewAutoresizing)suggestedResizing
 {
@@ -172,14 +126,14 @@
 	return toolbar!=nil;
 }
 
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message checkForListener:(BOOL)checkForListener
 {
 	if (![TiUtils boolValue:[self valueForKey:@"enabled"] def:YES])
 	{
 		//Rogue event. We're supposed to be disabled!
 		return;
 	}
-	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message];
+	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message checkForListener:checkForListener];
 }
 
 -(TiDimension)defaultAutoWidthBehavior:(id)unused
@@ -197,7 +151,13 @@
     if (view != nil)
         [(TiUIButton*)view setPadding:_padding];
     [self contentsWillChange];
+    [self replaceValue:value forKey:@"padding" notification:NO];
 }
+
+-(id)padding {
+    return [self valueForUndefinedKey:@"padding"];
+}
+
 
 -(void)configurationSet
 {
@@ -216,7 +176,7 @@
         CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
         maxSize.width -= _padding.left + _padding.right;
         
-        UILineBreakMode breakMode = UILineBreakModeWordWrap;
+        NSLineBreakMode breakMode = NSLineBreakByWordWrapping;
         id fontValue = [self valueForKey:@"font"];
         UIFont * font;
         if (fontValue!=nil)

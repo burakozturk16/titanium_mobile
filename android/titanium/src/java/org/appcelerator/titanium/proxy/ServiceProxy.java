@@ -22,6 +22,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 
 @Kroll.proxy
@@ -35,7 +36,7 @@ public class ServiceProxy extends KrollProxy {
     public static final String EVENT_STARTED = "started";
     protected Service service = null;
     protected TiServiceInterface tiService = null;
-    private boolean forBoundServices;
+//    private boolean forBoundServices;
 
     // private Service service;
     private int serviceInstanceId;
@@ -67,7 +68,7 @@ public class ServiceProxy extends KrollProxy {
      */
     public ServiceProxy(IntentProxy intentProxy) {
         setIntent(intentProxy);
-        forBoundServices = true;
+//        forBoundServices = true;
     }
 
     /**
@@ -110,6 +111,10 @@ public class ServiceProxy extends KrollProxy {
             @Override
             public void onDestroy(Activity activity) {
                 realUnbind();
+            }
+
+            @Override
+            public void onCreate(Activity activity, Bundle savedInstanceState) {
             }
         };
         TiApplication.getInstance().getRootActivity()
@@ -210,7 +215,7 @@ public class ServiceProxy extends KrollProxy {
 
     protected void bindAndInvokeService() {
         Context context = TiApplication.getInstance();
-        String className = serviceClass().toString();
+//        String className = serviceClass().toString();
         boolean alreadStarted = isServiceRunning();
         Intent intent = getIntent().getIntent();
         if (!alreadStarted) {

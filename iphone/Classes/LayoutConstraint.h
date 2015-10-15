@@ -5,6 +5,7 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
+
 #import <UIKit/UIKit.h>
 #import "TiDimension.h"
 #import "TiUtils.h"
@@ -14,6 +15,7 @@
 @optional
 
 -(CGSize)minimumParentSizeForSize:(CGSize)size;
+-(CGSize)minimumParentSizeForSizeNoPadding:(CGSize)size;
 
 -(CGSize)autoSizeForSize:(CGSize)size;
 
@@ -28,6 +30,7 @@
 -(TiDimension)defaultAutoHeightBehavior:(id)unused;
 
 @end
+#ifndef TI_USE_AUTOLAYOUT
 
 typedef enum {
 	TiLayoutRuleAbsolute,
@@ -94,6 +97,8 @@ typedef struct LayoutConstraint {
 	TiDimension maximumWidth;
     
     BOOL fullscreen;
+    CGFloat sizeRatio;
+    CGFloat weight;
 	
 } LayoutConstraint;
 
@@ -110,3 +115,5 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
 CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * constraint, LayoutConstraint * parentConstraint, TiViewProxy* viewProxy, CGSize viewSize, CGPoint anchorPoint, CGSize referenceSize, CGSize sandboxSize, UIViewAutoresizing * resultResizing);
 BOOL IsLayoutUndefined(LayoutConstraint *constraint);
 CGSize minmaxSize(LayoutConstraint * constraint, CGSize size, CGSize parentSize);
+
+#endif

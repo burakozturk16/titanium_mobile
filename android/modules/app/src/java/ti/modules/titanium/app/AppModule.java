@@ -17,20 +17,25 @@ import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.TiProperties;
+import org.appcelerator.titanium.util.TiActivityHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiPlatformHelper;
-import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiSensorHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.view.accessibility.AccessibilityEventCompat;
 import android.support.v4.view.accessibility.AccessibilityManagerCompat;
@@ -42,9 +47,12 @@ import android.view.accessibility.AccessibilityManager;
 public class AppModule extends KrollModule implements SensorEventListener
 {
 	private static final String TAG = "AppModule";
+	
+	private static final String APP_UUID_STRING = "com.appcelerator.uuid";
 
 	@Kroll.constant public static final String EVENT_ACCESSIBILITY_ANNOUNCEMENT = "accessibilityannouncement";
-	@Kroll.constant public static final String EVENT_ACCESSIBILITY_CHANGED = "accessibilitychanged";
+    @Kroll.constant public static final String EVENT_ACCESSIBILITY_CHANGED = "accessibilitychanged";
+    @Kroll.constant public static final String EVENT_SIGNIFICANT_TIME_CHANGED = "significanttime";
 
 	private ITiAppInfo appInfo;
 	private AccessibilityStateChangeListenerCompat accessibilityStateChangeListener = null;
@@ -52,7 +60,9 @@ public class AppModule extends KrollModule implements SensorEventListener
 	private boolean proximityDetection = false;
 	private boolean proximityState;
 	private int proximityEventListenerCount = 0;
-	
+	private int appVersionCode = -1;
+	private String appVersionName;
+
 	private KrollDict licenseDict = null;
 
 	public AppModule()
@@ -71,6 +81,19 @@ public class AppModule extends KrollModule implements SensorEventListener
 	public void onDestroy() {
 		TiApplication.getInstance().removeAppEventProxy(this);
 	}
+	
+    private void initializeVersionValues()
+    {
+        PackageInfo pInfo;
+        try {
+            pInfo = TiApplication.getInstance().getPackageManager()
+                .getPackageInfo(TiApplication.getInstance().getPackageName(), 0);
+            appVersionCode = pInfo.versionCode;
+            appVersionName = pInfo.versionName;
+        } catch (NameNotFoundException e) {
+            Log.e(TAG, "Unable to get package info", e);
+        }
+    }
 
 	@Kroll.getProperty @Kroll.method
 	public String getId() {
@@ -91,6 +114,17 @@ public class AppModule extends KrollModule implements SensorEventListener
 	public String getVersion() {
 		return appInfo.getVersion();
 	}
+	
+    @Kroll.getProperty
+    @Kroll.method
+    public String getVersionName()
+    {
+        if (appVersionName == null) {
+            initializeVersionValues();
+        }
+        return appVersionName;
+    }
+
 
 	@Kroll.getProperty @Kroll.method
 	public String getPublisher() {
@@ -154,12 +188,42 @@ public class AppModule extends KrollModule implements SensorEventListener
 	public String getSessionId() {
 		return TiPlatformHelper.getInstance().getSessionId();
 	}
+	   
+    @Kroll.getProperty @Kroll.method
+    public String getInstallId() {
+        return appIdentifier();
+    }
+    
 	
 	@Kroll.getProperty @Kroll.method
 	public boolean getAnalytics() {
 		return appInfo.isAnalyticsEnabled();
 	}
 	
+	@Kroll.getProperty @Kroll.method
+    public long getBuildDate() {
+        return appInfo.getBuildDate();
+    }
+	
+	@Kroll.getProperty @Kroll.method
+    public int getBuildNumber() {
+        if (appVersionCode == -1) {
+            initializeVersionValues();
+        }
+        return appVersionCode;
+    }
+	
+	public String appIdentifier()
+	{
+	    final TiProperties prefs = TiApplication.getInstance().getAppProperties();
+        String appIdentifier = prefs.getString(APP_UUID_STRING, null);
+        if (appIdentifier == null) {
+            appIdentifier = TiPlatformHelper.getInstance().createUUID();
+            prefs.setString(APP_UUID_STRING, appIdentifier);
+        }
+	    return appIdentifier;
+	}
+    
 	@Kroll.method
 	public String appURLToPath(String url) {
 		return resolveUrl(null, url);
@@ -171,7 +235,7 @@ public class AppModule extends KrollModule implements SensorEventListener
 		AccessibilityManager manager = TiApplication.getInstance().getAccessibilityManager();
 		boolean enabled = manager.isEnabled();
 
-		if (!enabled && Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+		if (!enabled && !TiC.HONEYCOMB_OR_GREATER) {
 			// Prior to Honeycomb, AccessibilityManager.isEnabled() would sometimes
 			// return false erroneously the because manager service would asynchronously set the
 			// enabled property in the manager client. So when checking the value, it
@@ -191,17 +255,35 @@ public class AppModule extends KrollModule implements SensorEventListener
         return TiApplication.getInstance().isPaused();
     }
 
-	@Kroll.method(name = "_restart")
-	public void restart()
+
+	@Kroll.method
+	public void restart(@Kroll.argument(optional = true) Object arg)
 	{
-		Application app = (Application) KrollRuntime.getInstance().getKrollApplication();
-		Intent i = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
-		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		i.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-		i.addCategory(Intent.CATEGORY_LAUNCHER);
-		i.setAction(Intent.ACTION_MAIN);
-		app.startActivity(i);
+	    int delay = TiConvert.toInt(arg, 250);
+        AlarmManager restartAlarmManager = (AlarmManager) TiApplication.getAppSystemService(Context.ALARM_SERVICE);
+        if (restartAlarmManager != null) {
+            final Context context = TiApplication.getAppContext();
+            Intent relaunch = new Intent( context, TiApplication.getInstance().getRootActivity().getClass());
+            relaunch.setAction(Intent.ACTION_MAIN);
+            relaunch.addCategory(Intent.CATEGORY_LAUNCHER);
+            PendingIntent restartPendingIntent = PendingIntent.getActivity( context, 0, relaunch, PendingIntent.FLAG_ONE_SHOT);
+            restartAlarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + delay, restartPendingIntent);
+            TiApplication.getInstance().getRootActivity().finish();
+//            System.exit(0);
+        }
 	}
+	
+	@Kroll.method(name = "_restart")
+    public void internalRestart()
+    {
+        Application app = (Application) KrollRuntime.getInstance().getKrollApplication();
+        Intent i = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        i.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        i.setAction(Intent.ACTION_MAIN);
+        app.startActivity(i);
+    }
 
 	@Kroll.method
 	public void fireSystemEvent(String eventName, @Kroll.argument(optional = true) Object arg)
@@ -231,10 +313,23 @@ public class AppModule extends KrollModule implements SensorEventListener
 	}
 	
 	@Kroll.method
-	public void clearImageCache()
+	public void clearImageMemoryCache()
 	{
-		TiResponseCache.clearCache();
+        TiApplication.getImageMemoryCache().clear();
 	}
+
+    @Kroll.method
+    public void clearImageDiskCache()
+    {
+        TiApplication.clearDiskCache("image");
+    }
+
+    @Kroll.method
+    public void clearImageCache()
+    {
+        TiApplication.getImageMemoryCache().clear();
+        TiApplication.clearDiskCache("image");
+    }
 
 	@Override
 	public void onHasListenersChanged(String event, boolean hasListeners)
@@ -357,5 +452,29 @@ public class AppModule extends KrollModule implements SensorEventListener
 	{
 		return "Ti.App";
 	}
+	
+    @Kroll.getProperty
+    @Kroll.method
+    public KrollDict getFullInfo() {
+        KrollDict result = new KrollDict();
+        result.put("version", getVersion());
+        result.put("versionName", getVersionName());
+        result.put("buildDate", getBuildDate());
+        result.put("buildNumber", getBuildNumber());
+        result.put("deployType", getDeployType());
+        result.put("description", getDescription());
+        result.put("copyright", getCopyright());
+        result.put("publisher", getPublisher());
+        result.put("id", getId());
+        result.put("name", getName());
+        result.put("installId", getInstallId());
+        return result;
+    }
+    
+    @Kroll.method
+    @Kroll.getProperty
+    public double getDefaultBarHeight() {
+        return TiActivityHelper.getActionBarHeight(TiApplication.getInstance().getCurrentActivity());
+    }
 
 }

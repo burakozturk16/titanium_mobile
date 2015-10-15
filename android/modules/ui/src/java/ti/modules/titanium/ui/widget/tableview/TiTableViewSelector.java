@@ -10,18 +10,20 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
 
 import ti.modules.titanium.ui.TableViewRowProxy;
+import ti.modules.titanium.ui.widget.CustomListView;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.ListView;
 
 
 public class TiTableViewSelector extends Drawable
 {
-	private ListView listView;
+	private CustomListView listView;
 	private Drawable defaultDrawable;
 	private Drawable selectedDrawable;
 	private TableViewRowProxy selectedRowProxy;
@@ -30,11 +32,15 @@ public class TiTableViewSelector extends Drawable
 	private ColorFilter colorFilter;
 
 
-	public TiTableViewSelector(ListView listView)
+    private AbsListView getInternalListView() {
+        return listView.getWrappedList();
+    }
+    
+	public TiTableViewSelector(CustomListView listView)
 	{
 		this.listView = listView;
 
-		defaultDrawable = listView.getSelector();
+		defaultDrawable = getInternalListView().getSelector();
 		selectedDrawable = defaultDrawable;
 	}
 
@@ -75,7 +81,7 @@ public class TiTableViewSelector extends Drawable
 	{
 
 		Rect currentBounds = getBounds();
-		int currentPosition = listView.pointToPosition(currentBounds.centerX(), currentBounds.centerY());
+		int currentPosition = getInternalListView().pointToPosition(currentBounds.centerX(), currentBounds.centerY());
 
 		getRowDrawable(listView.getChildAt(currentPosition - listView.getFirstVisiblePosition()));
 		if (selectedDrawable != null) {

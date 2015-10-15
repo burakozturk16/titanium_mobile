@@ -39,7 +39,7 @@ import org.json.simple.JSONValue;
 @SupportedAnnotationTypes({
 	KrollJSONGenerator.Kroll_proxy,
 	KrollJSONGenerator.Kroll_module})
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedOptions({KrollJSONGenerator.PROPERTY_JSON_PACKAGE, KrollJSONGenerator.PROPERTY_JSON_FILE})
 @SuppressWarnings("unchecked")
 public class KrollJSONGenerator extends AbstractProcessor {
@@ -63,6 +63,7 @@ public class KrollJSONGenerator extends AbstractProcessor {
 	protected static final String Kroll_dynamicApis = Kroll_annotation + ".dynamicApis";
 	protected static final String Kroll_interceptor = Kroll_annotation + ".interceptor";
 	protected static final String Kroll_onAppCreate = Kroll_annotation + ".onAppCreate"; 
+	protected static final String Kroll_onVerifyModule = Kroll_annotation + ".onVerifyModule"; 
 
 	protected static final String KrollInvocation = "org.appcelerator.kroll.KrollInvocation";
 	protected static final String KrollConverter = Kroll_package + ".KrollConverter";
@@ -349,7 +350,7 @@ public class KrollJSONGenerator extends AbstractProcessor {
 		{
 			utils.acceptAnnotations(e, new String[] {
 				Kroll_method, Kroll_getProperty, Kroll_setProperty,
-				Kroll_inject, Kroll_topLevel, Kroll_onAppCreate, Kroll_interceptor }, this, e);
+				Kroll_inject, Kroll_topLevel, Kroll_onAppCreate, Kroll_onVerifyModule, Kroll_interceptor }, this, e);
 			return null;
 		}
 
@@ -379,6 +380,8 @@ public class KrollJSONGenerator extends AbstractProcessor {
 					visitInterceptor(annotation, element);
 				} else if (utils.annotationTypeIs(annotation, Kroll_onAppCreate)) {
 					visitOnAppCreate(annotation, element);
+				} else if (utils.annotationTypeIs(annotation, Kroll_onVerifyModule)) {
+					visitOnVerifyModule(annotation, element);
 				} else {
 					visitMethod(annotation, element);
 				}
@@ -659,6 +662,11 @@ public class KrollJSONGenerator extends AbstractProcessor {
 		protected void visitOnAppCreate(AnnotationMirror annotation, Element element)
 		{
 			proxyProperties.put("onAppCreate", utils.getName(element));
+		}
+
+		protected void visitOnVerifyModule(AnnotationMirror annotation, Element element)
+		{
+			proxyProperties.put("onVerifyModule", utils.getName(element));
 		}
 	}
 

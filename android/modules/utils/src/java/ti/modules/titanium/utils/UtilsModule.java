@@ -13,8 +13,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -22,10 +22,11 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiFileProxy;
-import org.appcelerator.titanium.io.TiBaseFile;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
+import org.appcelerator.titanium.util.TiUIHelper;
 
-import android.util.Base64InputStream;
+import android.util.Base64;
 
 @Kroll.module
 public class UtilsModule extends KrollModule
@@ -57,10 +58,10 @@ public class UtilsModule extends KrollModule
 	public TiBlob base64encode(Object obj)
 	{
 		if (obj instanceof TiBlob) {
-			return TiBlob.blobFromString(((TiBlob) obj).toBase64());
+			return TiBlob.blobFromObject(((TiBlob) obj).toBase64());
 		} else if (obj instanceof TiFileProxy) {
 			try {
-				return TiBlob.blobFromStreamBase64(((TiFileProxy) obj).getInputStream(),
+				return TiBlob.blobFromObject(((TiFileProxy) obj).getInputStream(),
 					TiMimeTypeHelper.getMimeType(((TiFileProxy) obj).getBaseFile().nativePath()));
 			} catch (IOException e) {
 				Log.e(TAG, "Problem reading file");
@@ -69,7 +70,7 @@ public class UtilsModule extends KrollModule
 		String data = convertToString(obj);
 		if (data != null) {
 			try {
-				return TiBlob.blobFromString(new String(Base64.encodeBase64(data.getBytes("UTF-8")), "UTF-8"));
+				return TiBlob.blobFromObject(Base64.encodeToString(data.getBytes("UTF-8"), Base64.NO_WRAP));
 			} catch (UnsupportedEncodingException e) {
 				Log.e(TAG, "UTF-8 is not a supported encoding type");
 			}
@@ -83,7 +84,7 @@ public class UtilsModule extends KrollModule
 		String data = convertToString(obj);
 		if (data != null) {
 			try {
-				return TiBlob.blobFromData(Base64.decodeBase64(data.getBytes("UTF-8")));
+				return TiBlob.blobFromObject(Base64.encodeToString(data.getBytes("UTF-8"), Base64.NO_WRAP));
 			} catch (UnsupportedEncodingException e) {
 				Log.e(TAG, "UTF-8 is not a supported encoding type");
 			}
@@ -183,4 +184,5 @@ public class UtilsModule extends KrollModule
 	{
 		return "Ti.Utils";
 	}
+
 }

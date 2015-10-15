@@ -29,6 +29,7 @@
  @see http://developer.appcelerator.com/apidoc/mobile/latest/Font-object.html
  */
 @property(nonatomic,retain) NSString *family;
+@property(nonatomic,retain) NSString *weight;
 
 /**
  Provides access to the font size.

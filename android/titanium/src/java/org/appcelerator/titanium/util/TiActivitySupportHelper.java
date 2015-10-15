@@ -51,13 +51,17 @@ public class TiActivitySupportHelper
 		TiActivityResultHandler wrapper = new TiActivityResultHandler() {
 			public void onError(Activity activity, int requestCode, Exception e)
 			{
-				resultHandler.onError(activity, requestCode, e);
+			    if (resultHandler != null) {
+	                resultHandler.onError(activity, requestCode, e);
+			    }
 				removeResultHandler(code);
 			}
 
 			public void onResult(Activity activity, int requestCode, int resultCode, Intent data)
 			{
-				resultHandler.onResult(activity, requestCode, resultCode, data);
+                if (resultHandler != null) {
+                    resultHandler.onResult(activity, requestCode, resultCode, data);
+                }
 				removeResultHandler(code);
 			}
 		};

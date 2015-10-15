@@ -8,7 +8,6 @@
 #import "KrollContext.h"
 #import "KrollObject.h"
 #import "TiUtils.h"
-#import "TiBase.h"
 #import "TiExceptionHandler.h"
 
 @implementation KrollTimer
@@ -75,7 +74,7 @@
 
 -(NSString*)description
 {
-	return [NSString stringWithFormat:@"KrollTimer<%d>",[self hash]];
+	return [NSString stringWithFormat:@"KrollTimer<%lu>",(unsigned long)[self hash]];
 }
 
 -(void)main
@@ -108,9 +107,17 @@
 		[date release];
 		date = [[NSDate alloc] initWithTimeIntervalSinceNow:duration/1000];
 
+#ifndef TI_USE_KROLL_THREAD
+        if (![NSThread isMainThread]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [kroll invokeOnThread:self method:@selector(invokeWithCondition:) withObject:invokeCond condition:nil];
+            });
+        } else
+#endif
+        {
 		// push the invocation to happen on the context thread
-		[kroll invokeOnThread:self method:@selector(invokeWithCondition:) withObject:invokeCond condition:nil];
-
+            [kroll invokeOnThread:self method:@selector(invokeWithCondition:) withObject:invokeCond condition:nil];
+        }
 		[loopPool release];
 		[invokeCond lockWhenCondition:1];
 		[invokeCond unlockWithCondition:0];

@@ -6,10 +6,10 @@
  */
 #ifdef USE_TI_UIWEBVIEW
 
-#import "TiViewProxy.h"
+#import "TiScrollingViewProxy.h"
 #import "TiEvaluator.h"
 
-@interface TiUIWebViewProxy : TiViewProxy<TiEvaluator> {
+@interface TiUIWebViewProxy : TiScrollingViewProxy<TiEvaluator> {
 @private
 	NSString *pageToken;
     NSString *evalResult;

@@ -18,6 +18,23 @@ var tiBinding = kroll.binding('Titanium'),
 
 var TAG = "Titanium";
 
+Function.prototype.bind = function(oThis) {
+    if (typeof this !== "function") {
+        // closest thing possible to the ECMAScript 5 internal IsCallable function
+        throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+    }
+    var aArgs = Array.prototype.slice.call(arguments, 1),
+        fToBind = this,
+        fNOP = function() {},
+        fBound = function() {
+            return fToBind.apply(this instanceof fNOP && oThis ? this : oThis, aArgs.concat(Array.prototype.slice.call(
+                arguments)));
+        };
+    fNOP.prototype = this.prototype;
+    fBound.prototype = new fNOP();
+    return fBound;
+};
+
 // The app entry point
 Titanium.sourceUrl = "app://app.js";
 
@@ -48,10 +65,19 @@ bootstrap.defineLazyBinding(Titanium, "API")
 // Ti.Android.currentActivity, and others are implemented.
 function TitaniumWrapper(context) {
 	var sourceUrl = this.sourceUrl = context.sourceUrl;
+	
 
 	// The "context" specific global object
 	this.global = context.global;
 	var self = this;
+
+	{
+		var value = sourceUrl.replace("app://", "");
+		var splitValue = value.split('/');
+		if (splitValue.length > 1 || stringEndsWith(value, '.js')) 
+			value = splitValue.slice(0, -1).join('/');
+		this.resourcesRelativePath = value;
+	}
 
 	// Special version of include to handle relative paths based on sourceUrl.
 	this.include = function() {
@@ -77,16 +103,11 @@ function TitaniumWrapper(context) {
 	this.Android = new AndroidWrapper(context);
 	this.UI = new UIWrapper(context, this.Android);
 
-	Object.defineProperty(this, "resourcesRelativePath", {
-		get: function() {
-
-			var value = context.sourceUrl.replace("app://", "");
-			var splitValue = value.split('/');
-			if (splitValue.length > 1 || stringEndsWith(value, '.js')) 
-				value = value.split('/').slice(0, -1).join('/');
-			return value;
-		}
-	});
+	// Object.defineProperty(this, "resourcesRelativePath", {
+	// 	get: function() {
+	// 		return self.resourcesRelativePath;
+	// 	}
+	// });
 
 	var scopeVars = new kroll.ScopeVars({
 		sourceUrl: sourceUrl,
@@ -130,13 +151,13 @@ AndroidWrapper.prototype = Titanium.Android;
 // -----------------------------------------------------------------------
 
 function createSandbox(ti, sourceUrl) {
-	var newSandbox = { Ti: ti, Titanium: ti };
+	var newSandbox = {
+		Ti: ti,
+		Titanium: ti
+	};
 
 	// The require function we want to wrap for this context
-	var contextRequire = global.require;
-	if (ti.global) {
-		contextRequire = ti.global.require;
-	}
+	var contextRequire = undefined;
 
 	// Wrap require in Ti.include contexts so the relative sourceUrl is correct
 	newSandbox.require = function(path, context) {
@@ -146,6 +167,10 @@ function createSandbox(ti, sourceUrl) {
 
 		if (!context.sourceUrl) {
 			context.sourceUrl = sourceUrl;
+		}
+
+		if (contextRequire === undefined) {
+			contextRequire = ti.global ? ti.global.require : global.require;
 		}
 
 		return contextRequire(path, context, sourceUrl);
@@ -221,7 +246,11 @@ function TiInclude(filename, baseUrl, scopeVars) {
 	var ti = new TitaniumWrapper(scopeVars);
 
 	var inModule = false;
-	var modulePath = filename.split('/')[0];
+	var modulePath = filename;
+	if (modulePath[0] === '/') {
+		modulePath = modulePath.slice(1);
+	}
+	modulePath = modulePath.split('/')[0];
 	if (!stringEndsWith(modulePath, '.js')) //discard case app.js
 	{
 		inModule = kroll.isExternalCommonJsModule(modulePath);
@@ -324,18 +353,6 @@ Object.defineProperty(Proxy.prototype, "setPropertiesAndFire", {
 
 // Custom native modules
 bootstrap.defineLazyBinding(Titanium, "API");
-
-Object.defineProperty(Titanium, "Yahoo", {
-	get: function() {
-		delete this.Yahoo;
-		delete this.__proto__.Yahoo;
-
-		var value = require("yahoo").bootstrap(Titanium);
-		this.Yahoo = this.__proto__.Yahoo = value;
-
-		return value;
-	}
-});
 
 // Do not serialize the parent view. Doing so will result
 // in a circular reference loop.

@@ -11,17 +11,17 @@
  */
 @interface TiViewAnimation (Friend)
 
-@property(nonatomic,retain,readwrite) NSNumber	*zIndex;
-@property(nonatomic,retain,readwrite) TiPoint	*center;
-@property(nonatomic,retain,readwrite) TiColor	*color;
-@property(nonatomic,retain,readwrite) TiColor	*backgroundColor;
-@property(nonatomic,retain,readwrite) NSNumber	*opacity;
-@property(nonatomic,retain,readwrite) NSNumber	*opaque;
-@property(nonatomic,retain,readwrite) NSNumber	*visible;
-@property(nonatomic,retain,readwrite) TiProxy	*transform;
+//@property(nonatomic,retain,readwrite) NSNumber	*zIndex;
+//@property(nonatomic,retain,readwrite) TiPoint	*center;
+//@property(nonatomic,retain,readwrite) TiColor	*color;
+//@property(nonatomic,retain,readwrite) TiColor	*backgroundColor;
+//@property(nonatomic,retain,readwrite) NSNumber	*opacity;
+//@property(nonatomic,retain,readwrite) NSNumber	*opaque;
+//@property(nonatomic,retain,readwrite) NSNumber	*visible;
+//@property(nonatomic,retain,readwrite) TiProxy	*transform;
 @property (nonatomic, retain) TiViewProxy* tiViewProxy;
 
--(void)checkParameters;
+//-(void)checkParameters;
 -(void)applyOnView:(UIView*)_view forStep:(TiViewAnimationStep*) step;
 
 @end

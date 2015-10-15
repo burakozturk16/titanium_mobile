@@ -39,6 +39,10 @@
  */
 @property (nonatomic, readonly)	NSString *backtrace;
 
+@property (nonatomic, readonly) NSString *scriptLocation;
+
+@property (nonatomic, readwrite, copy) NSString *sourceLine;
+
 - (id)initWithMessage:(NSString *)message sourceURL:(NSString *)sourceURL lineNo:(NSInteger)lineNo;
 - (id)initWithDictionary:(NSDictionary *)dictionary;
 
@@ -46,6 +50,7 @@
  * Returns detailed description.
  */
 - (NSString *)detailedDescription;
+- (NSString *)stackDescription;
 - (NSString *)oneLineDescription;
 
 @end

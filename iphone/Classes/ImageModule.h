@@ -1,4 +1,5 @@
 
+#ifdef USE_TI_IMAGE
 #import "TiModule.h"
 
 @class GPUImageFilter;
@@ -9,3 +10,5 @@
 @property(nonatomic,readonly) NSNumber* FILTER_IOS_BLUR;
 
 @end
+
+#endif

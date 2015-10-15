@@ -19,6 +19,8 @@ import android.app.NotificationManager;
 @Kroll.module(parentModule=AndroidModule.class)
 public class NotificationManagerModule extends KrollModule
 {
+    
+    protected static final String TAG = "NotificationManagerModule";
 	protected static final int PENDING_INTENT_FOR_ACTIVITY = 0;
 	protected static final int PENDING_INTENT_FOR_SERVICE = 1;
 	protected static final int PENDING_INTENT_FOR_BROADCAST = 2;
@@ -34,6 +36,7 @@ public class NotificationManagerModule extends KrollModule
 	@Kroll.constant public static final int FLAG_ONGOING_EVENT = Notification.FLAG_ONGOING_EVENT;
 	@Kroll.constant public static final int FLAG_ONLY_ALERT_ONCE = Notification.FLAG_ONLY_ALERT_ONCE;
 	@Kroll.constant public static final int FLAG_SHOW_LIGHTS = Notification.FLAG_SHOW_LIGHTS;
+	@SuppressWarnings("deprecation")
 	@Kroll.constant public static final int STREAM_DEFAULT = Notification.STREAM_DEFAULT;
 
 
@@ -79,11 +82,17 @@ public class NotificationManagerModule extends KrollModule
 	}
 	
 	@Kroll.method
-	public void notify(int id, NotificationProxy notificationProxy)
+	public void notify(int id, Object notificationValue)
 	{
+	    NotificationProxy notificationProxy = NotificationProxy.fromObject(notificationValue);
 		NotificationManager manager = getManager();
 		if (manager != null && notificationProxy != null) {
-			manager.notify(id, notificationProxy.getNotification());
+		    try {
+		        notificationProxy.setCurrentId(id);
+	            getManager().notify(id, notificationProxy.getNotification());
+            } catch (Exception e) {
+                
+            }
 		}
 	}
 

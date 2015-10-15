@@ -2,6 +2,7 @@ package org.appcelerator.titanium.animation;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.TiMessenger.CommandNoReturn;
 
 @Kroll.proxy
 public class TiAnimation extends KrollProxy {
@@ -25,14 +26,27 @@ public class TiAnimation extends KrollProxy {
 	
 	@Kroll.method
 	public void cancel() {
-		if (animator != null)
-			animator.cancel();
+	    runInUiThread(new CommandNoReturn() {
+            @Override
+            public void execute() {
+                if (animator != null) {
+                    animator.cancel();
+                }
+            }
+        }, true);
+		
 	}
 	
 	@Kroll.method
 	public void cancelWithoutResetting() {
-		if (animator != null)
-			animator.cancelWithoutResetting();
+	    runInUiThread(new CommandNoReturn() {
+            @Override
+            public void execute() {
+                if (animator != null) {
+                    animator.cancelWithoutResetting();
+                }
+            }
+        }, true);
 	}
 
 }

@@ -17,7 +17,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBlob;
@@ -30,6 +29,7 @@ import org.appcelerator.titanium.util.TiMimeTypeHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.WebViewProxy;
@@ -43,12 +43,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 @SuppressLint("NewApi")
-public class TiUIWebView extends TiUIView
+public class TiUIWebView extends TiUINonViewGroupView
 {
 
 	private static final String TAG = "TiUIWebView";
@@ -99,12 +98,32 @@ public class TiUIWebView extends TiUIView
         {
             return true;
         }
+		
+		@Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            if (touchPassThrough(this, event))
+                return false;
+            return super.dispatchTouchEvent(event);
+        }
+		
+		@Override
+        public boolean onInterceptTouchEvent(MotionEvent event) {
+            if (mScrollingEnabled && isTouchEnabled) {
+                return super.onInterceptTouchEvent(event);
+            }
+            return false;
+        }
+		
+        @Override
+	    public boolean canScrollHorizontally(int direction) {
+            if (!mScrollingEnabled || !isTouchEnabled) return false;
+            return super.canScrollHorizontally(direction);
+	    }
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event)
 		{
-			
-			boolean handled = false;
+//			boolean handled = false;
 			
 			switch (event.getAction()) {
                 case MotionEvent.ACTION_MOVE:
@@ -134,7 +153,6 @@ public class TiUIWebView extends TiUIView
             return super.onTouchEvent(event);
 		}
 
-		@SuppressWarnings("deprecation")
 		@Override
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 		{
@@ -170,6 +188,9 @@ public class TiUIWebView extends TiUIView
 		boolean isHTC = false;
 		
 		FeatureInfo[] features = TiApplication.getInstance().getApplicationContext().getPackageManager().getSystemAvailableFeatures();
+		if(features == null) { 
+			return isHTC;
+		}
 		for (FeatureInfo f : features) {
 			String fName = f.name;
 			if (fName != null) {
@@ -189,28 +210,13 @@ public class TiUIWebView extends TiUIView
 	{
 		super(proxy);
 		this.isFocusable = true;
-		TiWebView webView = isHTCSenseDevice() ? new TiWebView(proxy.getActivity()){
-			@Override
-			public boolean dispatchTouchEvent(MotionEvent event) {
-				if (touchPassThrough == true)
-					return false;
-				return super.dispatchTouchEvent(event);
-			}
-		} : new NonHTCWebView(proxy.getActivity()){
-			@Override
-			public boolean dispatchTouchEvent(MotionEvent event) {
-				if (touchPassThrough == true)
-					return false;
-				return super.dispatchTouchEvent(event);
-			}
-		};
+		TiWebView webView = isHTCSenseDevice() ? new TiWebView(proxy.getActivity()) : new NonHTCWebView(proxy.getActivity());
 		webView.setVerticalScrollbarOverlay(true);
 
 		WebSettings settings = webView.getSettings();
 		settings.setUseWideViewPort(true);
 		settings.setJavaScriptEnabled(true);
 		settings.setSupportMultipleWindows(true);
-		settings.setJavaScriptCanOpenWindowsAutomatically(true);
 		settings.setJavaScriptCanOpenWindowsAutomatically(true);
 		settings.setAllowFileAccess(true);
 		settings.setDomStorageEnabled(true); // Required by some sites such as Twitter. This is in our iOS WebView too.
@@ -236,7 +242,7 @@ public class TiUIWebView extends TiUIView
 		settings.setBuiltInZoomControls(enableZoom);
 		settings.setSupportZoom(enableZoom);
 
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_JELLY_BEAN) {
+		if (TiC.JELLY_BEAN_OR_GREATER) {
 			settings.setAllowUniversalAccessFromFileURLs(true); // default is "false" for JellyBean, TIMOB-13065
 		}
 
@@ -245,10 +251,14 @@ public class TiUIWebView extends TiUIView
 			initializePluginAPI(webView);
 		}
 
+        boolean enableJavascriptInterface = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_ENABLE_JAVASCRIPT_INTERFACE), true);
 		chromeClient = new TiWebChromeClient(this);
 		webView.setWebChromeClient(chromeClient);
 		client = new TiWebViewClient(this, webView);
 		webView.setWebViewClient(client);
+		if (Build.VERSION.SDK_INT > 16 || enableJavascriptInterface) {
+            client.getBinding().addJavascriptInterfaces();
+        }
 		webView.client = client;
 
 		if (proxy instanceof WebViewProxy) {
@@ -306,11 +316,11 @@ public class TiUIWebView extends TiUIView
 		}
 	}
 
-	@Override
-	protected void doSetClickable(View view, boolean clickable)
-	{
-		super.doSetClickable(view, clickable);
-	}
+//	@Override
+//	protected void doSetClickable(View view, boolean clickable)
+//	{
+//		super.doSetClickable(view, clickable);
+//	}
 	
 	public void setScrollingEnabled(Object value)
 	{
@@ -320,38 +330,86 @@ public class TiUIWebView extends TiUIView
 			mScrollingEnabled = true;
 		}
 	}
+	
+	@Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_SCALES_PAGE_TO_FIT:
+            getWebView().getSettings().setLoadWithOverviewMode(TiConvert.toBoolean(newValue));
+            break;
+        case TiC.PROPERTY_CACHE_MODE:
+            getWebView().getSettings().setCacheMode(TiConvert.toInt(newValue, AndroidModule.WEBVIEW_LOAD_DEFAULT));
+            break;
+        case TiC.PROPERTY_URL:
+            if (!TiC.URL_ANDROID_ASSET_RESOURCES.equals(TiConvert.toString(newValue))) {
+                setUrl(TiConvert.toString(newValue));
+            }
+            else {
+                setUrl(null);
+            }
+            break;
+        case TiC.PROPERTY_HTML:
+            setHtml(TiConvert.toString(newValue), (HashMap<String, Object>) (proxy.getProperty(WebViewProxy.OPTIONS_IN_SETHTML)));
+            break;
+        case TiC.PROPERTY_DATA:
+            if (newValue instanceof TiBlob) {
+                setData((TiBlob) newValue);
+            } else {
+                setData(null);
+            }
+            break;
+        case TiC.PROPERTY_LIGHT_TOUCH_ENABLED:
+            getWebView().getSettings().setLightTouchEnabled(TiConvert.toBoolean(newValue));
+            break;
+        case TiC.PROPERTY_PLUGIN_STATE:
+            setPluginState(TiConvert.toInt(newValue));
+            break;
+        case TiC.PROPERTY_SHOW_SCROLLBARS:
+            boolean value = TiConvert.toBoolean(newValue);
+            getWebView().setVerticalScrollBarEnabled(value);
+            getWebView().setHorizontalScrollBarEnabled(value);
+            break;
+        case TiC.PROPERTY_OVER_SCROLL_MODE:
+            nativeView.setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
+            break;
+        case TiC.PROPERTY_SCROLLING_ENABLED:
+            setScrollingEnabled(newValue);
+            break;
+        case TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR:
+            nativeView.setHorizontalScrollBarEnabled(TiConvert.toBoolean(newValue));
+            break;
+        case TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR:
+            nativeView.setVerticalScrollBarEnabled(TiConvert.toBoolean(newValue));
+            break;
+        case TiC.PROPERTY_ENABLE_JAVASCRIPT_INTERFACE:
+            boolean enableJavascriptInterface = TiConvert.toBoolean(newValue, true);
+            if (Build.VERSION.SDK_INT > 16 || enableJavascriptInterface) {
+                client.getBinding().addJavascriptInterfaces();
+            } else {
+                client.getBinding().removeJavascriptInterfaces();
+            }
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+        
+        if (changedProperty) {
+            // If TiUIView's propertyChanged ended up making a TiBackgroundDrawable
+            // for the background, we must set the WebView background color to transparent
+            // in order to see any of it.
+            boolean isBgRelated = (key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX) || key.startsWith(TiC.PROPERTY_BORDER_PREFIX));
+            if (isBgRelated && nativeView != null && nativeView.getBackground() instanceof TiBackgroundDrawable) {
+                nativeView.setBackgroundColor(Color.TRANSPARENT);
+            }
+        }
+    }
 
 	@Override
 	public void processProperties(KrollDict d)
 	{
 		super.processProperties(d);
-
-		if (d.containsKey(TiC.PROPERTY_SCALES_PAGE_TO_FIT)) {
-			WebSettings settings = getWebView().getSettings();
-			settings.setLoadWithOverviewMode(TiConvert.toBoolean(d, TiC.PROPERTY_SCALES_PAGE_TO_FIT));
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_CACHE_MODE)) {
-			int mode = TiConvert.toInt(d.get(TiC.PROPERTY_CACHE_MODE), AndroidModule.WEBVIEW_LOAD_DEFAULT);
-			getWebView().getSettings().setCacheMode(mode);
-		}
-
-		if (d.containsKey(TiC.PROPERTY_URL) && !TiC.URL_ANDROID_ASSET_RESOURCES.equals(TiConvert.toString(d, TiC.PROPERTY_URL))) {
-			setUrl(TiConvert.toString(d, TiC.PROPERTY_URL));
-		} else if (d.containsKey(TiC.PROPERTY_HTML)) {
-			setHtml(TiConvert.toString(d, TiC.PROPERTY_HTML), (HashMap<String, Object>) (d.get(WebViewProxy.OPTIONS_IN_SETHTML)));
-		} else if (d.containsKey(TiC.PROPERTY_DATA)) {
-			Object value = d.get(TiC.PROPERTY_DATA);
-			if (value instanceof TiBlob) {
-				setData((TiBlob) value);
-			}
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_LIGHT_TOUCH_ENABLED)) {
-			WebSettings settings = getWebView().getSettings();
-			settings.setLightTouchEnabled(TiConvert.toBoolean(d,TiC.PROPERTY_LIGHT_TOUCH_ENABLED));
-		}
-
 		// If TiUIView's processProperties ended up making a TiBackgroundDrawable
 		// for the background, we must set the WebView background color to transparent
 		// in order to see any of it.
@@ -359,82 +417,8 @@ public class TiUIWebView extends TiUIView
 			nativeView.setBackgroundColor(Color.TRANSPARENT);
 		}
 
-		if (d.containsKey(TiC.PROPERTY_PLUGIN_STATE)) {
-			setPluginState(TiConvert.toInt(d, TiC.PROPERTY_PLUGIN_STATE));
-		}
-
-		if (d.containsKey(TiC.PROPERTY_SHOW_SCROLLBARS)) {
-			boolean value = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_SCROLLBARS);
-			getWebView().setVerticalScrollBarEnabled(value);
-			getWebView().setHorizontalScrollBarEnabled(value);
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_OVER_SCROLL_MODE)) {
-			if (Build.VERSION.SDK_INT >= 9) {
-				nativeView.setOverScrollMode(TiConvert.toInt(d.get(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
-			}
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_SCROLLING_ENABLED)) {
-			setScrollingEnabled(d.get(TiC.PROPERTY_SCROLLING_ENABLED));
-		}
-
-		if (d.containsKey(TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR)) {
-			boolean showHorizontalScrollBar = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR);
-			nativeView.setHorizontalScrollBarEnabled(showHorizontalScrollBar);
-		}
-		if (d.containsKey(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR)) {
-			boolean showVerticalScrollBar = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR);
-			nativeView.setVerticalScrollBarEnabled(showVerticalScrollBar);
-		}
 	}
 
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		if (TiC.PROPERTY_URL.equals(key)) {
-			setUrl(TiConvert.toString(newValue));
-		} else if (TiC.PROPERTY_HTML.equals(key)) {
-			setHtml(TiConvert.toString(newValue));
-		} else if (TiC.PROPERTY_DATA.equals(key)) {
-			if (newValue instanceof TiBlob) {
-				setData((TiBlob) newValue);
-			}
-		} else if (TiC.PROPERTY_SCALES_PAGE_TO_FIT.equals(key)) {
-			WebSettings settings = getWebView().getSettings();
-			settings.setLoadWithOverviewMode(TiConvert.toBoolean(newValue));
-		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)) {
-			if (Build.VERSION.SDK_INT >= 9) {
-				nativeView.setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
-			}
-		} else if (TiC.PROPERTY_CACHE_MODE.equals(key)) { 
-			getWebView().getSettings().setCacheMode(TiConvert.toInt(newValue));
-		} else if (TiC.PROPERTY_SHOW_SCROLLBARS.equals(key)){
-			boolean value = TiConvert.toBoolean(newValue);
-			getWebView().setVerticalScrollBarEnabled(value);
-			getWebView().setHorizontalScrollBarEnabled(value);
-		} else if (TiC.PROPERTY_LIGHT_TOUCH_ENABLED.equals(key)) {
-			WebSettings settings = getWebView().getSettings();
-			settings.setLightTouchEnabled(TiConvert.toBoolean(newValue));
-		}else if (TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR.equals(key)) {
-			getWebView().setHorizontalScrollBarEnabled(TiConvert.toBoolean(newValue));
-		}else if (TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR.equals(key)) {
-			getWebView().setVerticalScrollBarEnabled(TiConvert.toBoolean(newValue));
-		} else if (TiC.PROPERTY_SCROLLING_ENABLED.equals(key)) {
-				setScrollingEnabled(newValue);
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
-		
-
-		// If TiUIView's propertyChanged ended up making a TiBackgroundDrawable
-		// for the background, we must set the WebView background color to transparent
-		// in order to see any of it.
-		boolean isBgRelated = (key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX) || key.startsWith(TiC.PROPERTY_BORDER_PREFIX));
-		if (isBgRelated && nativeView != null && nativeView.getBackground() instanceof TiBackgroundDrawable) {
-			nativeView.setBackgroundColor(Color.TRANSPARENT);
-		}
-	}
 
 	private boolean mightBeHtml(String url)
 	{
@@ -661,8 +645,11 @@ public class TiUIWebView extends TiUIView
 			getWebView().loadData(escapeContent(new String(blob.getBytes())), mimeType, "utf-8");
 		}
 	}
+	
+	public void evalJSAsync(final String code) {
+        getWebView().loadUrl("javascript:" + code);
+	}
 
-    @JavascriptInterface
 	public String getJSValue(String expression)
 	{
 		return client.getBinding().getJSValue(expression);

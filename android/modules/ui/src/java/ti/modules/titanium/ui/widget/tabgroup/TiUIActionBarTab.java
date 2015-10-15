@@ -20,33 +20,35 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-@SuppressLint("ValidFragment")
+@SuppressWarnings("deprecation")
 public class TiUIActionBarTab extends TiUIAbstractTab {
 
 	private static final String TAG = "TiUIActionBarTab";
+
 	public static class TabFragment extends Fragment {
 		private TiUIActionBarTab tab;
 
-		public TabFragment(TiUIActionBarTab tab) {
+		public TabFragment() {
+		}
+
+		public void setTab(TiUIActionBarTab tab) {
 			this.tab = tab;
+		}
+
+		public TiUIActionBarTab getTab() {
+			return this.tab;
 		}
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+			if (tab == null) {
+				return null;
+			}
 			return tab.getContentView();
 		}
 	}
 
 	ActionBar.Tab tab;
-
-	/**
-	 * The fragment that will provide the content view of the tab.
-	 * This fragment will be attached when the tab is selected and
-	 * detached when it is later unselected. This reference will be
-	 * initialized when the tab is first selected.
-	 */
-	TabFragment fragment;
 
 	public TiUIActionBarTab(TabProxy proxy, ActionBar.Tab tab) {
 		super(proxy);
@@ -89,8 +91,14 @@ public class TiUIActionBarTab extends TiUIAbstractTab {
 	 * when the tab is first selected to create the fragment which
 	 * will display the tab's content view.
 	 */
-	void initializeFragment() {
-		fragment = new TabFragment(this);
+
+	public TabFragment createFragment() {
+		TabFragment fragment = new TabFragment();
+		fragment.setTab(this);
+		return fragment;
 	}
 
+	public void setTabOnFragment(TabFragment fragment) {
+		fragment.setTab(this);
+	}
 }

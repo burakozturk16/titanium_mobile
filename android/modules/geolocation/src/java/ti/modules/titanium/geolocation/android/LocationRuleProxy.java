@@ -133,7 +133,13 @@ public class LocationRuleProxy extends KrollProxy
 		
 		
 		if (currentLocation == null || newLocation == null) return true;
-		
+		Object rawHeadingFilter = properties.get(TiC.PROPERTY_HEADING_FILTER);
+        if (rawHeadingFilter != null) {
+            if (TiConvert.toDouble(rawHeadingFilter, -1) <= Math.abs(currentLocation.getBearing() - newLocation.getBearing())) {
+                return true;
+            }
+        }
+        
 		float distance = currentLocation.distanceTo(newLocation);
 		
 		Object rawMinDistance = properties.get(TiC.PROPERTY_MIN_DISTANCE);

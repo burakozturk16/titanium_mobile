@@ -6,7 +6,7 @@
 -(Class) adTransitionClass {
     return [ADSwipeFadeTransition class];
 }
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
+-(void)transformView:(UIView*)view withPosition:(CGFloat)position size:(CGSize)size
 {
 //    if (position >1 || position < -1) {
 //        view.alpha = 0;
@@ -26,9 +26,9 @@
     
     float translate = position;
     float alpha = 1;
-    if (adjust) {
-        translate += -position;
-    }
+//    if (adjust) {
+//        translate += -position;
+//    }
     
     if (before) { //out
         translate += ABS(position)*decale;

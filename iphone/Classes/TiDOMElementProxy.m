@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -567,15 +567,12 @@
 	if (newNodePtr == refNodePtr)
 		return newChild;
 	
-	TiDOMNodeListProxy* nodeList = [self childNodes];
+	[[self node]releaseCachedValues];
+	NSArray* theChildren = [[self node] children];
 	
-	
-	TiDOMNodeProxy* cur= nil;
-	int max = [TiUtils intValue:[nodeList length]];
 	BOOL found = NO;
-	for (int i=0; i<max && !found; i++) {
-		cur = (TiDOMNodeProxy*)[nodeList item:[NSNumber numberWithInt:i]];
-		if ([[cur node]XMLNode] == refNodePtr) {
+	for (GDataXMLNode* cur in theChildren) {
+		if ([cur XMLNode] == refNodePtr) {
 			found = YES;
 		}
 	}
@@ -625,15 +622,12 @@
 	if (newNodePtr == refNodePtr)
 		return refChild;
 	
-	TiDOMNodeListProxy* nodeList = [self childNodes];
-	
-	
-	TiDOMNodeProxy* cur= nil;
-	int max = [TiUtils intValue:[nodeList length]];
+	[[self node]releaseCachedValues];
+	NSArray* theChildren = [[self node] children];
+    
 	BOOL found = NO;
-	for (int i=0; i<max && !found; i++) {
-		cur = (TiDOMNodeProxy*)[nodeList item:[NSNumber numberWithInt:i]];
-		if ([[cur node]XMLNode] == refNodePtr) {
+	for (GDataXMLNode* cur in theChildren) {
+		if ([cur XMLNode] == refNodePtr) {
 			found = YES;
 		}
 	}
@@ -677,13 +671,11 @@
 	
 	xmlNodePtr refNodePtr = [[oldChild node]XMLNode];
 	
-	TiDOMNodeListProxy* nodeList = [self childNodes];
-	TiDOMNodeProxy*cur = nil;
-	int max = [TiUtils intValue:[nodeList length]];
+	[[self node]releaseCachedValues];
+	NSArray* theChildren = [[self node] children];
 	BOOL found = NO;
-	for (int i=0; i<max && !found; i++) {
-		cur = (TiDOMNodeProxy*)[nodeList item:[NSNumber numberWithInt:i]];
-		if ([[cur node]XMLNode] == refNodePtr) {
+	for (GDataXMLNode* cur in theChildren) {
+		if ([cur XMLNode] == refNodePtr) {
 			found = YES;
 		}
 	}

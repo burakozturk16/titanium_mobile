@@ -7,16 +7,14 @@
 package ti.modules.titanium.ui.widget;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.proxy.TiViewProxy;
-import org.appcelerator.titanium.transition.Transition;
-import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.view.MaskableView;
 
-import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
-import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.trevorpage.tpsvg.SVGDrawable;
 
 import android.content.Context;
@@ -55,7 +53,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private boolean enableZoomControls;
 
 	private GestureDetector gestureDetector;
-	private ImageView imageView;
+	private InternalImageView imageView;
 	private ZoomControls zoomControls;
 
 	private float scaleFactor;
@@ -70,7 +68,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private Boolean configured = false;
 	private Drawable  queuedDrawable = null;
 	private Bitmap  queuedBitmap = null;
-	private Transition  queuedTransition = null;
+	private HashMap  queuedTransition = null;
 	private AnimatorSet currentTransitionSet = null;
 	
 	private ScaleType wantedScaleType = ScaleType.FIT_CENTER;
@@ -84,6 +82,60 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private WeakReference<TiViewProxy> proxy;
 
 	private ImageView oldImageView = null;
+	
+	private class InternalImageView extends ImageView {
+	    public InternalImageView(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            Drawable drawable  = imageView.getDrawable(); 
+            
+            if (!(drawable instanceof SVGDrawable)) {
+                return;
+            } 
+            imageView.setImageDrawable(null); 
+            int vWidth = w - getPaddingLeft() - getPaddingRight();
+            int vHeight = h - getPaddingTop() - getPaddingBottom();
+            ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+            imageView.setImageDrawable(drawable);
+        }
+        
+        @Override
+        public void setScaleType (ScaleType scaleType) {
+            super.setScaleType(scaleType);
+            Drawable drawable  = getDrawable(); 
+            
+            if (!(drawable instanceof SVGDrawable)) {
+                return;
+            } 
+            setImageDrawable(null); 
+            ((SVGDrawable)drawable).setScaleType(scaleType);
+            int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+            int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+            ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+            setImageDrawable(drawable);
+        } 
+        
+        @Override
+        public void setImageDrawable(Drawable drawable) {
+            if (!(drawable instanceof SVGDrawable)) {
+                super.setImageDrawable(drawable);
+                return;
+            }
+            if (getDrawable() == drawable) {
+                return;
+            }
+            SVGDrawable svg = (SVGDrawable) drawable;
+            svg.setScaleType(getScaleType());
+            int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+            int vHeight = getHeight() - getPaddingTop()
+                    - getPaddingBottom();
+            svg.adjustToParentSize(vWidth, vHeight);
+            super.setImageDrawable(svg);
+        }
+	}
 
 	public TiImageView(Context context) {
 		super(context);
@@ -102,55 +154,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		baseMatrix = new Matrix();
 		changeMatrix = new Matrix();
 
-		imageView = new ImageView(context) {
-			@Override
-			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-				Drawable drawable  = imageView.getDrawable(); 
-				
-			    if (!(drawable instanceof SVGDrawable)) {
-			        return;
-			    } 
-			    imageView.setImageDrawable(null); 
-			    int vWidth = w - getPaddingLeft() - getPaddingRight();
-			    int vHeight = h - getPaddingTop() - getPaddingBottom();
-			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
-			    imageView.setImageDrawable(drawable);
-			}
-			
-			@Override
-			public void setScaleType (ScaleType scaleType) {
-				super.setScaleType(scaleType);
-			    Drawable drawable  = getDrawable(); 
-				
-			    if (!(drawable instanceof SVGDrawable)) {
-			        return;
-			    } 
-			    setImageDrawable(null); 
-			    ((SVGDrawable)drawable).setScaleType(scaleType);
-			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
-			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
-			    setImageDrawable(drawable);
-			} 
-			
-			@Override
-			public void setImageDrawable(Drawable drawable) {
-				if (!(drawable instanceof SVGDrawable)) {
-					super.setImageDrawable(drawable);
-					return;
-				}
-				if (getDrawable() == drawable) {
-					return;
-				}
-				SVGDrawable svg = (SVGDrawable) drawable;
-				svg.setScaleType(getScaleType());
-				int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-				int vHeight = getHeight() - getPaddingTop()
-						- getPaddingBottom();
-				svg.adjustToParentSize(vWidth, vHeight);
-				super.setImageDrawable(svg);
-			}
-		};
+		imageView = new InternalImageView(context);
 		addView(imageView, getImageLayoutParams());
 		setEnableScale(true);
 
@@ -159,7 +163,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			@Override
 			public boolean onDown(MotionEvent e)
 			{
-				if (zoomControls.getVisibility() == View.VISIBLE) {
+				if (enableZoomControls && zoomControls.getVisibility() == View.VISIBLE) {
 					super.onDown(e);
 					return true;
 				} else {
@@ -173,7 +177,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			{
 				boolean retValue = false;
 				// Allow scrolling only if the image is zoomed in
-				if (zoomControls.getVisibility() == View.VISIBLE && scaleFactor > 1) {
+				if (enableZoomControls && zoomControls.getVisibility() == View.VISIBLE && scaleFactor > 1) {
 					// check if image scroll beyond its borders
 					if (!checkImageScrollBeyondBorders(dx, dy)) {
 						changeMatrix.postTranslate(-dx, -dy);
@@ -194,79 +198,39 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			}
 		});
 		gestureDetector.setIsLongpressEnabled(false);
-
-		zoomControls = new ZoomControls(context);
-		addView(zoomControls);
-		zoomControls.setVisibility(View.GONE);
-		zoomControls.setZoomSpeed(75);
-		zoomControls.setOnZoomInClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				handleScaleUp();
-			}
-		});
-		zoomControls.setOnZoomOutClickListener(new OnClickListener()
-		{
-			public void onClick(View v)
-			{
-				handleScaleDown();
-			}
-		});
+		
+		if (enableZoomControls) {
+		    createZoomControls();
+		}
+		
 
 		super.setOnClickListener(this);
 	}
 	
-	private ImageView cloneImageView(){
-		ImageView newImageView = new ImageView(getContext()) {
-			@Override
-			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-				Drawable drawable  = imageView.getDrawable(); 
-				
-			    if (!(drawable instanceof SVGDrawable)) {
-			        return;
-			    } 
-			    imageView.setImageDrawable(null); 
-			    int vWidth = w - getPaddingLeft() - getPaddingRight();
-			    int vHeight = h - getPaddingTop() - getPaddingBottom();
-			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
-			    imageView.setImageDrawable(drawable);
-			}
-			
-			@Override
-			public void setScaleType (ScaleType scaleType) {
-				super.setScaleType(scaleType);
-			    Drawable drawable  = getDrawable(); 
-				
-			    if (!(drawable instanceof SVGDrawable)) {
-			        return;
-			    } 
-			    setImageDrawable(null); 
-			    ((SVGDrawable)drawable).setScaleType(scaleType);
-			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
-			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
-			    setImageDrawable(drawable);
-			} 
-			
-			@Override
-			public void setImageDrawable(Drawable drawable) {
-				if (!(drawable instanceof SVGDrawable)) {
-					super.setImageDrawable(drawable);
-					return;
-				}
-				if (getDrawable() == drawable) {
-					return;
-				}
-				SVGDrawable svg = (SVGDrawable) drawable;
-				svg.setScaleType(getScaleType());
-				int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-				int vHeight = getHeight() - getPaddingTop()
-						- getPaddingBottom();
-				svg.adjustToParentSize(vWidth, vHeight);
-				super.setImageDrawable(svg);
-			}
-		};
+	private void createZoomControls() {
+	    if (zoomControls != null) return;
+	    zoomControls = new ZoomControls(getContext());
+        addView(zoomControls);
+        zoomControls.setVisibility(View.GONE);
+        zoomControls.setZoomSpeed(75);
+        zoomControls.setOnZoomInClickListener(new OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                handleScaleUp();
+            }
+        });
+        zoomControls.setOnZoomOutClickListener(new OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                handleScaleDown();
+            }
+        });
+	}
+	
+	private InternalImageView cloneImageView(){
+	    InternalImageView newImageView = new InternalImageView(getContext());
 		if(imageView != null) {
 			newImageView.setImageMatrix(imageView.getImageMatrix());
 			updateScaleTypeForImageView(newImageView);
@@ -294,6 +258,9 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	public void setEnableZoomControls(boolean enableZoomControls)
 	{
 		this.enableZoomControls = enableZoomControls;
+		if (enableZoomControls) {
+		    createZoomControls();
+		}
 		updateScaleType();
 	}
 
@@ -313,7 +280,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
-	public void setImageBitmapWithTransition(Bitmap bitmap, Transition transition) {
+	public void setImageBitmapWithTransition(Bitmap bitmap, HashMap transition) {
 		if (transition == null) {
 			setImageBitmap(bitmap);
 		}
@@ -323,7 +290,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				queuedBitmap = bitmap;
 				return;
 			}
-			ImageView newImageView = cloneImageView();
+			InternalImageView newImageView = cloneImageView();
 			newImageView.setImageBitmap(bitmap);
 			transitionToImageView(newImageView, transition);
 		}
@@ -361,35 +328,20 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
-	public void transitionToImageView(ImageView newImageView, Transition transition) {
+	public void transitionToImageView(InternalImageView newImageView, HashMap transition) {
 		oldImageView = imageView;
 		imageView = newImageView;
-		newImageView.setVisibility(View.GONE);
 		
-		TiUIHelper.addView(this, newImageView, (oldImageView != null)?oldImageView.getLayoutParams():getImageLayoutParams());
-		transition.setTargets(this, newImageView, oldImageView);
-
-		currentTransitionSet = transition.getSet(new AnimatorListener() {
-			public void onAnimationEnd(Animator arg0) {	
-					removeView(oldImageView);
-					oldImageView = null;
-					onTransitionEnd();
-			}
-
-			public void onAnimationCancel(Animator arg0) {
-					removeView(oldImageView);
-					oldImageView = null;
-					onTransitionEnd();
-			}
-
-			public void onAnimationRepeat(Animator arg0) {
-			}
-
-			public void onAnimationStart(Animator arg0) {
-			}
-		});
-		currentTransitionSet.start();
-		newImageView.setVisibility(View.VISIBLE);
+		TransitionHelper.CompletionBlock onDone = new TransitionHelper.CompletionBlock() {
+            
+            @Override
+            public void transitionDidFinish(boolean success) {
+                oldImageView = null;
+                onTransitionEnd();
+            }
+        };
+		
+        currentTransitionSet = TransitionHelper.transitionViews(this, newImageView, oldImageView, onDone, transition, (oldImageView != null)?oldImageView.getLayoutParams():getImageLayoutParams());
 	}
 	
 	public void cancelCurrentTransition()
@@ -407,7 +359,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
-	public void setImageDrawableWithTransition(Drawable drawable, Transition transition) {
+	public void setImageDrawableWithTransition(Drawable drawable, HashMap transition) {
 		if (transition == null) {
 			setImageDrawable(drawable);
 		}
@@ -417,7 +369,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				queuedDrawable = drawable;
 				return;
 			}
-			ImageView newImageView = cloneImageView();
+			InternalImageView newImageView = cloneImageView();
 			newImageView.setImageDrawable(drawable);
 			transitionToImageView(newImageView, transition);
 		}
@@ -471,11 +423,14 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 
 	private void handleHideControls()
 	{
-		zoomControls.setVisibility(View.GONE);
+	    if (zoomControls != null) {
+	        zoomControls.setVisibility(View.GONE);
+	    }
 	}
 
 	private void manageControls()
 	{
+	    if (zoomControls == null) return;
 		if (scaleFactor == scaleMax) {
 			zoomControls.setIsZoomInEnabled(false);
 		} else {
@@ -622,39 +577,45 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		int maxWidth = 0;
 		int maxHeight = 0;
 
-//		if (DBG) {
-		int w = MeasureSpec.getSize(widthMeasureSpec);
-		int wm = MeasureSpec.getMode(widthMeasureSpec);
-		int h = MeasureSpec.getSize(heightMeasureSpec);
-		int hm = MeasureSpec.getMode(heightMeasureSpec);
+		int measuredWidth = getMeasuredWidth();
+        int measuredHeight = getMeasuredHeight();
+        maxWidth = Math.max(maxWidth, measuredWidth);
+        maxHeight = Math.max(maxHeight, measuredHeight);
+        if (getImageDrawable() != null) {
+            int w = MeasureSpec.getSize(widthMeasureSpec);
+            int wm = MeasureSpec.getMode(widthMeasureSpec);
+            int h = MeasureSpec.getSize(heightMeasureSpec);
+            int hm = MeasureSpec.getMode(heightMeasureSpec);
 
-//			Log.i(TAG, "w: " + w + " wm: " + wm + " h: " + h + " hm: " + hm);
-//		}
-
-		// TODO padding and margins
-
-		measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
-		int measuredWidth = imageView.getMeasuredWidth();
-		int measuredHeight = imageView.getMeasuredHeight();
+            measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
+            measuredWidth = imageView.getMeasuredWidth();
+            measuredHeight = imageView.getMeasuredHeight();
+            if (measuredWidth > 0 && measuredHeight > 0) {
+                if(hm == MeasureSpec.EXACTLY && (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
+                    maxHeight = Math.max(h, Math.max(maxHeight, measuredHeight));
+                    float ratio =  getImageRatio();
+                    maxWidth = (int) Math.floor(maxHeight * ratio);
+                }
+                else if(wm == MeasureSpec.EXACTLY && (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
+                    maxWidth = Math.max(w, Math.max(maxWidth, measuredWidth));
+                    float ratio =  getImageRatio();
+                    if (ratio > 0)
+                        maxHeight = (int) Math.floor(maxWidth / ratio);
+                }
+                else {
+                    maxWidth = Math.max(maxWidth, measuredWidth);
+                    maxHeight = Math.max(maxHeight, measuredHeight);
+                }
+            }
+        }
+//        else {
+//            maxWidth = Math.max(maxWidth, measuredWidth);
+//            maxHeight = Math.max(maxHeight, measuredHeight);
+//        }
 		
 		
-		if (measuredWidth > 0 && measuredHeight > 0) {
-			if(hm == MeasureSpec.EXACTLY && (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
-				maxHeight = Math.max(h, Math.max(maxHeight, measuredHeight));
-				float ratio =  getImageRatio();
-				maxWidth = (int) Math.floor(maxHeight * ratio);
-			}
-			else if(wm == MeasureSpec.EXACTLY && (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
-				maxWidth = Math.max(w, Math.max(maxWidth, measuredWidth));
-				float ratio =  getImageRatio();
-				if (ratio > 0)
-					maxHeight = (int) Math.floor(maxWidth / ratio);
-			}
-			else {
-				maxWidth = Math.max(maxWidth, measuredWidth);
-				maxHeight = Math.max(maxHeight, measuredHeight);
-			}
-		}
+		
+		
 
 		
 		// Allow for zoom controls.

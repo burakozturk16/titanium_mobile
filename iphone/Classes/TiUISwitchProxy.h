@@ -5,8 +5,10 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
+#ifdef USE_TI_UISWITCH
 #import "TiViewProxy.h"
 
 @interface TiUISwitchProxy : TiViewProxy {
 }
 @end
+#endif

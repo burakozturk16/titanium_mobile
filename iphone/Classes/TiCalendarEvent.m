@@ -116,6 +116,7 @@
         for (EKRecurrenceRule* rule_ in rules_) {
             TiCalendarRecurrenceRule* rule = [[TiCalendarRecurrenceRule alloc] _initWithPageContext:[self executionContext] rule:rule_];
             [rules addObject:rule];
+			RELEASE_TO_NIL(rule);
         }
         return rules;
      }
@@ -175,7 +176,7 @@
         return;
     }
     else if ([key isEqualToString:@"availability"]) {
-        currEvent.availability = [TiUtils intValue:value];
+        currEvent.availability = (int)[TiUtils intValue:value];
         return;
     }
     else if ([key isEqualToString:@"title"]) {
@@ -268,7 +269,7 @@
                     EKRecurrenceEnd* end = nil;
     
     if ([args objectForKey:@"frequency"]) {
-        frequency = [TiUtils intValue:[args objectForKey:@"frequency"]];
+        frequency = (int)[TiUtils intValue:[args objectForKey:@"frequency"]];
     }
     if ([args objectForKey:@"interval"]) {
         interval = [TiUtils intValue:[args objectForKey:@"interval"] def:1];
@@ -460,7 +461,7 @@
     ENSURE_ARG_OR_NIL_AT_INDEX(val, arg, 0, NSNumber);
     EKSpan span = EKSpanThisEvent;
     if (val != nil) {
-        span = [TiUtils intValue:val def:EKSpanThisEvent];
+        span = (int)[TiUtils intValue:val def:EKSpanThisEvent];
     }
     EKEventStore* ourStore = [module store];
     if (ourStore == NULL) {
@@ -491,7 +492,7 @@
     ENSURE_ARG_OR_NIL_AT_INDEX(val, arg, 0, NSNumber);
     EKSpan span = EKSpanThisEvent;
     if (val != nil) {
-        span = [TiUtils intValue:val def:EKSpanThisEvent];
+        span = (int)[TiUtils intValue:val def:EKSpanThisEvent];
     }
     EKEventStore* ourStore = [module store];
     __block NSError * error = nil;

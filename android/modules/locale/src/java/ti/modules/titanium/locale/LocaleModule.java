@@ -8,6 +8,7 @@ package ti.modules.titanium.locale;
 
 import java.util.Locale;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -16,6 +17,8 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiRHelper;
 
+import android.content.Context;
+import android.content.res.Configuration;
 import android.telephony.PhoneNumberUtils;
 
 @Kroll.module
@@ -44,6 +47,20 @@ public class LocaleModule extends KrollModule
 	{
 		return Locale.getDefault().getCountry();
 	}
+	
+	@Kroll.method @Kroll.getProperty
+    public String getCurrentCountryName()
+    {
+        return Locale.getDefault().getDisplayCountry();
+    }
+	
+	@Kroll.method @Kroll.getProperty
+    public String getCountryName(String localeString)
+    {
+        Locale locale = TiPlatformHelper.getInstance().getLocale(localeString);
+        return locale.getDisplayCountry(Locale.getDefault());
+    }
+    
 	
 	@Kroll.method @Kroll.getProperty
 	public String getCurrentLocale()
@@ -77,6 +94,7 @@ public class LocaleModule extends KrollModule
 		return TiPlatformHelper.getInstance().getCurrencySymbol(locale);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Kroll.method
 	public String formatTelephoneNumber(String telephoneNumber)
 	{
@@ -86,7 +104,26 @@ public class LocaleModule extends KrollModule
 	@Kroll.method @Kroll.setProperty
 	public void setLanguage(String language) 
 	{
-		Log.w(TAG, "Locale.setLanguage not supported for Android.");
+		try {
+			String[] parts = language.split("-");
+			Locale locale = null;
+			
+			if (parts.length > 1) {
+				locale = new Locale(parts[0], parts[1]);
+			} else {
+				locale = new Locale(parts[0]);
+			}
+			 
+			Locale.setDefault(locale);
+			
+			Configuration config = new Configuration();
+			config.locale = locale;
+			
+			Context ctx =  TiApplication.getInstance().getBaseContext();
+			ctx.getResources().updateConfiguration(config, ctx.getResources().getDisplayMetrics());
+		} catch (Exception e) {
+			Log.e(TAG, "Error trying to set language '" + language + "':", e);
+		}
 	}
 
 	@Kroll.method  @Kroll.topLevel("L")
@@ -113,4 +150,17 @@ public class LocaleModule extends KrollModule
 	{
 		return "Ti.Locale";
 	}
+	
+	@Kroll.getProperty
+    @Kroll.method
+    public KrollDict getFullInfo() {
+        KrollDict result = new KrollDict();
+        result.put("currencySymbol", TiPlatformHelper.getInstance().getCurrencySymbol(Locale.getDefault()));
+        result.put("currencyCode", TiPlatformHelper.getInstance().getCurrencyCode(Locale.getDefault()));
+        result.put("currentLocale", getCurrentLocale());
+        result.put("currentCountry", getCurrentCountry());
+        result.put("currentCountryName", getCurrentCountryName());
+        result.put("currentLanguage", getCurrentLanguage());
+        return result;
+    }
 }

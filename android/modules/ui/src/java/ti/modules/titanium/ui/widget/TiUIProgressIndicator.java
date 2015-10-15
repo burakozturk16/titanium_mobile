@@ -9,7 +9,6 @@ package ti.modules.titanium.ui.widget;
 import java.lang.ref.WeakReference;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
@@ -32,8 +31,9 @@ public class TiUIProgressIndicator extends TiUIView
 	private static final String TAG = "TiUIProgressDialog";
 
 	private static final int MSG_SHOW = 100;
-	private static final int MSG_PROGRESS = 101;
+    private static final int MSG_PROGRESS = 101;
 	private static final int MSG_HIDE = 102;
+    private static final int MSG_PROGRESS_MINMAX = 103;
 
 	public static final int INDETERMINANT = 0;
 	public static final int DETERMINANT = 1;
@@ -47,10 +47,13 @@ public class TiUIProgressIndicator extends TiUIView
 	protected ProgressDialog progressDialog;
 	protected String statusBarTitle;
 	protected int incrementFactor;
-	protected int location;
-	protected int min;
-	protected int max;
-	protected int type;
+	protected int location = DIALOG;
+	protected int min = 0;
+    protected int max = 100;
+    protected int value = 0;
+    protected int type = INDETERMINANT;
+    protected boolean cancelable = false;
+	private String message = "";
 
 	public TiUIProgressIndicator(TiViewProxy proxy) {
 		super(proxy);
@@ -66,63 +69,28 @@ public class TiUIProgressIndicator extends TiUIView
 				return true;
 			}
 			case MSG_PROGRESS : {
-				if (progressDialog != null) {
-					progressDialog.setProgress(msg.arg1);
-				} else {
-					Activity parent = (Activity) this.proxy.getActivity();
-					parent.setProgress(msg.arg1);
-				}
-				return true;
-			}
-			case MSG_HIDE : {
+	            int thePos = (value - min) * incrementFactor;
+                if (progressDialog != null) {
+                    progressDialog.setProgress(thePos);
+                } else {
+                    TiBaseActivity parent = (TiBaseActivity) this.proxy.getActivity();
+                    parent.setSupportProgress(thePos);
+                }
+                return true;
+            }
+			case MSG_PROGRESS_MINMAX : {
+                if (progressDialog != null) {
+                    progressDialog.setMax(max-min);
+                }
+                return true;
+            }
+            case MSG_HIDE : {
 				handleHide();
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	@Override
-	public void processProperties(KrollDict d)
-	{
-		super.processProperties(d);
-
-		// Configure indicator on show.
-	}
-
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
-
-		if (key.equals(TiC.PROPERTY_MESSAGE)) {
-			if (visible) {
-				if (progressDialog != null) {
-					progressDialog.setMessage((String) newValue);
-
-				} else {
-					Activity parent = (Activity) this.proxy.getActivity();
-					parent.setTitle((String) newValue);
-				}
-			}
-
-		} else if (key.equals(TiC.PROPERTY_VALUE)) {
-			if (visible) {
-				int value = TiConvert.toInt(newValue);
-				int thePos = (value - min) * incrementFactor;
-
-				handler.obtainMessage(MSG_PROGRESS, thePos, -1).sendToTarget();
-			}
-
-		} else if (key.equals(TiC.PROPERTY_CANCELABLE)) {
-			if (progressDialog != null) {
-				progressDialog.setCancelable(TiConvert.toBoolean(newValue));
-			}
-
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
 	}
 
 	public void show(KrollDict options)
@@ -143,54 +111,100 @@ public class TiUIProgressIndicator extends TiUIView
 
 		handleShow();
 	}
+	
+
+    @Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+
+        switch (key) {
+        case TiC.PROPERTY_MESSAGE:
+            message = TiConvert.toString(newValue, message);
+            if (visible) {
+                if (progressDialog != null) {
+                    progressDialog.setMessage(message);
+
+                } else {
+                    Activity parent = (Activity) this.proxy.getActivity();
+                    parent.setTitle(message);
+                }
+            }
+            break;
+        case TiC.PROPERTY_VALUE:
+            value = TiConvert.toInt(newValue, value);
+            updateProgress();
+            break;
+        case TiC.PROPERTY_MIN:
+            min = TiConvert.toInt(newValue, min);
+            updateProgressMinMax();
+            updateProgress();
+            break;
+        case TiC.PROPERTY_MAX:
+            max = TiConvert.toInt(newValue, max);
+            updateProgressMinMax();
+            updateProgress();
+            break;
+        case TiC.PROPERTY_TYPE:
+            type = TiConvert.toInt(newValue, type);
+            updateProgress();
+            break;
+        case TiC.PROPERTY_LOCATION:
+            location = TiConvert.toInt(newValue, location);
+            break;
+        
+        case TiC.PROPERTY_CANCELABLE:
+            cancelable = TiConvert.toBoolean(newValue, cancelable);
+            if (progressDialog != null) {
+                progressDialog.setCancelable(TiConvert.toBoolean(newValue));
+            }
+            break;
+ 
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
+    private void updateProgress() {
+        if (location == STATUS_BAR) {
+            incrementFactor = 10000 / (max - min);
+        } else if (location == DIALOG){
+            incrementFactor = 1;
+        }
+        if (visible) {
+            handler.obtainMessage(MSG_PROGRESS).sendToTarget();
+        }
+        
+    }
+    
+    private void updateProgressMinMax() {
+        if (visible) {
+            handler.obtainMessage(MSG_PROGRESS_MINMAX).sendToTarget();
+        }
+        
+    }
 
 	protected void handleShow()
 	{
-		String message = "";
-		if (proxy.hasProperty(TiC.PROPERTY_MESSAGE)) {
-			message = (String) proxy.getProperty(TiC.PROPERTY_MESSAGE);
-		}
-
-		location = DIALOG;
-		if (proxy.hasProperty(TiC.PROPERTY_LOCATION)) {
-			location = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_LOCATION));
-		}
-
-		min = 0;
-		if (proxy.hasProperty(TiC.PROPERTY_MIN)) {
-			min = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_MIN));
-		}
-
-		max = 100;
-		if (proxy.hasProperty(TiC.PROPERTY_MAX)) {
-			max = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_MAX));
-		}
-
-		type = INDETERMINANT;
-		if (proxy.hasProperty(TiC.PROPERTY_TYPE)) {
-			type = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_TYPE));
-		}
 
 		if (location == STATUS_BAR) {
-			incrementFactor = 10000 / (max - min);
-			Activity parent = (Activity) proxy.getActivity();
-
+		    TiBaseActivity parent = (TiBaseActivity) proxy.getActivity();
 			if (type == INDETERMINANT) {
-				parent.setProgressBarIndeterminate(true);
-				parent.setProgressBarIndeterminateVisibility(true);
+				parent.setSupportProgressBarIndeterminate(true);
+				parent.setSupportProgressBarIndeterminateVisibility(true);
 				statusBarTitle = parent.getTitle().toString();
+				parent.setSupportProgress((value-min ) * incrementFactor);
 				parent.setTitle(message);
 			} else if (type == DETERMINANT) {
-				parent.setProgressBarIndeterminate(false);
-				parent.setProgressBarIndeterminateVisibility(false);
-				parent.setProgressBarVisibility(true);
+				parent.setSupportProgressBarIndeterminate(false);
+				parent.setSupportProgressBarIndeterminateVisibility(false);
+				parent.setSupportProgressBarVisibility(true);
+                parent.setSupportProgress((value-min ) * incrementFactor);
 				statusBarTitle = parent.getTitle().toString();
 				parent.setTitle(message);
 			} else {
 				Log.w(TAG, "Unknown type: " + type);
 			}
 		} else if (location == DIALOG) {
-			incrementFactor = 1;
 			if (progressDialog == null) {
 				Activity a = TiApplication.getInstance().getCurrentActivity();
 				if (a == null) {
@@ -212,19 +226,16 @@ public class TiUIProgressIndicator extends TiUIView
 			}
 
 			progressDialog.setMessage(message);
-			progressDialog.setCancelable(proxy.getProperties().optBoolean(TiC.PROPERTY_CANCELABLE, false));
+			progressDialog.setCanceledOnTouchOutside(proxy.getProperties().optBoolean(TiC.PROPERTY_CANCELED_ON_TOUCH_OUTSIDE, true));
+			progressDialog.setCancelable(cancelable);
 
 			if (type == INDETERMINANT) {
 				progressDialog.setIndeterminate(true);
 			} else if (type == DETERMINANT) {
 				progressDialog.setIndeterminate(false);
 				progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				if (min != 0) {
-					progressDialog.setMax(max-min); // no min setting so shift
-				} else {
-					progressDialog.setMax(max);
-				}
-				progressDialog.setProgress(0);
+				progressDialog.setMax(max-min);
+				progressDialog.setProgress((value-min ) * incrementFactor);
 			} else {
 				Log.w(TAG, "Unknown type: " + type);
 			}

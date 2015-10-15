@@ -136,8 +136,9 @@ public class StreamModule extends KrollModule
 					errorState = 1;
 					errorDescription = e.getMessage();
 				}
-
-				fResultsCallback.callAsync(getKrollObject(), buildRWCallbackArgs(fsourceStream, bytesRead, errorState, errorDescription));
+				if (fResultsCallback != null) {
+	                fResultsCallback.callAsync(getKrollObject(), buildRWCallbackArgs(fsourceStream, bytesRead, errorState, errorDescription));
+				}
 			}
 		}).start();
 	}
@@ -191,6 +192,9 @@ public class StreamModule extends KrollModule
 			final TiStream fsourceStream = sourceStream;
 			final BufferProxy fbuffer = bufferArg;
 			final KrollFunction fResultsCallback = resultsCallback;
+			if (fbuffer == null) {
+			    return null;
+			}
 
 			new Thread(new Runnable() {
 				public void run()
@@ -211,7 +215,9 @@ public class StreamModule extends KrollModule
 						errorDescription = e.getMessage();
 					}
 
-					fResultsCallback.callAsync(getKrollObject(), buildRWCallbackArgs(fsourceStream, fbuffer.getLength(), errorState, errorDescription));
+	                if (fResultsCallback != null) {
+	                    fResultsCallback.callAsync(getKrollObject(), buildRWCallbackArgs(fsourceStream, fbuffer.getLength(), errorState, errorDescription));
+	                }
 				}
 			}).start();
 
@@ -321,7 +327,9 @@ public class StreamModule extends KrollModule
 					errorDescription = e.getMessage();
 				}
 
-				fResultsCallback.callAsync(getKrollObject(), buildRWCallbackArgs(foutputStream, bytesWritten, errorState, errorDescription));
+                if (fResultsCallback != null) {
+                    fResultsCallback.callAsync(getKrollObject(), buildRWCallbackArgs(foutputStream, bytesWritten, errorState, errorDescription));
+                }
 			}
 		}).start();
 	}
@@ -395,7 +403,9 @@ public class StreamModule extends KrollModule
 						errorDescription = e.getMessage();
 					}
 
-					fResultsCallback.callAsync(getKrollObject(), buildWriteStreamCallbackArgs(finputStream, foutputStream, totalBytesWritten, errorState, errorDescription));
+                    if (fResultsCallback != null) {
+    					fResultsCallback.callAsync(getKrollObject(), buildWriteStreamCallbackArgs(finputStream, foutputStream, totalBytesWritten, errorState, errorDescription));
+    				}
 				}
 			}).start();
 

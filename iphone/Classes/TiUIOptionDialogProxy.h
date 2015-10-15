@@ -10,7 +10,8 @@
 #import "CustomActionSheet.h"
 @class TiViewProxy;
 
-@interface TiUIOptionDialogProxy : TiParentingProxy<UIActionSheetDelegate, CustomActionSheetDelegate>
+@interface TiUIOptionDialogProxy : TiParentingProxy <UIActionSheetDelegate,UIPopoverPresentationControllerDelegate, CustomActionSheetDelegate>
+
 @property(nonatomic,retain,readwrite)	TiViewProxy *dialogView;
 
 -(void)deviceRotationBegan:(NSNotification *)notification;

@@ -14,17 +14,16 @@
 #import "LauncherButton.h"
 #import "LauncherView.h"
 
-NSArray* dashboardKeySequence;
-
 @implementation TiUIDashboardViewProxy
 
 -(NSArray *)keySequence
 {
-	if (dashboardKeySequence == nil)
-	{
-		dashboardKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"rowCount",@"columnCount"]] retain];
-	}
-	return dashboardKeySequence;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"rowCount",@"columnCount"]] retain];;
+    });
+    return keySequence;
 }
 
 -(id)init
@@ -63,6 +62,20 @@ NSArray* dashboardKeySequence;
 		}
 	}
 	[super fireEvent:type withObject:obj];
+}
+
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message;
+{
+	if ([type isEqual:@"click"])
+	{
+		TiUIDashboardView *v = (TiUIDashboardView*)[self view];
+		LauncherView *launcher = [v launcher];
+		if (launcher.editing)
+		{
+			return;
+		}
+	}
+	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message];
 }
 
 -(void)setData:(id)data

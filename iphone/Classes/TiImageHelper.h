@@ -12,6 +12,10 @@ typedef NS_ENUM(NSInteger, TiImageHelperFilterType) {
     TiImageHelperFilterIOSBlur
 };
 
+@interface UIImageWithInfo : UIImage
+@property(nonatomic, readonly) NSDictionary* info;
+@end
+
 @interface TiImageHelper : NSObject
 +(UIImage*)getFilteredImage:(UIImage*)inputImage withFilter:(TiImageHelperFilterType)filterType options:(NSDictionary*)options;
 +(id)imageFiltered:(UIImage*)image withOptions:(NSDictionary*)options;

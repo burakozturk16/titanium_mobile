@@ -143,8 +143,10 @@ class Bootstrap(object):
 
 		while parentModuleClass:
 			parent = self.bindings["proxies"][parentModuleClass]
-			parentName = parent["proxyAttrs"]["name"]
-			fullApiName = parentName + "." + fullApiName
+			proxyAttrs = parent["proxyAttrs"]
+			if ("creatable" not in proxyAttrs or proxyAttrs["creatable"]):
+				parentName = proxyAttrs["name"]
+				fullApiName = parentName + "." + fullApiName
 
 			parentModuleClass = self.getParentModuleClass(parent)
 

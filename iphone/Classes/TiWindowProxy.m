@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -11,17 +11,37 @@
 #import "TiErrorController.h"
 #import "TiTransitionAnimation+Friend.h"
 #import "TiTransitionAnimationStep.h"
+#import "TiModalNavViewController.h"
+
+@interface TiUITouchPassThroughWindow:UIWindow
+
+@end
+
+@implementation TiUITouchPassThroughWindow
+
+-(UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event{
+    UIView *hitView = [super hitTest:point withEvent:event];
+    if(hitView == self) {
+        return nil;
+    }
+    return hitView;
+}
+
+@end
 
 @interface TiWindowProxy(Private)
 -(void)openOnUIThread:(id)args;
 -(void)closeOnUIThread:(id)args;
--(void)rootViewDidForceFrame:(NSNotification *)notification;
 @end
 
 @implementation TiWindowProxy
 {
     BOOL readyToBeLayout;
     BOOL _isManaged;
+    
+    BOOL _useCustomUIWindow;
+    TiUITouchPassThroughWindow* _customUIWindow;
+    UIWindowLevel _windowLevel;
 }
 
 @synthesize tab = tab;
@@ -36,11 +56,14 @@
         opened = NO;
         readyToBeLayout = NO;
         _isManaged = NO;
+        _useCustomUIWindow = NO;
+        _windowLevel = UIWindowLevelNormal;
 	}
 	return self;
 }
 
 -(void) dealloc {
+    RELEASE_TO_NIL(_customUIWindow)
     FORGET_AND_RELEASE_WITH_DELEGATE(openAnimation);
     FORGET_AND_RELEASE_WITH_DELEGATE(closeAnimation);
 
@@ -50,9 +73,20 @@
     [super dealloc];
 }
 
--(void)_destroy {
-    [super _destroy];
+-(UIViewController*)controller;
+{
+    if (!_useCustomUIWindow && !controller) {
+        return [[TiApp app] controller];
+    }
+    return controller;
 }
+
+
+//-(void)_destroy {
+//    [self windowWillClose];
+//    [self windowDidClose];
+//    [super _destroy];
+//}
 
 -(void)_configure
 {
@@ -65,25 +99,18 @@
     return @"Ti.Window";
 }
 
--(void)rootViewDidForceFrame:(NSNotification *)notification
-{
-    if (focussed && opened) {
-        if ( (controller == nil) || ([controller navigationController] == nil) ) {
-            return;
-        }
-        UINavigationController* nc = [controller navigationController];
-        BOOL isHidden = [nc isNavigationBarHidden];
-        [nc setNavigationBarHidden:!isHidden animated:NO];
-        [nc setNavigationBarHidden:isHidden animated:NO];
-        [[nc view] setNeedsLayout];
-    }
-}
-
 -(TiUIView*)newView
 {
 	TiUIWindow * win = (TiUIWindow*)[super newView];
-    win.frame =[TiUtils appFrame];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rootViewDidForceFrame:) name:kTiFrameAdjustNotification object:nil];
+    //try no to set frame because it might be wrong. Let it be computed
+    //in viewWillAppear
+//    if (!controller) {
+    if (CGRectIsEmpty(self.sandboxBounds)) {
+        self.sandboxBounds = [TiUtils appFrame];
+    }
+//    win.frame = CGRectIsEmpty(self.sandboxBounds) ? [TiUtils appFrame] : self.sandboxBounds;
+//    }
+    
 	return win;
 }
 
@@ -125,30 +152,23 @@
     if (!opened){
         opening = YES;
     }
-    [super windowWillOpen];
-//    [self viewWillAppear:false];
-    if (tab == nil && (self.isManaged == NO) && controller == nil) {
+    if (!_useCustomUIWindow && tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] willOpenWindow:self];
     }
+    [super windowWillOpen];
 }
 
 -(void)windowDidOpen
 {
     opening = NO;
     opened = YES;
-//    if (!readyToBeLayout)
-//    {
-//        [self viewWillAppear:false];
-//        [self viewDidAppear:false];
-//    }
-//    [self viewDidAppear:false];
     [self fireEvent:@"open" propagate:NO];
-    if (focussed && [self handleFocusEvents]) {
+    if ([self focussed] && [self handleFocusEvents]) {
         [self fireEvent:@"focus" propagate:NO];
     }
     [super windowDidOpen];
     FORGET_AND_RELEASE_WITH_DELEGATE(openAnimation);
-    if (tab == nil && (self.isManaged == NO) && controller == nil) {
+    if (!_useCustomUIWindow && tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] didOpenWindow:self];
     }
 }
@@ -156,7 +176,7 @@
 -(void) windowWillClose
 {
 //    [self viewWillDisappear:false];
-    if (tab == nil && (self.isManaged == NO) && controller == nil) {
+    if (!_useCustomUIWindow && tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] willCloseWindow:self];
     }
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -167,6 +187,14 @@
 {
     opened = NO;
     closing = NO;
+    if (_customUIWindow)
+    {
+        _customUIWindow.hidden = YES;
+        if ([_customUIWindow isKeyWindow]) {
+            [_customUIWindow resignFirstResponder];
+        }
+        RELEASE_TO_NIL(_customUIWindow)
+    }
 //    [self viewDidDisappear:false];
     [self fireEvent:@"close" propagate:NO];
     [[NSNotificationCenter defaultCenter] removeObserver:self]; //just to be sure
@@ -183,23 +211,26 @@
 
 -(void)attachViewToTopContainerController
 {
-    UIViewController<TiControllerContainment>* topContainerController = [[[TiApp app] controller] topContainerController];
-    UIView *rootView = [topContainerController view];
-    TiUIView* theView = [self view];
-    [rootView addSubview:theView];
-    [rootView bringSubviewToFront:theView];
-    [[TiViewProxy class] reorderViewsInParent:rootView]; //make sure views are ordered along zindex
+    if (!controller) {
+        UIViewController<TiControllerContainment>* topContainerController = [[[TiApp app] controller] topContainerController];
+        UIView *rootView = [topContainerController hostingView];
+        TiUIView* theView = [self view];
+        [rootView addSubview:theView];
+        [rootView bringSubviewToFront:theView];
+        [[TiViewProxy class] reorderViewsInParent:rootView]; //make sure views are ordered along zindex
+    }
+    
 }
 
 -(BOOL)isRootViewLoaded
 {
-    return [[[TiApp app] controller] isViewLoaded];
+    return _useCustomUIWindow || [[[TiApp app] controller] isViewLoaded];
 }
 
 -(BOOL)isRootViewAttached
 {
     //When a modal window is up, just return yes
-    if ([[[TiApp app] controller] presentedViewController] != nil) {
+    if (_useCustomUIWindow || [[[TiApp app] controller] presentedViewController] != nil) {
         return YES;
     }
     return ([[[[TiApp app] controller] view] superview]!=nil);
@@ -209,7 +240,7 @@
 -(void)open:(id)args
 {
     //If an error is up, Go away
-    if ([[[[TiApp app] controller] topPresentedController] isKindOfClass:[TiErrorController class]]) {
+    if (!_useCustomUIWindow && [[[[TiApp app] controller] topPresentedController] isKindOfClass:[TiErrorController class]]) {
         DebugLog(@"[ERROR] ErrorController is up. ABORTING open");
         return;
     }
@@ -249,7 +280,17 @@
     opening = YES;
     
     isModal = (tab == nil && !self.isManaged) ? [TiUtils boolValue:[self valueForUndefinedKey:@"modal"] def:NO] : NO;
-    hidesStatusBar = [TiUtils boolValue:[self valueForUndefinedKey:@"fullscreen"] def:[[[TiApp app] controller] statusBarInitiallyHidden]];
+    _hidesStatusBar = [TiUtils boolValue:[self valueForUndefinedKey:@"fullscreen"] def:[[[TiApp app] controller] statusBarInitiallyHidden]];
+
+	NSInteger theStyle = [TiUtils intValue:[self valueForUndefinedKey:@"statusBarStyle"] def:[[[TiApp app] controller] defaultStatusBarStyle]];
+    switch (theStyle){
+        case UIStatusBarStyleDefault:
+        case UIStatusBarStyleLightContent:
+            _internalStatusBarStyle = theStyle;
+            break;
+        default:
+            _internalStatusBarStyle = UIStatusBarStyleDefault;
+    }
     
     if (!isModal && (tab==nil)) {
         openAnimation = [[TiAnimation animationFromArg:args context:[self pageContext] create:NO] retain];
@@ -260,7 +301,7 @@
     [self updateOrientationModes];
     
     //GO ahead and call open on the UI thread
-    TiThreadPerformOnMainThread(^{
+    TiThreadPerformBlockOnMainThread(^{
         [self openOnUIThread:args];
     }, YES);
     
@@ -273,31 +314,35 @@
     _supportedOrientations = [TiUtils TiOrientationFlagsFromObject:object];
 }
 
--(void)setStatusBarStyle:(id)style
-{
-    int theStyle = [TiUtils intValue:style def:[[[TiApp app] controller] defaultStatusBarStyle]];
-    switch (theStyle){
-        case UIStatusBarStyleDefault:
-            statusBarStyle = UIStatusBarStyleDefault;
-            break;
-        case UIStatusBarStyleBlackOpaque:
-        case UIStatusBarStyleBlackTranslucent: //This will also catch UIStatusBarStyleLightContent
-            if ([TiUtils isIOS7OrGreater]) {
-                statusBarStyle = 1;//UIStatusBarStyleLightContent;
-            } else {
-                statusBarStyle = theStyle;
-            }
-            break;
-        default:
-            statusBarStyle = UIStatusBarStyleDefault;
-    }
-    [self setValue:NUMINT(statusBarStyle) forUndefinedKey:@"statusBarStyle"];
-    if(focussed) {
-        TiThreadPerformOnMainThread(^{
-            [(TiRootViewController*)[[TiApp app] controller] updateStatusBar];
-        }, YES); 
-    }
-}
+//-(void)setStatusBarStyle:(id)style
+//{
+//    NSInteger theStyle = [TiUtils intValue:style def:[[[TiApp app] controller] defaultStatusBarStyle]];
+//    switch (theStyle){
+//        case UIStatusBarStyleDefault:
+//        case UIStatusBarStyleLightContent:
+//            _internalStatusBarStyle = theStyle;
+//            break;
+//        default:
+//            _internalStatusBarStyle = UIStatusBarStyleDefault;
+//    }
+//    [self setValue:NUMINT(_internalStatusBarStyle) forUndefinedKey:@"statusBarStyle"];
+//}
+
+//-(void)setFullscreen:(id)value
+//{
+//    BOOL newValue = [TiUtils boolValue:[self valueForUndefinedKey:@"fullscreen"] def:[[[TiApp app] controller] statusBarInitiallyHidden]];
+//    
+//    if (_hidesStatusBar != newValue) {
+//        _hidesStatusBar = newValue;
+//        [self setValue:NUMINT(hidesStatusBar) forUndefinedKey:@"fullscreen"];
+//        if([self focussed]) {
+//            TiThreadPerformOnMainThread(^{
+//                [(TiRootViewController*)[[TiApp app] controller] updateStatusBar:YES];
+//            }, YES);
+//        }
+//    }
+//    
+//}
 
 -(void)close:(id)args
 {
@@ -344,12 +389,18 @@
 
 -(BOOL)_handleOpen:(id)args
 {
-    TiRootViewController* theController = [[TiApp app] controller];
-    if (isModal || (tab != nil) || self.isManaged) {
-        FORGET_AND_RELEASE_WITH_DELEGATE(openAnimation);
+    if (_useCustomUIWindow) {
+       _customUIWindow = [[TiUITouchPassThroughWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        _customUIWindow.windowLevel        = _windowLevel;
+        _customUIWindow.backgroundColor    = [UIColor clearColor];
+        _customUIWindow.rootViewController = [self hostingController];
+        _customUIWindow;
+        _customUIWindow.hidden = NO;
     }
-    
-    if ( (!self.isManaged) && (!isModal) && (openAnimation != nil) && ([theController topPresentedController] != [theController topContainerController]) ){
+    TiRootViewController* theController = [[TiApp app] controller];
+    if (_customUIWindow || isModal || (tab != nil) || self.isManaged) {
+        FORGET_AND_RELEASE_WITH_DELEGATE(openAnimation);
+    } else if ((!self.isManaged) && (!isModal) && (openAnimation != nil) && ([theController topPresentedController] != [theController topContainerController]) ){
         DeveloperLog(@"[WARN] The top View controller is not a container controller. This window will open behind the presented controller without animations.")
         FORGET_AND_RELEASE_WITH_DELEGATE(openAnimation);
     }
@@ -359,13 +410,13 @@
 
 -(BOOL)_handleClose:(id)args
 {
-    TiRootViewController* theController = [[TiApp app] controller];
     if (isModal || (tab != nil) || self.isManaged) {
         if (closeAnimation) {
             FORGET_AND_RELEASE_WITH_DELEGATE(closeAnimation);
         }
     }
-    if ( (!self.isManaged) && (!isModal) && (closeAnimation != nil) && ([theController topPresentedController] != [theController topContainerController]) ){
+    TiRootViewController* theController = [[TiApp app] controller];
+    if (_customUIWindow || (!self.isManaged) && (!isModal) && (closeAnimation != nil) && ([theController topPresentedController] != [theController topContainerController]) ){
         DeveloperLog(@"[WARN] The top View controller is not a container controller. This window will close behind the presented controller without animations.")
         FORGET_AND_RELEASE_WITH_DELEGATE(closeAnimation);
     }
@@ -386,6 +437,17 @@
 {
     [self replaceValue:val forKey:@"modal" notification:NO];
 }
+
+-(void)setWindowLevel:(id)val
+{
+    if (opening || opened) {
+        return;
+    }
+    _windowLevel = [TiUtils floatValue:val];
+    _useCustomUIWindow = _windowLevel != UIWindowLevelNormal;
+    [self replaceValue:val forKey:@"windowLevel" notification:NO];
+}
+
 
 -(id)modal
 {
@@ -414,17 +476,22 @@
 
 -(BOOL)hidesStatusBar
 {
-    return hidesStatusBar;
+    return _hidesStatusBar;
 }
 
 -(UIStatusBarStyle)preferredStatusBarStyle;
 {
-    return statusBarStyle;
+    return _internalStatusBarStyle;
 }
 
 -(BOOL)handleFocusEvents
 {
 	return YES;
+}
+
+-(BOOL)focussed
+{
+	return focussed || [tab focussed] || [[self getParentWindow] focussed];
 }
 
 -(void)gainFocus
@@ -435,13 +502,12 @@
             [self fireEvent:@"focus" propagate:NO];
         }
         UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
-        [[self view] setAccessibilityElementsHidden:NO];
+        [view setAccessibilityElementsHidden:NO];
     }
-    if ([TiUtils isIOS7OrGreater]) {
-        TiThreadPerformOnMainThread(^{
-            [self forceNavBarFrame];
-        }, NO);
-    }
+    TiThreadPerformOnMainThread(^{
+        [self forceNavBarFrame];
+    }, NO);
+
 }
 
 -(void)resignFocus
@@ -451,7 +517,7 @@
         if ([self handleFocusEvents]) {
             [self fireEvent:@"blur" propagate:NO];
         }
-        [[self view] setAccessibilityElementsHidden:YES];
+        [view setAccessibilityElementsHidden:YES];
     }
 }
 
@@ -476,7 +542,7 @@
 
 -(TiProxy *)parentForBubbling
 {
-    if (parent) return parent;
+    if ([super parentForBubbling]) return [super parentForBubbling];
     else return tab;
 }
 
@@ -493,7 +559,7 @@
 
 -(void)forceNavBarFrame
 {
-    if (!focussed) {
+    if (![self focussed]) {
         return;
     }
     if ( (controller == nil) || ([controller navigationController] == nil) ) {
@@ -527,7 +593,7 @@
             UIViewController* theController = [self hostingController];
             if (![TiUtils boolValue:[self valueForUndefinedKey:@"navBarHidden"] def:YES]) {
                 //put it in a navigation controller to get the navbar if it was explicitely asked for
-                theController = [[UINavigationController alloc] initWithRootViewController:theController];
+                theController = [[[TiModalNavViewController alloc] initWithRootViewController:theController] autorelease];
             }
             [self windowWillOpen];
             NSDictionary *dict = [args count] > 0 ? [args objectAtIndex:0] : nil;
@@ -614,12 +680,40 @@
     return _supportedOrientations;
 }
 
+
+-(void)showNavBar:(NSArray*)args
+{
+    ENSURE_UI_THREAD(showNavBar,args);
+    [self replaceValue:[NSNumber numberWithBool:NO] forKey:@"navBarHidden" notification:NO];
+    if (controller!=nil)
+    {
+        id properties = (args!=nil && [args count] > 0) ? [args objectAtIndex:0] : nil;
+        BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
+        [[controller navigationController] setNavigationBarHidden:NO animated:animated];
+    }
+}
+
+-(void)hideNavBar:(NSArray*)args
+{
+    ENSURE_UI_THREAD(hideNavBar,args);
+    [self replaceValue:[NSNumber numberWithBool:YES] forKey:@"navBarHidden" notification:NO];
+    if (controller!=nil)
+    {
+        id properties = (args!=nil && [args count] > 0) ? [args objectAtIndex:0] : nil;
+        BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
+        [[controller navigationController] setNavigationBarHidden:YES animated:animated];
+        //TODO: need to fix height
+    }
+}
+
+
 #pragma mark - Appearance and Rotation Callbacks. For subclasses to override.
 //Containing controller will call these callbacks(appearance/rotation) on contained windows when it receives them.
 -(void)viewWillAppear:(BOOL)animated
 {
     readyToBeLayout = YES;
     [super viewWillAppear:animated];
+    [self refreshViewIfNeeded];
 }
 -(void)viewWillDisappear:(BOOL)animated
 {
@@ -636,12 +730,14 @@
     if (controller != nil && !self.isManaged) {
         [self gainFocus];
     }
+    [super viewDidAppear:animated];
 }
 -(void)viewDidDisappear:(BOOL)animated
 {
     if (isModal && closing) {
         [self windowDidClose];
     }
+    [super viewDidDisappear:animated];
 }
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
@@ -663,6 +759,11 @@
 
 #pragma mark - TiAnimation Delegate Methods
 
+-(BOOL)canAnimateWithoutParent
+{
+    return YES;
+}
+
 -(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
 {
     if (animation.isTransitionAnimation && (animation == openAnimation || animation == closeAnimation)) {
@@ -670,7 +771,7 @@
         TiTransitionAnimation * hlsAnimation = [TiTransitionAnimation animation];
         UIView* hostingView = nil;
         if (animation == openAnimation) {
-            hostingView = [[[[TiApp app] controller] topContainerController] view];
+            hostingView = [[[[TiApp app] controller] topContainerController] hostingView];
             hlsAnimation.openTransition = YES;
         } else {
             hostingView = [[self getOrCreateView] superview];
@@ -699,8 +800,10 @@
                 TiViewProxy* theProxy = (TiViewProxy*)[(TiUIView*)animatedOver proxy];
                 if ([theProxy viewAttached]) {
                     [[[self view] superview] insertSubview:animatedOver belowSubview:[self view]];
+#ifndef TI_USE_AUTOLAYOUT
                     LayoutConstraint* layoutProps = [theProxy layoutProperties];
                     ApplyConstraintToViewWithBounds(layoutProps, &layoutProperties, (TiUIView*)animatedOver, [[animatedOver superview] bounds]);
+#endif
                     [theProxy layoutChildren:NO];
                     RELEASE_TO_NIL(animatedOver);
                 }

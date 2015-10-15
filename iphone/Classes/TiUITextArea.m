@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -19,19 +19,27 @@
 
 @interface TiUITextViewImpl()
 - (void)handleTextViewDidChange;
+@property(nonatomic,assign) BOOL inLayout;
+@property(nonatomic,assign) BOOL ignoreSystemContentOffset;
 @end
 
 
 @implementation TiUITextViewImpl
 {
     BOOL becameResponder;
-    BOOL settingText;
-    BOOL _inLayout;
+    BOOL _nonSystemContentOffset;
+}
+
+-(id)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        _ignoreSystemContentOffset = YES;
+    }
+    return self;
 }
 
 - (void)setContentOffset:(CGPoint)contentOffset
 {
-    if (_inLayout) return;
     [super setContentOffset:contentOffset];
 }
 
@@ -49,12 +57,6 @@
     touchHandler = handler;
 }
 
--(void)layoutSubviews {
-    _inLayout = YES;
-    [super layoutSubviews];
-    _inLayout = NO;
-}
-
 - (BOOL)touchesShouldBegin:(NSSet *)touches withEvent:(UIEvent *)event inContentView:(UIView *)view
 {
     //If the content view is of type TiUIView touch events will automatically propagate
@@ -68,34 +70,34 @@
     return [super touchesShouldBegin:touches withEvent:event inContentView:view];
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event 
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     //When userInteractionEnabled is false we do nothing since touch events are automatically
     //propagated. If it is dragging do not do anything.
-    //The reason we are not checking tracking (like in scrollview) is because for some 
+    //The reason we are not checking tracking (like in scrollview) is because for some
     //reason UITextView always returns true for tracking after the initial focus
     if (!self.dragging && self.userInteractionEnabled && (touchedContentView == nil) ) {
         [touchHandler processTouchesBegan:touches withEvent:event];
- 	}		
+ 	}
 	[super touchesBegan:touches withEvent:event];
 }
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event 
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (!self.dragging && self.userInteractionEnabled && (touchedContentView == nil) ) {
         [touchHandler processTouchesMoved:touches withEvent:event];
-    }		
+    }
 	[super touchesMoved:touches withEvent:event];
 }
 
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (!self.dragging && self.userInteractionEnabled && (touchedContentView == nil) ) {
         [touchHandler processTouchesEnded:touches withEvent:event];
-    }		
+    }
 	[super touchesEnded:touches withEvent:event];
 }
 
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (!self.dragging && self.userInteractionEnabled && (touchedContentView == nil) ) {
         [touchHandler processTouchesCancelled:touches withEvent:event];
@@ -110,21 +112,20 @@
 
 -(BOOL)resignFirstResponder
 {
-	if ([super resignFirstResponder])
-	{
+    if ([super resignFirstResponder])
+    {
         if (becameResponder) {
             becameResponder = NO;
-            [touchHandler makeRootViewFirstResponder];
         }
         return YES;
-	}
+    }
+    
 	return NO;
 }
 
 -(BOOL)becomeFirstResponder
 {
     if (self.isEditable && self.canBecomeFirstResponder) {
-        [(TiUITextWidget*)touchHandler willBecomeFirstResponder];
         if ([super becomeFirstResponder])
         {
             becameResponder = YES;
@@ -151,29 +152,82 @@
     if (wasDisplayingPlaceholder != self.displayPlaceHolder) {
         [self setNeedsDisplay];
     }
-    
-//    if (is_iOS7 && !is_iOS8 && !settingText) {
-//        if ([self.text hasSuffix:@"\n"]) {
-//            [CATransaction setCompletionBlock:^{
-//                [self scrollToCaretAnimated:NO];
-//            }];
-//        } else {
-//            [self scrollToCaretAnimated:NO];
-//        }
-//    }
+    [self updateKeyboardInsetWithScroll:NO animated:NO];
 }
 
 - (void)setText:(NSString *)text {
-    settingText = YES;
     [super setText:text];
     self.displayPlaceHolder = text.length == 0;
-    settingText = NO;
 }
 
-- (void)scrollToCaretAnimated:(BOOL)animated {
-    CGRect rect = [self caretRectForPosition:self.selectedTextRange.end];
-    rect.size.height += self.contentInset.bottom;
-    [self scrollRectToVisible:rect animated:animated];
+-(void)setNonSystemContentOffset:(CGPoint)offset {
+    self.ignoreSystemContentOffset = NO;
+    [self setContentOffset:offset];
+    self.ignoreSystemContentOffset = YES;
+}
+
+- (void)updateKeyboardInsetWithScroll:(BOOL)shouldScroll animated:(BOOL)animated  {
+    CGRect keyboardRect = [[[TiApp app] controller] getKeyboardFrameInView:self];
+    if (!CGRectIsEmpty(keyboardRect)) {
+        CGFloat keyboardOriginY = keyboardRect.origin.y - self.bounds.origin.y;
+        CGPoint offset = self.contentOffset;
+        
+        CGRect rectEnd = [self caretRectForPosition:self.endOfDocument];
+        rectEnd.origin.y -= self.contentOffset.y;
+        CGRect rectSelected = [self caretRectForPosition:self.selectedTextRange.end];
+        rectSelected.origin.y -= self.contentOffset.y;
+        
+        UIEdgeInsets inset = self.contentInset;
+        CGFloat overflow = rectSelected.origin.y + rectSelected.size.height -  keyboardOriginY;
+        BOOL shouldUpdate = ( (inset.bottom == 0 && rectEnd.origin.y + rectEnd.size.height > keyboardOriginY) ||
+                             overflow > 0);
+        
+        if (shouldUpdate) {
+            CGFloat height = self.bounds.size.height;
+            //set the contentInset for the full text (to be scrollable correctly)
+            UIEdgeInsets newInset = UIEdgeInsetsMake(0, 0, height - keyboardOriginY, 0);
+            self.contentInset = newInset;
+            
+            //if we scroll only scroll to caret
+            if (overflow > 0) {
+                CGPoint offset = self.contentOffset;
+                offset.y += overflow + 7; // leave 7 pixels margin
+                                          // Cannot animate with setContentOffset:animated: or caret will not appear
+                [UIView animateWithDuration:.1 animations:^{
+                    [self setNonSystemContentOffset:offset];
+                }];
+                return;
+            }
+            
+        }
+    } else {
+        self.contentInset = UIEdgeInsetsZero;
+        
+    }
+    if (shouldScroll) {
+        [self scrollRectToVisible:[self caretRectForPosition:self.selectedTextRange.end] animated:animated];
+    }
+    else {
+        CGFloat height = self.bounds.size.height;
+        CGPoint contentOffset = self.contentOffset;
+        CGRect rectSelected = [self caretRectForPosition:self.selectedTextRange.end];
+        rectSelected.origin.y -= contentOffset.y;
+        BOOL needsChange = NO;
+        if (!self.isScrollEnabled && rectSelected.origin.y < 0) {
+            contentOffset.y += rectSelected.origin.y;
+            needsChange = YES;
+        }
+        else if (rectSelected.origin.y + rectSelected.size.height > height) {
+            contentOffset.y += rectSelected.origin.y + rectSelected.size.height - height + 7; // leave 7 pixels margin
+                                          // Cannot animate with setContentOffset:animated: or caret will not appear
+            needsChange = YES;
+        }
+        if (needsChange) {
+            [UIView animateWithDuration:.1 animations:^{
+                [self setNonSystemContentOffset:contentOffset];
+            }];
+        }
+    }
 }
 
 
@@ -187,6 +241,7 @@
             NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
             paragraphStyle.alignment = self.textAlignment;
             [self.placeholder drawInRect:UIEdgeInsetsInsetRect(self.bounds, self.textContainerInset) withAttributes:@{NSFontAttributeName:self.font, NSForegroundColorAttributeName:self.placeholderColor, NSParagraphStyleAttributeName:paragraphStyle}];
+            [paragraphStyle release];
         }
         else {
             [self.placeholderColor set];
@@ -216,8 +271,9 @@
     NSTimer* _caretVisibilityTimer;
     UIEdgeInsets _padding;
     BOOL suppressReturn;
-    int _maxLines;
+    NSInteger _maxLines;
 }
+
 
 @synthesize becameResponder, padding = _padding;
 
@@ -234,14 +290,11 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-	[TiUtils setView:textWidgetView positionRect:UIEdgeInsetsInsetRect(bounds, _padding)];
-    
-    //It seems that the textWidgetView are not layed out correctly
-    //without this
-//    [textWidgetView layoutSubviews];
-    [self updateInsentForKeyboard];
-    
+    TiUITextViewImpl* ourView = (TiUITextViewImpl*)textWidgetView;
+	[TiUtils setView:ourView positionRect:UIEdgeInsetsInsetRect(bounds, _padding)];
 	[super frameSizeChanged:frame bounds:bounds];
+    [ourView updateKeyboardInsetWithScroll:NO animated:NO];
+    
 }
 
 -(UIView<UITextInputTraits>*)textWidgetView
@@ -262,8 +315,7 @@
         [textViewImpl setContentInset:UIEdgeInsetsZero];
         self.clipsToBounds = YES;
         
-        lastSelectedRange.location = 0;
-        lastSelectedRange.length = 0;
+
         //Temporarily setting text to a blank space, to set the editable property [TIMOB-10295]
         //This is a workaround for a Apple Bug.
         textViewImpl.text = @" ";
@@ -298,6 +350,23 @@
 
 #pragma mark Public APIs
 
+-(void)setShowUndoRedoActions_:(id)value
+{
+    if(![TiUtils isIOS9OrGreater]){
+        return;
+    }
+#if IS_XCODE_7
+    UITextView *tv = (UITextView *)[self textWidgetView];
+    if([TiUtils boolValue:value] == YES) {
+        tv.inputAssistantItem.leadingBarButtonGroups = self.inputAssistantItem.leadingBarButtonGroups;
+        tv.inputAssistantItem.trailingBarButtonGroups = self.inputAssistantItem.trailingBarButtonGroups;
+    } else {
+        tv.inputAssistantItem.leadingBarButtonGroups = @[];
+        tv.inputAssistantItem.trailingBarButtonGroups = @[];
+    }
+#endif
+}
+
 -(void)setCustomUserInteractionEnabled:(BOOL)value
 {
     [super setCustomUserInteractionEnabled:value];
@@ -309,9 +378,10 @@
 	[(UITextView *)[self textWidgetView] setScrollEnabled:[TiUtils boolValue:value]];
 }
 
--(void)setEditable_:(id)editable
+-(void)setEditable_:(id)value
 {
-	[(UITextView *)[self textWidgetView] setEditable:[TiUtils boolValue:editable]];
+    BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
+    [(UITextView *)[self textWidgetView] setEditable:_trulyEnabled];
 }
 
 -(void)setAutoLink_:(id)type_
@@ -347,6 +417,11 @@
 	[(TiUITextViewImpl*)[self textWidgetView] setPlaceholder:[TiUtils stringValue:value]];
 }
 
+-(void)setEllipsize_:(id)value
+{
+    UITextView *view = (UITextView*)[self textWidgetView];
+    [[view textContainer] setLineBreakMode:[TiUtils intValue:value]];
+}
 
 -(void)setHintColor_:(id)value
 {
@@ -355,7 +430,7 @@
 
 -(void)setMaxLines_:(id)value
 {
-    _maxLines = [TiUtils intValue:value];
+    _maxLines = [TiUtils intValue:value def:0];
     if (textWidgetView) {
         TiUITextViewImpl* textView = ((TiUITextViewImpl*)[self textWidgetView]);
         NSUInteger numLines = textView.contentSize.height/textView.font.lineHeight;
@@ -389,7 +464,7 @@
     if([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
         NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
                                    [URL absoluteString], @"url",
-                                   [NSArray arrayWithObjects:NUMINT(characterRange.location), NUMINT(characterRange.length),nil],@"range",
+                                   [NSArray arrayWithObjects:NUMUINTEGER(characterRange.location), NUMUINTEGER(characterRange.length),nil],@"range",
                                    nil];
         [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO reportSuccess:NO errorCode:0 message:nil];
     }
@@ -407,25 +482,13 @@
         _caretVisibilityTimer = nil;
     }
     TiUITextViewImpl* ourView = (TiUITextViewImpl*)[self textWidgetView];
-    [ourView scrollToCaretAnimated:NO];
+    [(TiUITextViewImpl*)textWidgetView updateKeyboardInsetWithScroll:YES animated:NO];
 }
-
--(void)updateInsentForKeyboard {
-    TiUITextViewImpl* ourView = (TiUITextViewImpl*)[self textWidgetView];
-    CGRect keyboardRect = [[TiApp app] controller].currentKeyboardFrame;
-    keyboardRect = [self convertRect:keyboardRect fromView:nil];
-    UIEdgeInsets contentInset = ourView.contentInset;
-    contentInset.bottom = self.frame.size.height - keyboardRect.origin.y;
-    ourView.contentInset = contentInset;
-}
-
 
 - (void)textViewDidBeginEditing:(UITextView *)tv
 {
 	[self textWidget:tv didFocusWithText:[tv text]];
     TiUITextViewImpl* ourView = (TiUITextViewImpl*)[self textWidgetView];
-    
-    [self updateInsentForKeyboard];
     
     //it does not work to instantly scroll to the caret so let's delay it
     _caretVisibilityTimer = [NSTimer scheduledTimerWithTimeInterval:0.3 target:self selector:@selector(scrollCaretToVisible) userInfo:nil repeats:NO];
@@ -435,10 +498,6 @@
 {
 	NSString * text = [(UITextView *)textWidgetView text];
     
-    UIEdgeInsets contentInset = tv.contentInset;
-    contentInset.bottom = 0;
-    tv.contentInset = contentInset;
-    
     if (_caretVisibilityTimer) {
         [_caretVisibilityTimer invalidate];
         _caretVisibilityTimer = nil;
@@ -447,11 +506,12 @@
     if (returnActive && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
 		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
-	}	
-
+	}
+    
 	returnActive = NO;
-
+    
 	[self textWidget:tv didBlurWithText:text];
+    [(TiUITextViewImpl*)textWidgetView updateKeyboardInsetWithScroll:NO animated:NO];
 }
 
 - (void)textViewDidChange:(UITextView *)tv
@@ -483,7 +543,7 @@
     if ([tv isKindOfClass:[TiUITextViewImpl class]]) {
         [(TiUITextViewImpl*)tv handleTextViewDidChange];
     }
-
+    
 	[(TiUITextAreaProxy *)[self proxy] noteValueChange:[(UITextView *)textWidgetView text]];
 }
 
@@ -495,17 +555,16 @@
 	if ([self.proxy _hasListeners:@"selected"])
 	{
 		NSRange range = tv.selectedRange;
-        NSDictionary* rangeDict = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(range.location),@"location",
-                                   NUMINT(range.length),@"length", nil];
+        NSDictionary* rangeDict = [NSDictionary dictionaryWithObjectsAndKeys:NUMUINTEGER(range.location),@"location",
+                                   NUMUINTEGER(range.length),@"length", nil];
 		NSDictionary *event = [NSDictionary dictionaryWithObject:rangeDict forKey:@"range"];
 		[self.proxy fireEvent:@"selected" withObject:event];
 	}
-    //TIMOB-15401. Workaround for UI artifact
-    if ((tv == textWidgetView) && (!NSEqualRanges(tv.selectedRange, lastSelectedRange))) {
-        lastSelectedRange.location = tv.selectedRange.location;
-        lastSelectedRange.length = tv.selectedRange.length;
-        [tv scrollRangeToVisible:lastSelectedRange];
-    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.1 * NSEC_PER_SEC),
+                   dispatch_get_main_queue(), ^
+                   {
+                       [(TiUITextViewImpl*)textWidgetView updateKeyboardInsetWithScroll:NO animated:NO];
+                   });
 }
 
 - (BOOL)textViewShouldEndEditing:(UITextView *)tv
@@ -518,13 +577,13 @@
     self.currentText = [tv text];
 	NSString* curText = [self.currentText stringByReplacingCharactersInRange:range withString:text];
     
-    if ( _maxLines > -1) {
-        CGSize sizeThatShouldFitTheContent = [tv sizeThatFits:tv.frame.size];
-        NSUInteger numLines = floorf(sizeThatShouldFitTheContent.height/tv.font.lineHeight);
-        if (numLines>_maxLines) {
-            return NO;
-        }
-    }
+//    if ( _maxLines > -1) {
+//        CGSize sizeThatShouldFitTheContent = [tv sizeThatFits:tv.frame.size];
+//        NSUInteger numLines = floorf(sizeThatShouldFitTheContent.height/tv.font.lineHeight);
+//        if (numLines>_maxLines) {
+//            return NO;
+//        }
+//    }
 	if ([text isEqualToString:@"\n"])
 	{
         if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
@@ -559,21 +618,22 @@
 {
     ENSURE_SINGLE_ARG(args, NSNumber);
     handleLinks = [TiUtils boolValue:args];
-    [[self proxy] replaceValue:NUMBOOL(handleLinks) forKey:@"handleLinks" notification:NO];
 }
 
 /*
-Text area constrains the text event though the content offset and edge insets are set to 0 
-*/
+ Text area constrains the text event though the content offset and edge insets are set to 0
+ */
 #define TXT_OFFSET 20
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
-	UITextView* ourView = (UITextView*)[self textWidgetView];
-    NSString* txt = ourView.text;
-    //sizeThatFits does not seem to work properly.
-    CGFloat height = [ourView sizeThatFits:CGSizeMake(size.width, 1E100)].height;
-    CGFloat txtWidth = [txt sizeWithFont:ourView.font constrainedToSize:CGSizeMake(size.width, 1E100) lineBreakMode:UILineBreakModeWordWrap].width;
+    UITextView* ourView = (UITextView*)[self textWidgetView];
+    NSAttributedString* theString = [ourView attributedText];
+	CGRect rect = [theString boundingRectWithSize:CGSizeMake(size.width, CGFLOAT_MAX)
+                                               options:NSStringDrawingUsesLineFragmentOrigin
+                                               context:nil];
+    CGFloat txtWidth = ceilf(rect.size.width);
+    CGFloat height = ceilf(rect.size. height);
     if (size.width - txtWidth >= TXT_OFFSET) {
         return CGSizeMake((txtWidth + TXT_OFFSET), height);
     }
@@ -585,13 +645,18 @@ Text area constrains the text event though the content offset and edge insets ar
 {
     //Ensure that system messages that cause the scrollView to
     //scroll are ignored if scrollable is set to false
-    UITextView* ourView = (UITextView*)[self textWidgetView];
-    if (![ourView isScrollEnabled]) {
-        CGPoint origin = [scrollView contentOffset]; 
+    TiUITextViewImpl* ourView = (TiUITextViewImpl*)[self textWidgetView];
+    if (![ourView isScrollEnabled] && ourView.ignoreSystemContentOffset) {
+        CGPoint origin = [scrollView contentOffset];
         if ( (origin.x != 0) || (origin.y != 0) ) {
             [scrollView setContentOffset:CGPointZero animated:NO];
         }
     }
+}
+
+-(void)updateCaretPosition
+{
+    [(TiUITextViewImpl*)textWidgetView updateKeyboardInsetWithScroll:NO animated:NO];
 }
 
 @end

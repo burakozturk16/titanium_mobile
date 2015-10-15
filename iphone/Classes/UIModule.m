@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -45,26 +45,36 @@
     #import "TiUIiOSTabbedBarProxy.h"
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-#import "TiUIActivityIndicatorStyleProxy.h"
+static NSDictionary* activityIndicatorStyle = nil;
 #endif
 
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
-#import "TiUITableViewSeparatorStyleProxy.h"
+static NSDictionary* tableViewSeparatorStyle = nil;
 #endif
+#if defined (USE_TI_UIATTRIBUTEDSTRING)
+#import "TiUIAttributedStringProxy.h"
+#endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+#import "TiUIActivityIndicatorStyleProxy.h"
+#endif
+
 #import "TiApp.h"
 #import "ImageLoader.h"
 #import "Webcolor.h"
 #import "TiUtils.h"
 #import "UIControl+TiUIView.h"
+#import "UIGestureRecognizer+Ti.h"
 
 #ifdef USE_TI_UINAVIGATIONWINDOW
 #import "TiUINavigationWindowProxy.h"
 #endif
 #ifdef USE_TI_UITRANSITIONSTYLE
-#import "TiUITransitionStyleProxy.h"
+#import "TiTransitionHelper.h"
+static NSDictionary* transitionStyle = nil;
+static NSDictionary* transitionSubStyle = nil;
 #endif
 #ifdef USE_TI_UIBLENDMODE
-#import "TiUIBlendModeProxy.h"
+static NSDictionary* blendMode = nil;
 #endif
 
 #define DEFINE_SUBPROXY_AS(methodName,className, ivarName)	\
@@ -83,6 +93,7 @@ return ivarName;	\
 +(void)swizzle
 {
     [UIControl swizzle];
+    [UIGestureRecognizer swizzle];
 }
 
 -(void)startup
@@ -107,19 +118,17 @@ return ivarName;	\
     FORGET_AND_RELEASE(clipboard);
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-    FORGET_AND_RELEASE(activityIndicatorStyle);
+    RELEASE_TO_NIL(activityIndicatorStyle);
 #endif
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
-    FORGET_AND_RELEASE(tableViewSeparatorStyle);
-#endif
-#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(listViewSeparatorStyle);
+    RELEASE_TO_NIL(tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UITRANSITIONSTYLE
-    FORGET_AND_RELEASE(transitionStyle);
+    RELEASE_TO_NIL(transitionStyle);
+    RELEASE_TO_NIL(transitionSubStyle);
 #endif
 #ifdef USE_TI_UIBLENDMODE
-    FORGET_AND_RELEASE(blendMode);
+    RELEASE_TO_NIL(blendMode);
 #endif
 	[super dealloc];
 }
@@ -140,6 +149,9 @@ MAKE_SYSTEM_PROP(TEXT_VERTICAL_ALIGNMENT_TOP,UIControlContentVerticalAlignmentTo
 MAKE_SYSTEM_PROP(TEXT_VERTICAL_ALIGNMENT_CENTER,UIControlContentVerticalAlignmentCenter);
 MAKE_SYSTEM_PROP(TEXT_VERTICAL_ALIGNMENT_BOTTOM,UIControlContentVerticalAlignmentBottom);
 
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_TRUNCATE_START, NSLineBreakByTruncatingHead);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_TRUNCATE_MIDDLE, NSLineBreakByTruncatingMiddle);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_TRUNCATE_END, NSLineBreakByTruncatingTail);
 MAKE_SYSTEM_PROP(TEXT_ALIGNMENT_LEFT,NSTextAlignmentLeft);
 MAKE_SYSTEM_PROP(TEXT_ALIGNMENT_CENTER,NSTextAlignmentCenter);
 MAKE_SYSTEM_PROP(TEXT_ALIGNMENT_RIGHT,NSTextAlignmentRight);
@@ -151,10 +163,12 @@ MAKE_SYSTEM_PROP(SCALE_TYPE_CENTER,UIViewContentModeCenter);
 MAKE_SYSTEM_PROP(SCALE_TYPE_LEFT,UIViewContentModeLeft);
 MAKE_SYSTEM_PROP(SCALE_TYPE_RIGHT,UIViewContentModeRight);
 
-MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_NONE,UILineBreakModeWordWrap);
-MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_HEAD,UILineBreakModeHeadTruncation);
-MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_MIDDLE,UILineBreakModeMiddleTruncation);
-MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_TAIL,UILineBreakModeTailTruncation);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_NONE,NSLineBreakByClipping);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_HEAD,NSLineBreakByTruncatingHead);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_MIDDLE,NSLineBreakByTruncatingMiddle);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_TAIL,NSLineBreakByTruncatingTail);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_CHAR,NSLineBreakByCharWrapping);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_WORD,NSLineBreakByWordWrapping);
 
 MAKE_SYSTEM_PROP(RETURNKEY_DEFAULT,UIReturnKeyDefault);
 MAKE_SYSTEM_PROP(RETURNKEY_GO,UIReturnKeyGo);
@@ -226,7 +240,10 @@ MAKE_SYSTEM_PROP(URL_ERROR_UNKNOWN,NSURLErrorUnknown);
 MAKE_SYSTEM_PROP(URL_ERROR_UNSUPPORTED_SCHEME,NSURLErrorUnsupportedURL);
 
 MAKE_SYSTEM_PROP(AUTOLINK_NONE,UIDataDetectorTypeNone);
-MAKE_SYSTEM_PROP(AUTOLINK_ALL,UIDataDetectorTypeAll);
+-(NSNumber*)AUTOLINK_ALL
+{
+    return NUMINTEGER(UIDataDetectorTypeAll);
+}
 MAKE_SYSTEM_PROP(AUTOLINK_PHONE_NUMBERS,UIDataDetectorTypePhoneNumber);
 MAKE_SYSTEM_PROP(AUTOLINK_URLS,UIDataDetectorTypeLink);
 MAKE_SYSTEM_PROP(AUTOLINK_EMAIL_ADDRESSES,UIDataDetectorTypeLink);
@@ -249,16 +266,18 @@ MAKE_SYSTEM_PROP(LIST_ACCESSORY_TYPE_DISCLOSURE,UITableViewCellAccessoryDisclosu
 }
 
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_NONE,UIDataDetectorTypeNone, @"UI.AUTODETECT_NONE", @"1.8.0", @"Ti.UI.AUTOLINK_NONE");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_ALL,UIDataDetectorTypeAll, @"UI.AUTODETECT_ALL", @"1.8.0", @"Ti.UI.AUTOLINK_ALL");
+-(NSNumber*)AUTODETECT_ALL
+{
+    DEPRECATED_REPLACED(@"UI.AUTODETECT_ALL", @"1.8.0", @"Ti.UI.AUTOLINK_ALL")
+    return NUMUINTEGER(UIDataDetectorTypeAll);
+}
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_PHONE,UIDataDetectorTypePhoneNumber, @"UI.AUTODETECT_PHONE", @"1.8.0", @"Ti.UI.AUTOLINK_PHONE_NUMBERS");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_LINK,UIDataDetectorTypeLink, @"UI.AUTODETECT_LINK", @"1.8.0", @"Ti.UI.AUTOLINK_URLS");
 
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_ADDRESS,UIDataDetectorTypeAddress, @"UI.AUTODETECT_ADDRESS", @"1.8.0", @"Ti.UI.AUTOLINK_MAP_ADDRESSES");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_CALENDAR,UIDataDetectorTypeCalendarEvent, @"UI.AUTODETECT_CALENDAR", @"1.8.0", @"Ti.UI.AUTOLINK_CALENDAR");
 
-#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
-DEFINE_SUBPROXY_AS(ListViewSeparatorStyle, TableViewSeparatorStyle, listViewSeparatorStyle);
-#endif
+
 
 -(void)setBackgroundColor:(id)color
 {
@@ -334,27 +353,27 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 
 -(NSString*)TEXT_STYLE_HEADLINE
 {
-    return [TiUtils isIOS7OrGreater] ? UIFontTextStyleHeadline : @"INVALID";
+    return UIFontTextStyleHeadline;
 }
 -(NSString*)TEXT_STYLE_SUBHEADLINE
 {
-    return [TiUtils isIOS7OrGreater] ? UIFontTextStyleSubheadline : @"INVALID";
+    return UIFontTextStyleSubheadline;
 }
 -(NSString*)TEXT_STYLE_BODY
 {
-    return [TiUtils isIOS7OrGreater] ? UIFontTextStyleBody : @"INVALID";
+    return UIFontTextStyleBody;
 }
 -(NSString*)TEXT_STYLE_FOOTNOTE
 {
-    return [TiUtils isIOS7OrGreater] ? UIFontTextStyleFootnote : @"INVALID";
+    return UIFontTextStyleFootnote;
 }
 -(NSString*)TEXT_STYLE_CAPTION1
 {
-    return [TiUtils isIOS7OrGreater] ? UIFontTextStyleCaption1 : @"INVALID";
+    return UIFontTextStyleCaption1;
 }
 -(NSString*)TEXT_STYLE_CAPTION2
 {
-    return [TiUtils isIOS7OrGreater] ? UIFontTextStyleCaption2 : @"INVALID";
+    return UIFontTextStyleCaption2;
 }
 
 -(NSNumber*)isLandscape:(id)args
@@ -467,8 +486,12 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 {
 	if (activityIndicatorStyle==nil)
 	{
-		activityIndicatorStyle = [[TiUIActivityIndicatorStyleProxy alloc] _initWithPageContext:[self executionContext]];
-        [self rememberProxy:activityIndicatorStyle];
+        activityIndicatorStyle = [@{
+                                    @"PLAIN":@(UIActivityIndicatorViewStyleWhite),
+                                    @"BIG":@(UIActivityIndicatorViewStyleWhiteLarge),
+                                    @"BIG_DARK":@(UIActivityIndicatorViewStyleGray),
+                                    @"DARK":@(3)
+                                    } retain];
 	}
 	return activityIndicatorStyle;
 }
@@ -477,10 +500,19 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 {
 	if (tableViewSeparatorStyle==nil)
 	{
-		tableViewSeparatorStyle = [[TiUITableViewSeparatorStyleProxy alloc] _initWithPageContext:[self executionContext]];
-        [self rememberProxy:tableViewSeparatorStyle];
+        tableViewSeparatorStyle = [@{
+                             @"NONE":@(UITableViewCellSeparatorStyleNone),
+                             @"SINGLE_LINE":@(UITableViewCellSeparatorStyleSingleLine),
+                             @"SINGLE_LINE_ETCHED":@(UITableViewCellSeparatorStyleSingleLineEtched)
+                             } retain];
 	}
 	return tableViewSeparatorStyle;
+}
+#endif
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+-(id)ListViewSeparatorStyle
+{
+    return [self TableViewSeparatorStyle];
 }
 #endif
 #ifdef USE_TI_UITRANSITIONSTYLE
@@ -488,21 +520,71 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 {
 	if (transitionStyle==nil)
 	{
-		transitionStyle = [[TiUITransitionStyleProxy alloc] _initWithPageContext:[self executionContext]];
-        [self rememberProxy:transitionStyle];
+        transitionStyle = [@{
+                       @"CUBE":@(NWTransitionCube),
+                       @"CAROUSEL":@(NWTransitionCarousel),
+                       @"CROSS":@(NWTransitionCross),
+                       @"GHOST":@(NWTransitionGhost),
+                       @"GLUE":@(NWTransitionGlue),
+                       @"ZOOM":@(NWTransitionZoom),
+                       @"SWIPE":@(NWTransitionSwipe),
+                       @"SWIPE_FADE":@(NWTransitionSwipeFade),
+                       @"SWIPE_DUAL_FADE":@(NWTransitionSwipeDualFade),
+                       @"FLIP":@(NWTransitionFlip),
+                       @"SWAP":@(NWTransitionSwap),
+                       @"SCALE":@(NWTransitionScale),
+                       @"FADE":@(NWTransitionFade),
+                       @"BACK_FADE":@(NWTransitionBackFade),
+                       @"FOLD":@(NWTransitionFold),
+                       @"PUSH_ROTATE":@(NWTransitionPushRotate),
+                       @"SCALE":@(NWTransitionScale),
+                       @"SLIDE":@(NWTransitionSlide),
+                       @"MODERN_PUSH":@(NWTransitionModernPush),
+                       } retain];
 	}
 	return transitionStyle;
+}
+-(id)TransitionSubStyle
+{
+    if (transitionSubStyle==nil)
+    {
+        transitionSubStyle = [@{
+                             @"TOP_TO_BOTTOM":@(ADTransitionTopToBottom),
+                             @"BOTTOM_TO_TOP":@(ADTransitionBottomToTop),
+                             @"RIGHT_TO_LEFT":@(ADTransitionRightToLeft),
+                             @"LEFT_TO_RIGHT":@(ADTransitionLeftToRight)
+                             } retain];
+    }
+    return transitionSubStyle;
 }
 #endif
 #ifdef USE_TI_UIBLENDMODE
 -(id)BlendMode
 {
-	if (blendMode==nil)
-	{
-		blendMode = [[TiUIBlendModeProxy alloc] _initWithPageContext:[self executionContext]];
-        [self rememberProxy:blendMode];
-	}
-	return blendMode;
+    if (blendMode == nil)
+    {
+        blendMode = [@{
+                       @"DARKEN":@(kCGBlendModeDarken),
+                       @"LIGHTEN":@(kCGBlendModeLighten),
+                       @"MULTIPLY":@(kCGBlendModeMultiply),
+                       @"ADD":@(kCGBlendModeNormal),
+                       @"SCREEN":@(kCGBlendModeScreen),
+                       @"CLEAR":@(kCGBlendModeDarken),
+                       @"DST":@(kCGBlendModeCopy),
+                       @"SRC":@(kCGBlendModeCopy),
+                       @"DST_ATOP":@(kCGBlendModeDestinationAtop),
+                       @"DST_IN":@(kCGBlendModeDestinationIn),
+                       @"DST_OUT":@(kCGBlendModeDestinationOut),
+                       @"DST_OVER":@(kCGBlendModeDestinationOver),
+                       @"SRC_ATOP":@(kCGBlendModeSourceAtop),
+                       @"SRC_IN":@(kCGBlendModeSourceIn),
+                       @"SRC_OUT":@(kCGBlendModeSourceOut),
+                       @"SRC_OVER":@(kCGBlendModeDestinationOver),
+                       @"OVERLAY":@(kCGBlendModeDarken),
+                       @"XOR":@(kCGBlendModeXOR),
+                       } retain];
+    }
+    return blendMode;
 }
 #endif
 #endif
@@ -523,19 +605,17 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 	FORGET_AND_RELEASE(clipboard);
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	FORGET_AND_RELEASE(activityIndicatorStyle);
+	RELEASE_TO_NIL(activityIndicatorStyle);
 #endif
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(tableViewSeparatorStyle);
-#endif
-#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(listViewSeparatorStyle);
+	RELEASE_TO_NIL(tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UITRANSITIONSTYLE
-	FORGET_AND_RELEASE(transitionStyle);
+    RELEASE_TO_NIL(transitionStyle);
+    RELEASE_TO_NIL(transitionSubStyle);
 #endif
 #ifdef USE_TI_UIBLENDMODE
-	FORGET_AND_RELEASE(blendMode);
+	RELEASE_TO_NIL(blendMode);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }
@@ -547,6 +627,10 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 -(NSString*)FILL
 {
     return kTiBehaviorFill;
+}
+-(NSString*)MATCH
+{
+    return kTiBehaviorMatch;
 }
 -(NSString*)UNIT_PX
 {
@@ -610,7 +694,133 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
     
     return [NSNumber numberWithFloat:result];
 }
+#if defined(USE_TI_UIATTRIBUTEDSTRING)
+MAKE_SYSTEM_PROP(ATTRIBUTE_FONT, AttributeNameFont);
+MAKE_SYSTEM_PROP(ATTRIBUTE_PARAGRAPH_STYLE, AttributeNameParagraphStyle);
+MAKE_SYSTEM_PROP(ATTRIBUTE_FOREGROUND_COLOR, AttributeNameForegroundColor);
+MAKE_SYSTEM_PROP(ATTRIBUTE_BACKGROUND_COLOR, AttributeNameBackgroundColor);
+MAKE_SYSTEM_PROP(ATTRIBUTE_LIGATURE, AttributeNameLigature);
+MAKE_SYSTEM_PROP(ATTRIBUTE_KERN, AttributeNameKern);
+MAKE_SYSTEM_PROP(ATTRIBUTE_STRIKETHROUGH_STYLE, AttributeNameStrikethroughStyle);
+MAKE_SYSTEM_PROP(ATTRIBUTE_UNDERLINES_STYLE, AttributeNameUnderlineStyle);
+MAKE_SYSTEM_PROP(ATTRIBUTE_STROKE_COLOR, AttributeNameStrokeColor);
+MAKE_SYSTEM_PROP(ATTRIBUTE_STROKE_WIDTH, AttributeNameStrokeWidth);
+MAKE_SYSTEM_PROP(ATTRIBUTE_SHADOW, AttributeNameShadow);
+MAKE_SYSTEM_PROP(ATTRIBUTE_VERTICAL_GLYPH_FORM, AttributeNameVerticalGlyphForm);
+MAKE_SYSTEM_PROP(ATTRIBUTE_WRITING_DIRECTION, AttributeNameWritingDirection);
+MAKE_SYSTEM_PROP(ATTRIBUTE_TEXT_EFFECT, AttributeNameTextEffect);
+MAKE_SYSTEM_PROP(ATTRIBUTE_ATTACHMENT, AttributeNameAttachment);
+MAKE_SYSTEM_PROP(ATTRIBUTE_LINK, AttributeNameLink);
+MAKE_SYSTEM_PROP(ATTRIBUTE_BASELINE_OFFSET, AttributeNameBaselineOffset);
+MAKE_SYSTEM_PROP(ATTRIBUTE_UNDERLINE_COLOR, AttributeNameUnderlineColor);
+MAKE_SYSTEM_PROP(ATTRIBUTE_STRIKETHROUGH_COLOR, AttributeNameStrikethroughColor);
+MAKE_SYSTEM_PROP(ATTRIBUTE_OBLIQUENESS, AttributeNameObliqueness);
+MAKE_SYSTEM_PROP(ATTRIBUTE_EXPANSION, AttributeNameExpansion);
+MAKE_SYSTEM_PROP(ATTRIBUTE_LINE_BREAK, AttributeNameLineBreak);
 
+-(NSNumber*)ATTRIBUTE_UNDERLINE_STYLE_NONE
+{
+    return NUMINTEGER(NSUnderlineStyleNone);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_STYLE_SINGLE
+{
+    return NUMINTEGER(NSUnderlineStyleSingle);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_STYLE_THICK
+{
+    return NUMINTEGER(NSUnderlineStyleThick);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_STYLE_DOUBLE
+{
+    return NUMINTEGER(NSUnderlineStyleDouble);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_PATTERN_SOLID
+{
+    return NUMINTEGER(NSUnderlinePatternSolid);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_PATTERN_DOT
+{
+    return NUMINTEGER(NSUnderlinePatternDot);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_PATTERN_DASH
+{
+    return NUMINTEGER(NSUnderlinePatternDash);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_PATTERN_DASH_DOT
+{
+    return NUMINTEGER(NSUnderlinePatternDashDot);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_PATTERN_DASH_DOT_DOT
+{
+    return NUMINTEGER(NSUnderlinePatternDashDotDot);
+}
+-(NSNumber*)ATTRIBUTE_UNDERLINE_BY_WORD
+{
+    return NUMINTEGER(NSUnderlineByWord);
+}
+-(NSNumber*)ATTRIBUTE_WRITING_DIRECTION_NATURAL
+{
+    return NUMINTEGER(NSWritingDirectionNatural);
+}
+-(NSNumber*)ATTRIBUTE_WRITING_DIRECTION_LEFT_TO_RIGHT
+{
+    return NUMINTEGER(NSWritingDirectionLeftToRight);
+}
+-(NSNumber*)ATTRIBUTE_WRITING_DIRECTION_RIGHT_TO_LEFT
+{
+    return NUMINTEGER(NSWritingDirectionRightToLeft);
+}
+-(NSNumber*)ATTRIBUTE_WRITING_DIRECTION_EMBEDDING
+{
+    return NUMINTEGER(NSTextWritingDirectionEmbedding);
+}
+-(NSNumber*)ATTRIBUTE_WRITING_DIRECTION_OVERRIDE
+{
+    return NUMINTEGER(NSTextWritingDirectionOverride);
+}
+-(NSString *)ATTRIBUTE_LETTERPRESS_STYLE
+{
+    return NSTextEffectLetterpressStyle;
+}
+-(NSNumber*)ATTRIBUTE_LINE_BREAK_BY_WORD_WRAPPING
+{
+    return NUMINTEGER(NSLineBreakByWordWrapping);
+}
+-(NSNumber*)ATTRIBUTE_LINE_BREAK_BY_CHAR_WRAPPING
+{
+    return NUMINTEGER(NSLineBreakByCharWrapping);
+}
+-(NSNumber*)ATTRIBUTE_LINE_BREAK_BY_CLIPPING
+{
+    return NUMINTEGER(NSLineBreakByClipping);
+}
+-(NSNumber*)ATTRIBUTE_LINE_BREAK_BY_TRUNCATING_HEAD
+{
+    return NUMINTEGER(NSLineBreakByTruncatingHead);
+}
+-(NSNumber*)ATTRIBUTE_LINE_BREAK_BY_TRUNCATING_TAIL
+{
+    return NUMINTEGER(NSLineBreakByTruncatingTail);
+}
+-(NSNumber*)ATTRIBUTE_LINE_BREAK_BY_TRUNCATING_MIDDLE
+{
+    return NUMINTEGER(NSLineBreakByTruncatingMiddle);
+}
+
+-(NSNumber*)WINDOW_LEVEL_NORMAL
+{
+    return NUMINTEGER(UIWindowLevelNormal);
+}
+
+-(NSNumber*)WINDOW_LEVEL_ALERT
+{
+    return NUMINTEGER(UIWindowLevelAlert);
+}
+-(NSNumber*)WINDOW_LEVEL_STATUS_BAR
+{
+    return NUMINTEGER(UIWindowLevelStatusBar);
+}
+#endif
 
 @end
 

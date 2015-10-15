@@ -134,7 +134,9 @@ Object.defineProperty(EventEmitter.prototype, "fireSyncEvent", {
 Object.defineProperty(EventEmitter.prototype, "addListener", {
 	value: function(type, listener, view) {
 		if ('function' !== typeof listener) {
-			throw new Error('addListener only takes instances of Function. The listener for event "' + type + '" is "' + (typeof listener) + '"');
+			this._addEvaluator(type, listener);
+			return this;
+			// throw new Error('addListener only takes instances of Function. The listener for event "' + type + '" is "' + (typeof listener) + '"');
 		}
 
 		if (!this._events) {
@@ -172,7 +174,7 @@ Object.defineProperty(EventEmitter.prototype, "addListener", {
 			this._hasListenersForEventType(type, true);
 		}
 
-		return id;
+		return this;
 	},
 	enumerable: false
 });
@@ -207,7 +209,7 @@ Object.defineProperty(EventEmitter.prototype, "once", {
 		};
 
 		g.listener = listener;
-		self.on(type, g);
+		self.addListener(type, g);
 
 		return this;
 	},
@@ -217,7 +219,9 @@ Object.defineProperty(EventEmitter.prototype, "once", {
 Object.defineProperty(EventEmitter.prototype, "removeListener", {
 	value: function(type, listener) {
 		if ('function' !== typeof listener) {
-			throw new Error('removeListener only takes instances of Function');
+			this._removeEvaluator(type, listener);
+			return this;
+			// throw new Error('removeListener only takes instances of Function');
 		}
 
 		// does not use listeners(), so no side effect of creating _events[type]
@@ -277,6 +281,12 @@ Object.defineProperty(EventEmitter.prototype, "removeEventListener", {
 	enumerable: false,
 	writable: true
 });
+
+Object.defineProperty(EventEmitter.prototype, "off", {
+	value: EventEmitter.prototype.removeListener,
+	enumerable: false
+});
+
 
 Object.defineProperty(EventEmitter.prototype, "removeAllListeners", {
 	value: function(type) {

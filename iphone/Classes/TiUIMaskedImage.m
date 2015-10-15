@@ -83,7 +83,7 @@
 
 -(void)setMode_:(id)value
 {
-	mode = [TiUtils intValue:value];
+	mode = (int)[TiUtils intValue:value];
 	[self setNeedsDisplay];
 }
 

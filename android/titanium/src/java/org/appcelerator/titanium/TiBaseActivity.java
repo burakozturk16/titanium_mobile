@@ -7,13 +7,13 @@
 package org.appcelerator.titanium;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollObject;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.common.Log;
@@ -22,11 +22,16 @@ import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.OnWindowFocusChangedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
+import org.appcelerator.titanium.TiLifecycle.OnActivityResultEvent;
+import org.appcelerator.titanium.TiLifecycle.OnInstanceStateEvent;
+import org.appcelerator.titanium.TiLifecycle.OnCreateOptionsMenuEvent;
+import org.appcelerator.titanium.TiLifecycle.OnPrepareOptionsMenuEvent;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.IntentProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
+import org.appcelerator.titanium.util.TiActivityHelper;
 import org.appcelerator.titanium.util.TiActivityResultHandler;
 import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiActivitySupportHelper;
@@ -36,29 +41,33 @@ import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
-import android.os.Build;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.view.WindowCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.OrientationEventListener;
+import android.view.Surface;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -69,12 +78,13 @@ import com.appcelerator.analytics.APSAnalytics;
  * The base class for all non tab Titanium activities. To learn more about Activities, see the
  * <a href="http://developer.android.com/reference/android/app/Activity.html">Android Activity documentation</a>.
  */
-public abstract class TiBaseActivity extends ActionBarActivity
+public abstract class TiBaseActivity extends AppCompatActivity
 	implements TiActivitySupport/*, ITiWindowHandler*/
 {
 	private static final String TAG = "TiBaseActivity";
 
 	private static OrientationChangedListener orientationChangedListener = null;
+	private static OrientationEventListener orientationListener;
 
 	private boolean onDestroyFired = false;
 	private int originalOrientationMode = -1;
@@ -83,7 +93,15 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	private TiWeakList<OnWindowFocusChangedEvent> windowFocusChangedListeners = new TiWeakList<OnWindowFocusChangedEvent>();
 	protected TiWeakList<interceptOnBackPressedEvent> interceptOnBackPressedListeners = new TiWeakList<interceptOnBackPressedEvent>();
 	protected TiWeakList<interceptOnHomePressedEvent> interceptOnHomePressedListeners = new TiWeakList<interceptOnHomePressedEvent>();
+	private TiWeakList<OnInstanceStateEvent> instanceStateListeners = new TiWeakList<OnInstanceStateEvent>();
+	private TiWeakList<OnActivityResultEvent> onActivityResultListeners = new TiWeakList<OnActivityResultEvent>();
+	private TiWeakList<OnCreateOptionsMenuEvent>  onCreateOptionsMenuListeners = new TiWeakList<OnCreateOptionsMenuEvent>();
+	private TiWeakList<OnPrepareOptionsMenuEvent> onPrepareOptionsMenuListeners = new TiWeakList<OnPrepareOptionsMenuEvent>();
+//	private APSAnalytics analytics = APSAnalytics.getInstance();
 
+	public static KrollObject cameraCallbackContext, contactsCallbackContext, oldCalendarCallbackContext, calendarCallbackContext, locationCallbackContext;
+	public static KrollFunction cameraPermissionCallback, contactsPermissionCallback, oldCalendarPermissionCallback, calendarPermissionCallback, locationPermissionCallback;
+	
 	protected View layout;
 	protected TiActivitySupportHelper supportHelper;
 	protected int supportHelperId = -1;
@@ -101,7 +119,6 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	private CopyOnWriteArrayList<DialogWrapper> dialogs = new CopyOnWriteArrayList<DialogWrapper>();
 	private Stack<TiWindowProxy> windowStack = new Stack<TiWindowProxy>();
 
-	public TiWindowProxy lwWindow;
 	public boolean isResumed = false;
 	
 	private boolean isPaused = false;
@@ -109,16 +126,18 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	private boolean fullscreen = false;
 	private boolean defaultFullscreen = false;
 	private boolean navBarHidden = false;
-	private boolean defaultNavBarHidden = false;
+//	private boolean defaultNavBarHidden = false;
 	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN |  WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
 	private int softInputMode = defaultSoftInputMode;
+	private boolean mReadyToQueryActionBar = false;
 
 	public class DialogWrapper {
 		boolean isPersistent;
-		AlertDialog dialog;
+		Dialog dialog;
+
 		WeakReference<TiBaseActivity> dialogActivity;
 		
-		public DialogWrapper(AlertDialog d, boolean persistent, WeakReference<TiBaseActivity> activity) {
+		public DialogWrapper(Dialog d, boolean persistent, WeakReference<TiBaseActivity> activity) {
 			isPersistent = persistent;
 			dialog = d;
 			dialogActivity = activity;
@@ -138,11 +157,11 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			dialogActivity = da;
 		}
 
-		public AlertDialog getDialog() {
+		public Dialog getDialog() {
 			return dialog;
 		}
 		
-		public void setDialog(AlertDialog d) {
+		public void setDialog(Dialog d) {
 			dialog = d;
 		}
 		
@@ -180,13 +199,21 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		
 		updateTitle(proxy);
 	}
+	
+	public boolean isCurrentWindow(final TiWindowProxy proxy) {
+	    return this.window == proxy;
+	}
 
-	public void removeWindowFromStack(TiWindowProxy proxy)
+	public void removeWindowFromStack(final TiWindowProxy proxy)
 	{
+	    boolean wasCurrentWindow = this.window == proxy;
 		proxy.onWindowFocusChange(false);
 
 		boolean isTopWindow = ( (!windowStack.isEmpty()) && (windowStack.peek() == proxy) ) ? true : false;
 		windowStack.remove(proxy);
+		if (!wasCurrentWindow) {
+		    return;
+		}
 		
 		if (!windowStack.empty()) {
 			TiWindowProxy nextWindow = windowStack.peek();
@@ -251,28 +278,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		return this.window;
 	}
 
-	private KrollDict updatePropertiesFromWindow(KrollDict properties, KrollDict windowProperties)
-	{
-		KrollDict actionBarDict = null;
-		if (properties.containsKey(TiC.PROPERTY_ACTION_BAR)) {
-			actionBarDict = properties.getKrollDict(TiC.PROPERTY_ACTION_BAR);
-		}
-		else {
-			actionBarDict = new KrollDict(); //to make sure we go into processProperties
-		}
-		
-		if (windowProperties.containsKey(TiC.PROPERTY_BAR_COLOR) && !actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
-			actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, windowProperties.get(TiC.PROPERTY_BAR_COLOR));
-		}
-		if (windowProperties.containsKey(TiC.PROPERTY_BAR_IMAGE) && !actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
-			actionBarDict.put(TiC.PROPERTY_BACKGROUND_IMAGE, windowProperties.get(TiC.PROPERTY_BAR_IMAGE));
-		}
-		if (windowProperties.containsKey(TiC.PROPERTY_BAR_ICON) && !actionBarDict.containsKey(TiC.PROPERTY_ICON)) {
-			actionBarDict.put(TiC.PROPERTY_ICON, windowProperties.get(TiC.PROPERTY_BAR_ICON));
-		}
-		properties.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
-		return properties;
-	}
+
 
 	/**
 	 * Sets the window proxy.
@@ -281,8 +287,10 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	@SuppressLint("NewApi")
 	public void setWindowProxy(TiWindowProxy proxy)
 	{
+//	    proxy = proxy.getTopWindow();
+	    if(this.window == proxy) return;
 		this.window = proxy;
-		updateTitle(this.window);
+//		updateTitle(this.window);
 		
 		KrollDict props = this.window.getProperties();
 		boolean fullscreen = props.optBoolean(TiC.PROPERTY_FULLSCREEN, this.defaultFullscreen);
@@ -296,28 +304,62 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		}
 		if (newNavBarHidden != this.navBarHidden) {
 			this.navBarHidden = newNavBarHidden;
-			ActionBar actionBar = getSupportActionBar();
-			if (actionBar != null) {
-				if (this.navBarHidden) actionBar.hide();
-				else actionBar.show();
-			}
-			
+	        TiActivityHelper.setActionBarHidden(this, this.navBarHidden);
 		}
 		
+		if (TiC.HONEYCOMB_OR_GREATER) {
+            int uiVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
+            if(props.containsKey("uiVisibilityFlags")) {
+                uiVisibility |= TiConvert.toInt(props, "uiVisibilityFlags", uiVisibility);
+            }
+            if (TiC.LOLLIPOP_OR_GREATER) {
+                if(props.containsKey("statusBarColor")) {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                    getWindow().setStatusBarColor(TiConvert.toColor(props, "statusBarColor"));
+                }
+                if(props.containsKey("navigationBarColor")) {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                    getWindow().setNavigationBarColor(TiConvert.toColor(props, "navigationBarColor"));
+                }
+                
+                if(props.containsKey("immersive")) {
+                    int immersive = TiConvert.toInt(props, "immersive");
+                    switch (immersive) {
+                    case 1:
+                        uiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE;
+                        break;
+                    case 2:
+                        uiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                        break;
+                    case 0:
+                    default:
+                        break;
+                    }
+                }
+                if (fullscreen) {
+                    uiVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+                }
+                if(props.containsKey("navigationHidden")) {
+                    boolean value =  TiConvert.toBoolean(props, "navigationHidden");
+                    if (value) {
+                        uiVisibility |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+                    }
+                }
+            }
+            getWindow().getDecorView().setSystemUiVisibility(uiVisibility);
+		}
+		
+		
+
 		
 		if (hasSoftInputMode && softInputMode != this.softInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
 			getWindow().setSoftInputMode(softInputMode);  
 		}
-		KrollDict activityDict = null;
-		if (this.window.hasProperty(TiC.PROPERTY_ACTIVITY)) {
-			activityDict = new KrollDict((HashMap)this.window.getProperty(TiC.PROPERTY_ACTIVITY));
-		}
-		else {
-			activityDict = new KrollDict(); //to make sure we update actionbar
-		}
-		updatePropertiesFromWindow(activityDict, this.window.getProperties());
-
+		KrollDict activityDict = this.window.getActivityProperties(props.getKrollDict(TiC.PROPERTY_ACTIVITY));
+		if (this.window.getWindowManager() instanceof TiWindowProxy) {
+            activityDict = ((TiWindowProxy) this.window.getWindowManager()).getActivityProperties(activityDict);
+        }
 		getActivityProxy().setProperties(activityDict);
 	}
 
@@ -329,7 +371,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	public void setLayoutProxy(TiViewProxy proxy)
 	{
 		if (layout instanceof TiCompositeLayout) {
-			((TiCompositeLayout) layout).setView(proxy.peekView());
+//			((TiCompositeLayout) layout).setView(proxy.peekView());
 		}
 	}
 
@@ -417,6 +459,16 @@ public abstract class TiBaseActivity extends ActionBarActivity
 
 		return defaultValue;
 	}
+	
+	protected boolean intentHasProperty(String property)
+    {
+        Intent intent = getIntent();
+        if (intent != null) {
+            return intent.hasExtra(property);
+        }
+
+        return false;
+    }
 
 	protected int getIntentInt(String property, int defaultValue)
 	{
@@ -461,34 +513,19 @@ public abstract class TiBaseActivity extends ActionBarActivity
 
 			if (!newTitle.equals(oldTitle)) {
 				final String fnewTitle = newTitle;
-				final ActionBar actionBar = getSupportActionBar();
-				if (actionBar != null) {
-					actionBar.setTitle(fnewTitle);
-				}
-				else {
-					runOnUiThread(new Runnable(){
-						public void run() {
-							setTitle(fnewTitle);
-						}
-					});
-				}
+				
+				    runOnUiThread(new Runnable(){
+                        public void run() {
+                            if (!TiActivityHelper.setActionBarTitle(TiBaseActivity.this, fnewTitle)) {
+                                setTitle(fnewTitle);
+                            }
+                        }
+                    });
 			}
 		}
 	}
-	
-	private void checkUpEventSent(MotionEvent event){
-		if (!windowStack.isEmpty()) {
-			Iterator itr = windowStack.iterator();
-		    while( itr.hasNext() ) {
-		        TiWindowProxy window = (TiWindowProxy)itr.next();
-		        window.checkUpEventSent(event);
-		    }
-		}
-		if (window != null) {
-			 window.checkUpEventSent(event);
-		}
-	}
 
+//	private Toolbar toolbar = null;
 	// Subclasses can override to provide a custom layout
 	protected View createLayout()
 	{
@@ -501,35 +538,142 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		} else if (layoutFromIntent.equals(TiC.LAYOUT_VERTICAL)) {
 			arrangement = LayoutArrangement.VERTICAL;
 		}
+		
+        
+        
+//		LinearLayout layout = new LinearLayout(this);
+//        layout.setFocusable(false);
+//        layout.setFocusableInTouchMode(false);
+//        layout.setOrientation(LinearLayout.VERTICAL);
+//        
+//        try {
+//            toolbar = (Toolbar) getLayoutInflater().inflate(TiRHelper.getResource("layout.toolbar"), null).findViewById(TiRHelper.getResource("id.toolbar"));
+//        } catch (ResourceNotFoundException e) {
+//        }
+//        if (toolbar != null) {
+//            layout.addView(toolbar, new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+//        }
+//        
+//        
+//        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, 1);
+//        
+//        layout.addView(new TiCompositeLayout(this, arrangement, null) {
+//            private boolean firstFocusRequest = true;
+//            
+//            @Override
+//            public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
+//                if (firstFocusRequest) {
+//                    firstFocusRequest = false;
+//                    return false;
+//                }
+//                return super.requestFocus(direction, previouslyFocusedRect);
+//            }
+//            
+//            @Override
+//            public boolean onInterceptTouchEvent(MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_UP) {
+//                    final MotionEvent copy = MotionEvent.obtain(event);
+//                    final Handler handler = new Handler();
+//                    handler.postDelayed(new Runnable() {
+//                      @Override
+//                      public void run() {
+//                          checkUpEventSent(copy);
+//                      }
+//                    }, 10);
+//                }
+//                return super.onInterceptTouchEvent(event);
+//            }
+//        }, params);
+
 
 		// set to null for now, this will get set correctly in setWindowProxy()
+//		return layout;
+		
 		return new TiCompositeLayout(this, arrangement, null) {
-			private boolean firstFocusRequest = true;
-			
-			@Override
-		    public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
-		        if (firstFocusRequest) {
-		        	firstFocusRequest = false;
-		        	return false;
-		        }
-		        return super.requestFocus(direction, previouslyFocusedRect);
-		    }
-			
-			@Override
-		    public boolean onInterceptTouchEvent(MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_UP) {
-					final MotionEvent copy = MotionEvent.obtain(event);
-					final Handler handler = new Handler();
-					handler.postDelayed(new Runnable() {
-					  @Override
-					  public void run() {
-						  checkUpEventSent(copy);
-					  }
-					}, 10);
-				}
-		        return super.onInterceptTouchEvent(event);
-		    }
-		};
+            private boolean firstFocusRequest = true;
+            
+            @Override
+            public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
+                if (firstFocusRequest) {
+                    firstFocusRequest = false;
+                    return false;
+                }
+                return super.requestFocus(direction, previouslyFocusedRect);
+            }
+            
+            //make sure no TiUIView is attached
+            @Override
+            public void setView(TiUIView view) {
+            }
+            
+            @Override
+            public boolean onInterceptTouchEvent(MotionEvent event) {
+                final int action = event.getAction();
+                if (action == MotionEvent.ACTION_UP || 
+                        action == MotionEvent.ACTION_CANCEL) {
+                    final MotionEvent copy = MotionEvent.obtain(event);
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                      @Override
+                      public void run() {
+                          if (!windowStack.isEmpty()) {
+                              TiWindowProxy win = (TiWindowProxy)windowStack.lastElement();
+                              if (win != null) {
+                                  window.checkUpEventSent(copy);
+                              }
+                          }
+                          else if (window != null) {
+                               window.checkUpEventSent(copy);
+                          }
+                      }
+                    }, 0);
+                }
+                return super.onInterceptTouchEvent(event);
+            }
+        };
+	}
+	
+	private void permissionCallback(int[] grantResults, KrollFunction callback, KrollObject context, String permission) {
+		if (callback == null) {
+			return;
+		}
+		if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			KrollDict response = new KrollDict();
+			response.putCodeAndMessage(0, null);
+			callback.callAsync(context, response);
+		} else {
+			KrollDict response = new KrollDict();
+			response.putCodeAndMessage(-1, permission + " permission denied");
+			callback.callAsync(context, response);
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode,
+		String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case TiC.PERMISSION_CODE_CAMERA: {
+				permissionCallback(grantResults, cameraPermissionCallback, cameraCallbackContext, "Camera");
+				return;
+			}
+			case TiC.PERMISSION_CODE_OLD_CALENDAR: {
+				permissionCallback(grantResults, oldCalendarPermissionCallback, oldCalendarCallbackContext, "Calendar");
+				return;
+			}
+			case TiC.PERMISSION_CODE_CALENDAR: {
+				permissionCallback(grantResults, calendarPermissionCallback, calendarCallbackContext, "Calendar");
+				return;
+			}
+			case TiC.PERMISSION_CODE_LOCATION: {
+				permissionCallback(grantResults, locationPermissionCallback, locationCallbackContext, "Location");
+				return;
+			}
+			case TiC.PERMISSION_CODE_CONTACTS: {
+				permissionCallback(grantResults, contactsPermissionCallback, contactsCallbackContext, "Contacts");
+				return;
+			}
+
+		}
 	}
 
 	protected void setFullscreen(boolean fullscreen)
@@ -541,50 +685,38 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
 	}
-
-	protected void setNavBarHidden(final boolean hidden)
-	{
-		final ActionBar actionBar = getSupportActionBar();
-		if (actionBar != null) {
-		    try {
-		        if (hidden) {
-	                actionBar.hide();
-	            }
-	            else {
-	                actionBar.show();
-	            }
-            } catch (NullPointerException e) {
-                //no internal action bar
-            }
-			
-		}
+	
+	public final boolean isReadyToQueryActionBar() {
+	    return mReadyToQueryActionBar;
 	}
 	
-	
 	// Subclasses can override to handle post-creation (but pre-message fire) logic
-	protected void windowCreated()
+	@SuppressWarnings("deprecation")
+	protected void windowCreated(Bundle savedInstanceState)
 	{
 		defaultFullscreen = fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
-		defaultNavBarHidden = navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
+//		defaultNavBarHidden = navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
+		navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
 		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, defaultSoftInputMode);
 		boolean hasSoftInputMode = softInputMode != -1;
 		int windowFlags = getIntentInt(TiC.PROPERTY_WINDOW_FLAGS, 0);
 		final Window window = getWindow();
 		
-//	    getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-		window.requestFeature(Window.FEATURE_PROGRESS);
-		window.requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		
 		setFullscreen(fullscreen);
-		setNavBarHidden(navBarHidden);	
+		TiActivityHelper.setActionBarHidden(this, navBarHidden);
+		
+		if (intentHasProperty(TiC.PROPERTY_WINDOW_TYPE)) {
+            window.setType(getIntentInt(TiC.PROPERTY_WINDOW_TYPE, WindowManager.LayoutParams.TYPE_APPLICATION));
+        }
 		
 		if (windowFlags > 0) {
 			window.addFlags(windowFlags);
 		}
+        
 		
 		if (modal) {
-			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
+			if (TiC.ICS_OR_GREATER) {
 				// This flag is deprecated in API 14. On ICS, the background is not blurred but straight black.
 				window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
 			}
@@ -598,7 +730,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		boolean useActivityWindow = getIntentBoolean(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, false);
 		if (useActivityWindow) {
 			int windowId = getIntentInt(TiC.INTENT_PROPERTY_WINDOW_ID, -1);
-			TiActivityWindows.windowCreated(this, windowId);
+			TiActivityWindows.windowCreated(this, windowId, savedInstanceState);
 		}
 	}
 
@@ -672,8 +804,17 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		if (theme != -1) {
 			this.setTheme(theme);
 		}
+		
+		// Set ActionBar into split mode must be done before the decor view has been created
+		// we need to do this before calling super.onCreate()
+		if (intent != null && intent.hasExtra(TiC.PROPERTY_SPLIT_ACTIONBAR)) {
+			getWindow().setUiOptions(ActivityInfo.UIOPTION_SPLIT_ACTION_BAR_WHEN_NARROW);
+		}
+		
+        if (intent != null && intent.hasExtra(TiC.PROPERTY_ACTIONBAR_OVERLAY)) {
+            supportRequestWindowFeature(WindowCompat.FEATURE_ACTION_BAR_OVERLAY);
+        }
 
-		super.onCreate(savedInstanceState);
 		
 		// we only want to set the current activity for good in the resume state but we need it right now.
 		// save off the existing current activity, set ourselves to be the new current activity temporarily 
@@ -681,18 +822,34 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		Activity tempCurrentActivity = tiApp.getCurrentActivity();
 		tiApp.setCurrentActivity(this, this);
 
-		windowCreated();
+		// we need to set window features before calling onCreate
+		this.requestWindowFeature(Window.FEATURE_PROGRESS);
+		this.requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
+		super.onCreate(savedInstanceState);
+		
+		// set the current activity back to what it was originally
+        tiApp.setCurrentActivity(this, tempCurrentActivity);
+
+        setContentView(layout);
+        //sometimes we get a weird right and bottom padding :s
+        getWindow().getDecorView().setPadding(0, 0, 0, 0);
+        
+        mReadyToQueryActionBar = true;
+        
+        //make sure we call windowCreated after setContentView because
+        //it's a bad idea to query the actionBar before.
+		windowCreated(savedInstanceState);
 
 		if (activityProxy != null) {
 			dispatchCallback(TiC.PROPERTY_ON_CREATE, null);
 			activityProxy.fireEvent(TiC.EVENT_CREATE, null);
 		}
-
-		// set the current activity back to what it was originally
-		tiApp.setCurrentActivity(this, tempCurrentActivity);
-
-		setContentView(layout);
-
+		
+//		if (toolbar != null) {
+//            setSupportActionBar(toolbar);
+//        }
+		
 		sendMessage(msgActivityCreatedId);
 		// for backwards compatibility
 		sendMessage(msgId);
@@ -701,14 +858,50 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		// for later use
 		originalOrientationMode = getRequestedOrientation();
 
-		if (window != null) {
-			if (window.getWindowManager() != null)
-				window.getWindowManager().onWindowActivityCreated();
-			else {
-				window.onWindowActivityCreated();
+		orientationListener = new OrientationEventListener(this, SensorManager.SENSOR_DELAY_NORMAL) {
+			@Override
+			public void onOrientationChanged(int orientation) {
+				int rotation = getWindowManager().getDefaultDisplay().getRotation();
+				if ((rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270)
+						&& rotation != previousOrientation) {
+					callOrientationChangedListener(TiApplication.getAppRootOrCurrentActivity());
+				} else if ((rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180)
+						&& rotation != previousOrientation) {
+					callOrientationChangedListener(TiApplication.getAppRootOrCurrentActivity());
+				}
+			}
+		};
+
+		if (orientationListener.canDetectOrientation() == true) {
+			orientationListener.enable();
+		} else {
+			Log.w(TAG, "Cannot detect orientation");
+			orientationListener.disable();
+		}
+		synchronized (lifecycleListeners.synchronizedList()) {
+			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
+				try {
+					TiLifecycle.fireLifecycleEvent(this, listener, savedInstanceState, TiLifecycle.LIFECYCLE_ON_CREATE);
+
+				} catch (Throwable t) {
+					Log.e(TAG, "Error dispatching lifecycle event: " + t.getMessage(), t);
+				}
 			}
 		}
 	}
+	
+	@Override
+    public void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        if (window != null) {
+            if (window.getWindowManager() != null)
+                window.getWindowManager().onWindowActivityCreated();
+            else {
+                window.onWindowActivityCreated();
+            }
+        }
+    }
+
 
 	public int getOriginalOrientationMode()
 	{
@@ -794,6 +987,15 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		super.onActivityResult(requestCode, resultCode, data);
+		synchronized (onActivityResultListeners.synchronizedList()) {
+			for (OnActivityResultEvent listener : onActivityResultListeners.nonNull()) {
+				try {
+					TiLifecycle.fireOnActivityResultEvent(this, listener, requestCode, resultCode, data);
+				} catch (Throwable t) {
+					Log.e(TAG, "Error dispatching onActivityResult event: " + t.getMessage(), t);
+				}
+			}
+		}
 		getSupportHelper().onActivityResult(requestCode, resultCode, data);
 	}
 
@@ -812,10 +1014,9 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			proxy = activityProxy;
 		} else{
 			TiWindowProxy topWindow = topWindowOnStack();
-			if (topWindow != null && topWindow.hierarchyHasListener(TiC.EVENT_ANDROID_BACK)) {
-				proxy = topWindow;
-			}
-			else if(window != null) {
+			if (topWindow != null) {
+				proxy = topWindow.firstHierarchyListener(TiC.EVENT_ANDROID_BACK);
+			} else if(window != null) {
 				proxy = window.firstHierarchyListener(TiC.EVENT_ANDROID_BACK);
 			}
 		}
@@ -823,7 +1024,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		// Prevent default Android behavior for "back" press
 		// if the top window has a listener to handle the event.
 		if (proxy != null) {
-			proxy.fireEvent(TiC.EVENT_ANDROID_BACK);
+			proxy.fireEvent(TiC.EVENT_ANDROID_BACK, null, false, false);
 			return true;
 		}
 		return false;
@@ -945,11 +1146,23 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			return false;
 		}
 
+		boolean listenerExists = false;
+		synchronized (onCreateOptionsMenuListeners.synchronizedList()) {
+			for (OnCreateOptionsMenuEvent listener : onCreateOptionsMenuListeners.nonNull()) {
+				try {
+					listenerExists = true;
+					TiLifecycle.fireOnCreateOptionsMenuEvent(this, listener, menu);
+				} catch (Throwable t) {
+					Log.e(TAG, "Error dispatching OnCreateOptionsMenuEvent: " + t.getMessage(), t);
+				}
+			}
+		}
+
 		if (menuHelper == null) {
 			menuHelper = new TiMenuSupport(activityProxy);
 		}
 
-		return menuHelper.onCreateOptionsMenu(super.onCreateOptionsMenu(menu), menu);
+		return menuHelper.onCreateOptionsMenu(super.onCreateOptionsMenu(menu) || listenerExists, menu);
 	}
 	
 	public Menu getMenu() {
@@ -1000,14 +1213,26 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu)
 	{
-		return menuHelper.onPrepareOptionsMenu(super.onPrepareOptionsMenu(menu), menu);
+		boolean listenerExists = false;
+		synchronized (onPrepareOptionsMenuListeners.synchronizedList()) {
+			for (OnPrepareOptionsMenuEvent listener : onPrepareOptionsMenuListeners.nonNull()) {
+				try {
+					listenerExists = true;
+					TiLifecycle.fireOnPrepareOptionsMenuEvent(this, listener, menu);
+				} catch (Throwable t) {
+					Log.e(TAG, "Error dispatching OnPrepareOptionsMenuEvent: " + t.getMessage(), t);
+				}
+			}
+		}
+		return menuHelper.onPrepareOptionsMenu(super.onPrepareOptionsMenu(menu) || listenerExists, menu);
 	}
 
-	public static void callOrientationChangedListener(Configuration newConfig) 
+	public static void callOrientationChangedListener(Activity activity)
 	{
-		if (orientationChangedListener != null && previousOrientation != newConfig.orientation) {
-			previousOrientation = newConfig.orientation;
-			orientationChangedListener.onOrientationChanged (newConfig.orientation);
+		int currentOrientation = activity.getWindowManager().getDefaultDisplay().getRotation();
+		if (orientationChangedListener != null && previousOrientation != currentOrientation) {
+			previousOrientation = currentOrientation;
+			orientationChangedListener.onOrientationChanged (currentOrientation);
 		}
 	}
 
@@ -1021,8 +1246,6 @@ public abstract class TiBaseActivity extends ActionBarActivity
 				listener.get().onConfigurationChanged(this, newConfig);
 			}
 		}
-
-		callOrientationChangedListener(newConfig);
 	}
 
 	@Override
@@ -1045,6 +1268,11 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	public void addOnLifecycleEventListener(OnLifecycleEvent listener)
 	{
 		lifecycleListeners.add(new WeakReference<OnLifecycleEvent>(listener));
+	}
+
+	public void addOnInstanceStateEventListener(OnInstanceStateEvent listener)
+	{
+		instanceStateListeners.add(new WeakReference<OnInstanceStateEvent>(listener));
 	}
 
 	public void addOnWindowFocusChangedEventListener(OnWindowFocusChangedEvent listener)
@@ -1082,6 +1310,21 @@ public abstract class TiBaseActivity extends ActionBarActivity
 				return;
 			}
 		}
+	}
+
+	public void addOnActivityResultListener(OnActivityResultEvent listener)
+	{
+		onActivityResultListeners.add(new WeakReference<OnActivityResultEvent>(listener));
+	}
+
+	public void addOnCreateOptionsMenuEventListener(OnCreateOptionsMenuEvent listener)
+	{
+		onCreateOptionsMenuListeners.add(new WeakReference<OnCreateOptionsMenuEvent>(listener));
+	}
+
+	public void addOnPrepareOptionsMenuEventListener(OnPrepareOptionsMenuEvent listener)
+	{
+		onPrepareOptionsMenuListeners.add(new WeakReference<OnPrepareOptionsMenuEvent>(listener));
 	}
 
 	public void removeOnLifecycleEventListener(OnLifecycleEvent listener)
@@ -1311,7 +1554,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			return;
 		}
 
-		updateTitle(this.window);
+//		updateTitle(this.window);
 
 		if (activityProxy != null) {
 			// we only want to set the current activity for good in the resume state but we need it right now.
@@ -1338,7 +1581,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		}
 		// store current configuration orientation
 		// This fixed bug with double orientation chnage firing when activity starts in landscape 
-		previousOrientation = getResources().getConfiguration().orientation;
+		previousOrientation = getWindowManager().getDefaultDisplay().getRotation();
 	}
 
 	@Override
@@ -1353,6 +1596,17 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		if (activityProxy != null) {
 			dispatchCallback(TiC.PROPERTY_ON_STOP, null);
 		}
+		synchronized (lifecycleListeners.synchronizedList()) {
+            for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
+                try {
+                    TiLifecycle.fireLifecycleEvent(this, listener, TiLifecycle.LIFECYCLE_ON_STOP);
+
+                } catch (Throwable t) {
+                    Log.e(TAG, "Error dispatching lifecycle event: " + t.getMessage(), t);
+                }
+            }
+        }
+		
 		super.onStop();
 
 		Log.d(TAG, "Activity " + this + " onStop", Log.DEBUG_MODE);
@@ -1368,16 +1622,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			activityProxy.fireEvent(TiC.EVENT_STOP, null);
 		}
 
-		synchronized (lifecycleListeners.synchronizedList()) {
-			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
-				try {
-					TiLifecycle.fireLifecycleEvent(this, listener, TiLifecycle.LIFECYCLE_ON_STOP);
-
-				} catch (Throwable t) {
-					Log.e(TAG, "Error dispatching lifecycle event: " + t.getMessage(), t);
-				}
-			}
-		}
+		
 		KrollRuntime.suggestGC();
 	}
 
@@ -1478,6 +1723,8 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			}
 		}
 
+		orientationListener.disable();
+
 		super.onDestroy();
 
 		boolean isFinishing = isFinishing();
@@ -1499,7 +1746,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		layout = null;
 
 		//LW windows
-		if (window == null && view != null) {
+		if (view != null) {
 			view.releaseViews(isFinishing);
 			view = null;
 		}
@@ -1543,6 +1790,16 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		if (!isFinishing() && supportHelper != null) {
 			outState.putInt("supportHelperId", supportHelperId);
 		}
+
+		synchronized (instanceStateListeners.synchronizedList()) {
+			for (OnInstanceStateEvent listener : instanceStateListeners.nonNull()) {
+				try {
+					TiLifecycle.fireInstanceStateEvent(outState, listener, TiLifecycle.ON_SAVE_INSTANCE_STATE);
+				} catch (Throwable t) {
+					Log.e(TAG, "Error dispatching OnInstanceStateEvent: " + t.getMessage(), t);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -1555,6 +1812,15 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			supportHelper = TiActivitySupportHelpers.retrieveSupportHelper(this, supportHelperId);
 			if (supportHelper == null) {
 				Log.e(TAG, "Unable to retrieve the activity support helper.");
+			}
+		}
+		synchronized (instanceStateListeners.synchronizedList()) {
+			for (OnInstanceStateEvent listener : instanceStateListeners.nonNull()) {
+				try {
+					TiLifecycle.fireInstanceStateEvent(savedInstanceState, listener, TiLifecycle.ON_RESTORE_INSTANCE_STATE);
+				} catch (Throwable t) {
+					Log.e(TAG, "Error dispatching OnInstanceStateEvent: " + t.getMessage(), t);
+				}
 			}
 		}
 	}
@@ -1667,9 +1933,12 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	
 	@Override
 	protected Dialog onCreateDialog (int id, Bundle args) {
-		Log.d(TAG, "onCreateDialog");
 		TiApplication.getInstance().cancelPauseEvent();
 		return super.onCreateDialog(id, args);
+	}
+	
+	public boolean getDefaultFullscreen() {
+	    return defaultFullscreen;
 	}
 }
 

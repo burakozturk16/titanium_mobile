@@ -1,15 +1,14 @@
 //
-//  EsOyatsuAvcActivityViewControllerProxy.h
-//  ActivityViewController
+//  TiUIiOSActivityViewProxy.h
+//  Titanium
 //
-//  Created by Alberto Gonzalez on 9/18/13.
+//  Created by Martin Guillon on 16/02/14.
 //
 //
-
 #import "TiProxy.h"
 
-#import "RDActivityViewControllerDelegate.h"
-@interface TiUIiOSActivityViewProxy : TiProxy<RDActivityViewControllerDelegate>
+#import "CMDActivityViewController.h"
+@interface TiUIiOSActivityViewProxy : TiProxy<CMDActivityViewControllerDelegate>
 
 @property(retain, nonatomic) NSArray* excluded;
 @property(retain, nonatomic) NSArray* items;

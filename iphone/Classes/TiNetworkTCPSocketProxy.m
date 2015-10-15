@@ -107,12 +107,16 @@ const CFOptionFlags writeStreamEventFlags =
                         location:CODELOCATION];
             return nil;
         }
-        memcpy(&address.sin_addr.s_addr, host->h_addr_list[0], host->h_length);
+		else {
+			memcpy(&address.sin_addr.s_addr, host->h_addr_list[0], host->h_length);
+		}
     }
-    
+	//ignore leak, Xcode getting confused over the function name
+#ifndef __clang_analyzer__
     return CFDataCreate(kCFAllocatorDefault,
                         (UInt8*)&address,
                         sizeof(address));
+#endif
 }
 
 -(void)configureSocketForHandle:(CFSocketNativeHandle)fd
@@ -155,10 +159,10 @@ const CFOptionFlags writeStreamEventFlags =
     CFDataRef remoteSocketData;
     
     if ([stream isKindOfClass:[NSInputStream class]]) {
-        remoteSocketData = (CFDataRef)CFReadStreamCopyProperty((CFReadStreamRef)stream, kCFStreamPropertySocketNativeHandle);
+        remoteSocketData = (CFDataRef)CFReadStreamCopyProperty((CFReadStreamRef)(NSInputStream*)stream, kCFStreamPropertySocketNativeHandle);
     }
     else {
-        remoteSocketData = (CFDataRef)CFWriteStreamCopyProperty((CFWriteStreamRef)stream, kCFStreamPropertySocketNativeHandle);
+        remoteSocketData = (CFDataRef)CFWriteStreamCopyProperty((CFWriteStreamRef)(NSOutputStream*)stream, kCFStreamPropertySocketNativeHandle);
     }
     
 	if (remoteSocketData == NULL) {
@@ -514,8 +518,8 @@ const CFOptionFlags writeStreamEventFlags =
     signature.address = [self newAddressData]; // Follows create rule; clean up later
     
     
-    CFReadStreamRef inputStream;
-    CFWriteStreamRef outputStream;
+    CFReadStreamRef inputStream = nil;
+    CFWriteStreamRef outputStream = nil;
     
     CFStreamCreatePairWithPeerSocketSignature(NULL, 
                                               &signature, 
@@ -644,22 +648,25 @@ const CFOptionFlags writeStreamEventFlags =
                        subreason:nil
                         location:CODELOCATION];
         }
+		else {
+			SocketStreams* streams = (SocketStreams*)[streamData bytes];
         
-        SocketStreams* streams = (SocketStreams*)[streamData bytes];
-        
-        if (streams->writeBuffer == nil) {
-            [configureCondition lock];
-            [configureCondition wait];
-            [configureCondition unlock];
-        }
-        
-        [streams->writeLock lock];
-        [streams->writeBuffer addObject:data];
-        
-        if (CFWriteStreamCanAcceptBytes(streams->outputStream)) {
-            [self writeToStream:(NSOutputStream*)(streams->outputStream)];
-        }
-        [streams->writeLock unlock];
+			if (streams->writeBuffer == nil) {
+				[configureCondition lock];
+				[configureCondition wait];
+				[configureCondition unlock];
+			}
+			
+			[streams->writeLock lock];
+			if (data != nil) {
+				[streams->writeBuffer addObject:data];
+			}
+			
+			if (CFWriteStreamCanAcceptBytes(streams->outputStream)) {
+				[self writeToStream:(NSOutputStream*)(streams->outputStream)];
+			}
+			[streams->writeLock unlock];
+		}
     } while (broadcast && (key = [keyEnum nextObject]));
 }
 

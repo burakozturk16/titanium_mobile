@@ -16,7 +16,7 @@ import org.apache.tools.ant.types.Path;
 
 public class ModulePathTask extends Task {
 
-	protected String json, module, modulesDir, pathid;
+	protected String json, module, modulesDir, classesDir, pathid;
 	
 	@Override
 	public void execute() throws BuildException {
@@ -29,6 +29,9 @@ public class ModulePathTask extends Task {
 		if (modulesDir == null) {
 			throw new BuildException("No modules dir specified for " + getTaskName());
 		}
+		if (classesDir == null) {
+			throw new BuildException("No classes dir specified for " + getTaskName());
+		}
 		if (pathid == null) {
 			throw new BuildException("No path id specified for " + getTaskName());
 		}
@@ -39,7 +42,7 @@ public class ModulePathTask extends Task {
 		List<String> moduleDeps = deps.getModuleDependencies(module);
 		if (moduleDeps != null) {
 			for (String dep : moduleDeps) {
-				moduleDepsPath.add(new Path(getProject(), String.format("%s/%s", modulesDir, dep)));
+				moduleDepsPath.add(new Path(getProject(), String.format("%s/%s", classesDir, dep)));
 				File libDir = new File(String.format("%s/%s/lib", modulesDir, dep));
 				if (libDir.exists()) {
 					FileSet libFileset = new FileSet();
@@ -83,5 +86,13 @@ public class ModulePathTask extends Task {
 
 	public void setModulesDir(String modulesDir) {
 		this.modulesDir = modulesDir;
+	}
+
+	public String getClassesDir() {
+		return classesDir;
+	}
+
+	public void setClassesDir(String classesDir) {
+		this.classesDir = classesDir;
 	}
 }

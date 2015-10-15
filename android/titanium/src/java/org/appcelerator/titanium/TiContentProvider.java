@@ -3,7 +3,6 @@ package org.appcelerator.titanium;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URI;
 
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiPlatformHelper;
@@ -11,7 +10,6 @@ import org.appcelerator.titanium.util.TiPlatformHelper;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
@@ -28,39 +26,33 @@ public class TiContentProvider extends ContentProvider {
     
     @Override
     public boolean onCreate() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public String getType(Uri uri) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection,
             String[] selectionArgs) {
-        // TODO Auto-generated method stub
         return 0;
     }
     
@@ -70,8 +62,6 @@ public class TiContentProvider extends ContentProvider {
         try {
             return TiFileHelper.getInstance().openAssetFileDescriptor(uri.toString());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
             return super.openAssetFile(uri, mode);
         }
     }

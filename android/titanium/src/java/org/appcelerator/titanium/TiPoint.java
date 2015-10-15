@@ -10,7 +10,6 @@ import java.util.HashMap;
 
 import org.appcelerator.titanium.util.TiConvert;
 
-import android.content.Context;
 import android.graphics.Point;
 import android.graphics.PointF;
 
@@ -106,11 +105,11 @@ public class TiPoint {
         return yString;
     }
 	
-	public Point compute(Context context, int width, int height) {
-		return new Point(x.getAsPixels(context, width, height), y.getAsPixels(context, width, height));
+	public Point compute(int width, int height) {
+		return new Point(x.getAsPixels(width, height), y.getAsPixels(width, height));
 	}
 	
-	public PointF computeFloat(Context context, int width, int height) {
-		return new PointF((float)x.getPixels(context, width, height), (float)y.getPixels(context, width, height));
+	public PointF computeFloat(int width, int height) {
+		return new PointF((float)x.getPixels(width, height), (float)y.getPixels(width, height));
 	}
 }

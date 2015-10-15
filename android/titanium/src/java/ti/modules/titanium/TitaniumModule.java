@@ -14,9 +14,11 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
@@ -101,6 +103,16 @@ public class TitaniumModule extends KrollModule
 	{
 		return TiApplication.getInstance().getTiBuildHash();
 	}
+	
+    @Kroll.getProperty
+    @Kroll.method
+    public KrollDict getTiSDKInfo() {
+        KrollDict result = new KrollDict();
+        result.put("version", getVersion());
+        result.put("buildDate", getBuildDate());
+        result.put("buildHash", getBuildHash());
+        return result;
+    }
 
 	// For testing exception handling.  Can remove after ticket 2032
 	@Kroll.method
@@ -278,6 +290,8 @@ public class TitaniumModule extends KrollModule
 
 			} else if (format.equals("long")) {
 				style = DateFormat.LONG;
+			} else if (format.equals("full")) {
+				style = DateFormat.FULL;
 			}
 		}
 
@@ -285,16 +299,29 @@ public class TitaniumModule extends KrollModule
 	}
 
 	@Kroll.method @Kroll.topLevel("String.formatTime")
-	public String stringFormatTime(Date time)
+	public String stringFormatTime(Date time, @Kroll.argument(optional=true) String format)
 	{
 		int style = DateFormat.SHORT;
+		
+		if (format != null) {
+            if (format.equals("medium")) {
+                style = DateFormat.MEDIUM;
+
+            } else if (format.equals("long")) {
+                style = DateFormat.LONG;
+            }
+        }
 
 		return (DateFormat.getTimeInstance(style)).format(time);
 	}
 
 	@Kroll.method @Kroll.topLevel("String.formatCurrency")
-	public String stringFormatCurrency(double currency)
+	public String stringFormatCurrency(double currency, @Kroll.argument(optional=true) String localeString)
 	{
+	    if (localeString != null) {
+	        Locale locale = TiPlatformHelper.getInstance().getLocale(localeString);
+	        return NumberFormat.getCurrencyInstance(locale).format(currency);
+	    }
 		return NumberFormat.getCurrencyInstance().format(currency);
 	}
 

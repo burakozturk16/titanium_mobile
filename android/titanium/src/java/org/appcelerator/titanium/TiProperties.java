@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.util.TiConvert;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,11 +51,13 @@ public class TiProperties
 	 */
 	public String getString(String key, String def)
 	{
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "getString called with key:" + key + ", def:" + def);
-		}
-
+		
 		Object value = getPreference(key);
+		
+		if (Log.isDebugModeEnabled()) {
+            Log.d(TAG, "getString called with key:" + key + ", def:" + def + ", value:" + value, Log.DEBUG_MODE);
+        }
+
 		if (value != null) {
 			return value.toString();
 		} else {
@@ -124,30 +127,12 @@ public class TiProperties
 	 */
 	public int getInt(String key, int def)
 	{
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "getInt called with key:" + key + ", def:" + def);
-		}
-		try {
-			int value = def;
-			if (systemProperties != null) {
-				try {
-					value = systemProperties.getInt(key);
-				} catch (JSONException e) {
-					value = preferences.getInt(key,def);
-				}
-			} else {
-				value = preferences.getInt(key,def);
-			}
-			return value;
-		} catch(ClassCastException cce) {
-			//Value stored as something other than int. Try and convert to int
-			String val = getString(key,"");
-			try {
-				return Integer.parseInt(val);
-			} catch (NumberFormatException nfe) {
-				return def;
-			}
-		}
+		Object value = getPreference(key);
+        
+        if (Log.isDebugModeEnabled()) {
+            Log.d(TAG, "getInt called with key:" + key + ", def:" + def + ", value:" + value, Log.DEBUG_MODE);
+        }
+        return TiConvert.toInt(value, def);
 	}
 	
 	/**
@@ -183,20 +168,12 @@ public class TiProperties
 	 */
 	public double getDouble(String key, double def)
 	{
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "getDouble called with key:" + key + ", def:" + def);
-		}
-		String stringValue = null;
-		Object string = getPreference(key);
-		if (string == null) {
-			return def;
-		}
-		stringValue = string.toString();
-		try {
-			return Double.parseDouble(stringValue);
-		} catch (NumberFormatException e) {
-			return def;
-		}
+		Object value = getPreference(key);
+        
+        if (Log.isDebugModeEnabled()) {
+            Log.d(TAG, "getDouble called with key:" + key + ", def:" + def + ", value:" + value, Log.DEBUG_MODE);
+        }
+        return TiConvert.toDouble(value, def);
 	}
 
 	/**
@@ -233,30 +210,12 @@ public class TiProperties
 	 */
 	public boolean getBool(String key, boolean def)
 	{
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "getBool called with key:" + key + ", def:" + def);
-		}
-		try {
-			boolean value = def;
-			if (systemProperties != null) {
-				try {
-					value = systemProperties.getBoolean(key);
-				} catch (JSONException e) {
-					value = preferences.getBoolean(key,def);
-				}
-			} else {
-				value = preferences.getBoolean(key,def);
-			}
-			return value;
-		} catch(ClassCastException cce) {
-			//Value stored as something other than boolean. Try and convert to boolean
-			String val = getString(key,"");
-			try {
-				return Boolean.valueOf(val).booleanValue();
-			} catch (Exception e) {
-				return def;
-			}
-		}
+		Object value = getPreference(key);
+        
+        if (Log.isDebugModeEnabled()) {
+            Log.d(TAG, "getBool called with key:" + key + ", def:" + def + ", value:" + value, Log.DEBUG_MODE);
+        }
+        return TiConvert.toBoolean(value, def);
 	}
 
 	/**
@@ -399,6 +358,10 @@ public class TiProperties
 			editor.remove(key);
 			editor.commit();
 		}
+	}
+	
+	public static boolean systemPropertiesLoaded( ) {
+	    return systemProperties != null;
 	}
 
 	public static void setSystemProperties(JSONObject prop) {

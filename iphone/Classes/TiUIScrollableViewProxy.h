@@ -17,10 +17,10 @@
 
 @property(nonatomic,readonly)	NSArray * viewProxies;
 @property(nonatomic,assign)	BOOL  verticalLayout;
--(TiViewProxy *)viewAtIndex:(int)index;
+-(TiViewProxy *)viewAtIndex:(NSInteger)index;
 -(void)lockViews;
 -(void)unlockViews;
--(int)viewCount;
+-(NSUInteger)viewCount;
 -(NSArray *)views;
 @end
 

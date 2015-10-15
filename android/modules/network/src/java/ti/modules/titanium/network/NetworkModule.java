@@ -9,15 +9,15 @@ package ti.modules.titanium.network;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.CookieHandler;
+import java.net.HttpCookie;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.http.client.CookieStore;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.cookie.BasicClientCookie;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
@@ -35,8 +35,6 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.json.JSONObject;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.Manifest;
@@ -61,11 +59,12 @@ import android.telephony.TelephonyManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 
+@SuppressWarnings("deprecation")
 @Kroll.module
 public class NetworkModule extends KrollModule {
 
 	private static final String TAG = "TiNetwork";
-	private static CookieStore httpCookieStore;
+	private static java.net.CookieManager cookieManager;
 
 	public static final String EVENT_ACCESS_POINT_CREATED = "accesspointcreated";
 	public static final String EVENT_ACCESS_POINT_FAILED = "accesspointfailed";
@@ -79,8 +78,14 @@ public class NetworkModule extends KrollModule {
 	@Kroll.constant public static final int NETWORK_MOBILE = 2;
 	@Kroll.constant public static final int NETWORK_LAN = 3;
 	@Kroll.constant public static final int NETWORK_UNKNOWN = 4;
+	
+	@Kroll.constant public static final int TLS_DEFAULT = 0;
+	@Kroll.constant public static final int TLS_VERSION_1_0 = 1;
+	@Kroll.constant public static final int TLS_VERSION_1_1 = 2;
+	@Kroll.constant public static final int TLS_VERSION_1_2 = 3;
+	
+	@Kroll.constant public static final int PROGRESS_UNKNOWN = -1;
 
-	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     public static final String PROPERTY_GCM_REG_ID = "gcm_registration_id";
     public static final String PROPERTY_GCM_CURRENT_VERSION = "gcm_current_app_version";
     
@@ -271,7 +276,7 @@ public class NetworkModule extends KrollModule {
 
 		ConnectivityManager cm = getConnectivityManager();
 		if (cm != null) {
-			NetworkInfo ni = getConnectivityManager().getActiveNetworkInfo();
+			NetworkInfo ni = cm.getActiveNetworkInfo();
 
 			if(ni != null && ni.isAvailable() && ni.isConnected()) {
 				result = true;
@@ -652,13 +657,14 @@ public class NetworkModule extends KrollModule {
 		manageConnectivityListener(false);
 		connectivityManager = null;
 	}
-
-	public static CookieStore getHTTPCookieStoreInstance()
+	
+	public static java.net.CookieManager getCookieManagerInstance()
 	{
-		if (httpCookieStore == null) {
-			httpCookieStore = new BasicCookieStore();
+		if (cookieManager == null) {
+			cookieManager = new java.net.CookieManager();
+			CookieHandler.setDefault(cookieManager);
 		}
-		return httpCookieStore;
+		return cookieManager;
 	}
 
 	/**
@@ -671,12 +677,19 @@ public class NetworkModule extends KrollModule {
 	@Kroll.method
 	public void addHTTPCookie(CookieProxy cookieProxy)
 	{
-		BasicClientCookie cookie = cookieProxy.getHTTPCookie();
+		HttpCookie cookie = cookieProxy.getHTTPCookie();
+		String cookieDomain = cookie.getDomain();
 		if (cookie != null) {
-			getHTTPCookieStoreInstance().addCookie(cookie);
+			URI uriDomain;
+			try {
+				uriDomain = new URI(cookieDomain);
+			} catch (Exception e) {
+				uriDomain = null;
+			}
+			getCookieManagerInstance().getCookieStore().add(uriDomain, cookie);
 		}
 	}
-
+	
 	/**
 	 * Gets all the cookies with the domain, path and name matched with the given values. If name is null, gets all the cookies with
 	 * the domain and path matched.
@@ -698,8 +711,8 @@ public class NetworkModule extends KrollModule {
 			path = "/";
 		}
 		ArrayList<CookieProxy> cookieList = new ArrayList<CookieProxy>();
-		List<Cookie> cookies = getHTTPCookieStoreInstance().getCookies();
-		for (Cookie cookie : cookies) {
+		List<HttpCookie> cookies = getCookieManagerInstance().getCookieStore().getCookies();
+		for (HttpCookie cookie : cookies) {
 			String cookieName = cookie.getName();
 			String cookieDomain = cookie.getDomain();
 			String cookiePath = cookie.getPath();
@@ -713,7 +726,7 @@ public class NetworkModule extends KrollModule {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Gets all the cookies with the domain matched with the given value.
 	 * @param domain the domain of the cookie to get. It is case-insensitive.
@@ -729,8 +742,8 @@ public class NetworkModule extends KrollModule {
 			return null;
 		}
 		ArrayList<CookieProxy> cookieList = new ArrayList<CookieProxy>();
-		List<Cookie> cookies = getHTTPCookieStoreInstance().getCookies();
-		for (Cookie cookie : cookies) {
+		List<HttpCookie> cookies = getCookieManagerInstance().getCookieStore().getCookies();
+		for (HttpCookie cookie : cookies) {
 			String cookieDomain = cookie.getDomain();
 			if (domainMatch(cookieDomain, domain)) {
 				cookieList.add(new CookieProxy(cookie));
@@ -741,7 +754,7 @@ public class NetworkModule extends KrollModule {
 		}
 		return null;
 	}
-
+	
 	/** Removes the cookie with the domain, path and name exactly the same as the given values.
 	 * @param domain the domain of the cookie to remove. It is case-insensitive.
 	 * @param path the path of the cookie to remove. It is case-sensitive.
@@ -756,19 +769,25 @@ public class NetworkModule extends KrollModule {
 			}
 			return;
 		}
-		CookieStore cookieStore = getHTTPCookieStoreInstance();
-		List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
-		cookieStore.clear();
-		for (Cookie cookie : cookies) {
+		java.net.CookieStore cookieStore = getCookieManagerInstance().getCookieStore();
+		List<HttpCookie> cookies = new ArrayList<HttpCookie>(getCookieManagerInstance().getCookieStore().getCookies());
+		cookieStore.removeAll();
+		for (HttpCookie cookie : cookies) {
 			String cookieName = cookie.getName();
 			String cookieDomain = cookie.getDomain();
 			String cookiePath = cookie.getPath();
 			if (!(name.equals(cookieName) && stringEqual(domain, cookieDomain, false) && stringEqual(path, cookiePath, true))) {
-				cookieStore.addCookie(cookie);
+				URI uriDomain;
+				try {
+					uriDomain = new URI(cookieDomain);
+				} catch (URISyntaxException e) {
+					uriDomain = null;
+				}
+				cookieStore.add(uriDomain, cookie);
 			}
 		}
 	}
-
+	
 	/**
 	 * Removes all the cookies with the domain matched with the given value.
 	 * @param domain the domain of the cookie to remove. It is case-insensitive.
@@ -776,36 +795,42 @@ public class NetworkModule extends KrollModule {
 	@Kroll.method
 	public void removeHTTPCookiesForDomain(String domain)
 	{
-		CookieStore cookieStore = getHTTPCookieStoreInstance();
-		List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
-		cookieStore.clear();
-		for (Cookie cookie : cookies) {
+		java.net.CookieStore cookieStore = getCookieManagerInstance().getCookieStore();
+		List<HttpCookie> cookies = new ArrayList<HttpCookie>(getCookieManagerInstance().getCookieStore().getCookies());
+		cookieStore.removeAll();
+		for (HttpCookie cookie : cookies) {
 			String cookieDomain = cookie.getDomain();
 			if (!(domainMatch(cookieDomain, domain))) {
-				cookieStore.addCookie(cookie);
+				URI uriDomain;
+				try {
+					uriDomain = new URI(cookieDomain);
+				} catch (URISyntaxException e) {
+					uriDomain = null;
+				}
+				cookieStore.add(uriDomain, cookie);
 			}
 		}
 	}
-
+	
 	/**
 	 * Removes all the cookies in the HTTPClient cookie store.
 	 */
 	@Kroll.method
 	public void removeAllHTTPCookies()
 	{
-		CookieStore cookieStore = getHTTPCookieStoreInstance();
-		cookieStore.clear();
+		java.net.CookieStore cookieStore = getCookieManagerInstance().getCookieStore();
+		cookieStore.removeAll();
 	}
-
+	
 	/**
 	 * Adds a cookie to the system cookie store. Any existing cookie with the same domain, path and name will be replaced with
 	 * the new cookie. The cookie being set must not have expired, otherwise it will be ignored.
 	 * @param cookieProxy the cookie to add
 	 */
 	@Kroll.method
-	public void addSystemCookie(CookieProxy cookieProxy)
+	public void addSystemCookie(CookieProxy cookieURLConnectionProxy)
 	{
-		BasicClientCookie cookie = cookieProxy.getHTTPCookie();
+		HttpCookie cookie = cookieURLConnectionProxy.getHTTPCookie();
 		String cookieString = cookie.getName() + "=" + cookie.getValue();
 		String domain = cookie.getDomain();
 		if (domain == null) {
@@ -815,15 +840,17 @@ public class NetworkModule extends KrollModule {
 		cookieString += "; domain=" + domain;
 
 		String path = cookie.getPath();
-		Date expiryDate = cookie.getExpiryDate();
-		boolean secure = cookie.isSecure();
-		boolean httponly = TiConvert.toBoolean(cookieProxy.getProperty(TiC.PROPERTY_HTTP_ONLY), false);
+		//Date expiryDate = cookie.getExpiryDate();
+		boolean secure = cookie.getSecure();
+		boolean httponly = TiConvert.toBoolean(cookieURLConnectionProxy.getProperty(TiC.PROPERTY_HTTP_ONLY), false);
 		if (path != null) {
 			cookieString += "; path=" + path;
 		}
+		/*
 		if (expiryDate != null) {
 			cookieString += "; expires=" + CookieProxy.systemExpiryDateFormatter.format(expiryDate);
 		}
+		*/
 		if (secure) {
 			cookieString += "; secure";
 		}
@@ -834,6 +861,7 @@ public class NetworkModule extends KrollModule {
 		CookieManager cookieManager = CookieManager.getInstance();
 		cookieManager.setCookie(domain, cookieString);
 		CookieSyncManager.getInstance().sync();
+		
 	}
 
 	/**
@@ -1074,24 +1102,6 @@ public class NetworkModule extends KrollModule {
         return stats;
     }
 	
-	/**
-	 * Check the device to make sure it has the Google Play Services APK. If
-	 * it doesn't, display a dialog that allows users to download the APK from
-	 * the Google Play Store or enable it in the device's system settings.
-	 */
-	private boolean checkPlayServices(final Context context) {
-	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
-	    if (resultCode != ConnectionResult.SUCCESS) {
-	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-	            GooglePlayServicesUtil.getErrorDialog(resultCode, getActivity(),
-	                    PLAY_SERVICES_RESOLUTION_REQUEST).show();
-	        } else {
-	            Log.i(TAG, "This device is not supported.");
-	        }
-	        return false;
-	    }
-	    return true;
-	}
 
 	/**
 	 * Gets the current registration ID for application on GCM service.
@@ -1177,8 +1187,8 @@ public class NetworkModule extends KrollModule {
     @Kroll.method
     public void registerForPushNotifications(HashMap options) {
         final Context context = TiApplication.getInstance().getApplicationContext();
-       
-        if (checkPlayServices(context)) {
+        int state = TiApplication.getGooglePlayServicesState();
+        if (state == 0) {
             String senderId = null;
             if (options.containsKey(TiC.PROPERTY_SENDER_ID)) {
                 senderId = (String)options.get(TiC.PROPERTY_SENDER_ID);

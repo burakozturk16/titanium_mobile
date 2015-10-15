@@ -21,6 +21,7 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.ContextSpecific;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
@@ -37,15 +38,19 @@ import org.appcelerator.titanium.util.TiIntentWrapper;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -53,6 +58,7 @@ import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.view.Window;
 
+@SuppressWarnings("deprecation")
 @Kroll.module @ContextSpecific
 public class MediaModule extends KrollModule
 	implements Handler.Callback
@@ -84,6 +90,9 @@ public class MediaModule extends KrollModule
 	@Kroll.constant public static final int VIDEO_CONTROL_FULLSCREEN = 2;
 	@Kroll.constant public static final int VIDEO_CONTROL_NONE = 3;
 	@Kroll.constant public static final int VIDEO_CONTROL_HIDDEN = 4;
+	
+    @Kroll.constant public static final int VIDEO_REPEAT_MODE_NONE = 0;
+    @Kroll.constant public static final int VIDEO_REPEAT_MODE_ONE = 1;
 
 	@Kroll.constant public static final int VIDEO_LOAD_STATE_UNKNOWN = 0;
 	@Kroll.constant public static final int VIDEO_LOAD_STATE_PLAYABLE = 1 << 0;
@@ -100,6 +109,11 @@ public class MediaModule extends KrollModule
 	@Kroll.constant public static final int VIDEO_FINISH_REASON_PLAYBACK_ENDED = 0;
 	@Kroll.constant public static final int VIDEO_FINISH_REASON_PLAYBACK_ERROR = 1;
 	@Kroll.constant public static final int VIDEO_FINISH_REASON_USER_EXITED = 2;
+	
+	@Kroll.constant public static final int VIDEO_TIME_OPTION_NEAREST_KEYFRAME = MediaMetadataRetriever.OPTION_CLOSEST;
+	@Kroll.constant public static final int VIDEO_TIME_OPTION_CLOSEST_SYNC = MediaMetadataRetriever.OPTION_CLOSEST_SYNC;
+	@Kroll.constant public static final int VIDEO_TIME_OPTION_NEXT_SYNC = MediaMetadataRetriever.OPTION_NEXT_SYNC;
+	@Kroll.constant public static final int VIDEO_TIME_OPTION_PREVIOUS_SYNC = MediaMetadataRetriever.OPTION_PREVIOUS_SYNC;
 
 	@Kroll.constant public static final String MEDIA_TYPE_PHOTO = "public.image";
 	@Kroll.constant public static final String MEDIA_TYPE_VIDEO = "public.video";
@@ -109,10 +123,23 @@ public class MediaModule extends KrollModule
 	@Kroll.constant public static final int CAMERA_FLASH_OFF = 0;
 	@Kroll.constant public static final int CAMERA_FLASH_ON = 1;
 	@Kroll.constant public static final int CAMERA_FLASH_AUTO = 2;
+	
+
+	@Kroll.constant public static final int SHUFFLE_NONE = 0;
+    @Kroll.constant public static final int SHUFFLE_SONGS = 1;
+    @Kroll.constant public static final int SHUFFLE_RANDOM = 2;
+    @Kroll.constant public static final int SHUFFLE_ALBUMS = SHUFFLE_SONGS;
+    @Kroll.constant public static final int SHUFFLE_DEFAULT = SHUFFLE_NONE;
+    @Kroll.constant public static final int REPEAT_NONE = 0;
+	@Kroll.constant public static final int REPEAT_ONE = 1;
+	@Kroll.constant public static final int REPEAT_ALL = 2;
+    @Kroll.constant public static final int REPEAT_DEFAULT = REPEAT_NONE;
+
 
 	public MediaModule()
 	{
 		super();
+
 	}
 
 	public MediaModule(TiContext tiContext)
@@ -137,7 +164,6 @@ public class MediaModule extends KrollModule
 	    final String imageOrderBy = MediaStore.Images.Media._ID+" DESC";
 	    final String imageWhere = null;
 	    final String[] imageArguments = null;
-	    
 	    Cursor imageCursor = activity.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, imageColumns, imageWhere, imageArguments, imageOrderBy);
 	    if (imageCursor == null) {
 	    	return -1;
@@ -177,9 +203,9 @@ public class MediaModule extends KrollModule
 		File imageFile = null;
 		
 		if (saveToPhotoGallery) {
-			imageFile = MediaModule.createGalleryImageFile();
+			imageFile = TiFileHelper.createGalleryImageFile();
 		} else {
-			imageFile = MediaModule.createExternalStorageFile();
+			imageFile = TiFileHelper.createExternalStorageFile();
 		}
 		
 		//Sanity Checks
@@ -275,10 +301,27 @@ public class MediaModule extends KrollModule
 		activity.startActivity(intent);
 	}
 
+	@Kroll.method
+	public boolean hasCameraPermissions() {
+		if (Build.VERSION.SDK_INT < 23) {
+			return true;
+		}
+		Activity currentActivity  = TiApplication.getInstance().getCurrentActivity();
+		if (currentActivity.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+				currentActivity.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+			return true;
+		} 
+		return false;		
+	}
+	
+
 	@SuppressWarnings("unchecked")
 	@Kroll.method
 	public void showCamera(@SuppressWarnings("rawtypes") HashMap options)
 	{
+		if (!hasCameraPermissions()) {
+			return;
+		}
 		KrollDict cameraOptions = null;
 		if ( (options == null) || !(options instanceof HashMap<?, ?>) ) {
 			if (Log.isDebugModeEnabled()) {
@@ -296,6 +339,23 @@ public class MediaModule extends KrollModule
 		} else {
 			launchNativeCamera(cameraOptions);
 		}
+	}
+	
+	@Kroll.method
+	public void requestCameraPermissions(@Kroll.argument(optional=true)KrollFunction permissionCallback)
+	{
+		if (hasCameraPermissions()) {
+			return;
+		}
+
+		if (TiBaseActivity.cameraCallbackContext == null) {
+			TiBaseActivity.cameraCallbackContext = getKrollObject();
+		}
+		TiBaseActivity.cameraPermissionCallback = permissionCallback;
+
+		Activity currentActivity  = TiApplication.getInstance().getCurrentActivity();		
+		currentActivity.requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE}, TiC.PERMISSION_CODE_CAMERA);
+		
 	}
 
 	/*
@@ -336,7 +396,7 @@ public class MediaModule extends KrollModule
 		try {
 			//Make sure our processing argument is a Blob
 			if (arg instanceof TiFileProxy) {
-				theBlob = TiBlob.blobFromFile(((TiFileProxy)arg).getBaseFile());
+				theBlob = TiBlob.blobFromObject(((TiFileProxy)arg).getBaseFile());
 			} else {
 				theBlob = (TiBlob) arg;
 			}
@@ -363,7 +423,7 @@ public class MediaModule extends KrollModule
 			} else {
 				try {
 					String mimetype = theBlob.getMimeType();
-					extension = TiMimeTypeHelper.getFileExtensionFromMimeType(mimetype, ".jpg");
+					extension = '.' + TiMimeTypeHelper.getFileExtensionFromMimeType(mimetype, ".jpg");
 				} catch(Throwable t) {
 					extension = null;
 				}
@@ -372,7 +432,7 @@ public class MediaModule extends KrollModule
 			
 			bis = new BufferedInputStream(theBlob.getInputStream());
 			
-			File imageFile = MediaModule.createGalleryImageFile(extension);
+			File imageFile = TiFileHelper.createGalleryImageFile(extension);
 			bos = new BufferedOutputStream(new FileOutputStream(imageFile));
 			byte[] buf = new byte[8096];
 			int len = 0;
@@ -434,57 +494,6 @@ public class MediaModule extends KrollModule
 		return super.handleMessage(message);
 	}
 
-	protected static File createExternalStorageFile() {
-		return createExternalStorageFile(null);
-	}
-	protected static File createGalleryImageFile() {
-		return createGalleryImageFile(null);
-	}
-	
-	private static File createExternalStorageFile(String extension) {
-		File pictureDir = TiApplication.getInstance().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-		File appPictureDir = new File(pictureDir, TiApplication.getInstance().getAppInfo().getName());
-		if (!appPictureDir.exists()) {
-			if (!appPictureDir.mkdirs()) {
-				Log.e(TAG, "Failed to create external storage directory.");
-				return null;
-			}
-		}
-		String ext = (extension == null) ? ".jpg" : extension;
-		File imageFile;
-		try {
-			imageFile = TiFileHelper.getInstance().getTempFile(appPictureDir, ext, false);
-
-		} catch (IOException e) {
-			Log.e(TAG, "Failed to create image file: " + e.getMessage());
-			return null;
-		}
-
-		return imageFile;
-	}
-	
-	private static File createGalleryImageFile(String extension) {
-		File pictureDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		File appPictureDir = new File(pictureDir, TiApplication.getInstance().getAppInfo().getName());
-		if (!appPictureDir.exists()) {
-			if (!appPictureDir.mkdirs()) {
-				Log.e(TAG, "Failed to create application gallery directory.");
-				return null;
-			}
-		}
-		String ext = (extension == null) ? ".jpg" : extension;
-		File imageFile;
-		try {
-			imageFile = TiFileHelper.getInstance().getTempFile(appPictureDir, ext, false);
-
-		} catch (IOException e) {
-			Log.e(TAG, "Failed to create gallery image file: " + e.getMessage());
-			return null;
-		}
-
-		return imageFile;
-	}
-
 	protected class CameraResultHandler implements TiActivityResultHandler, Runnable
 	{
 		protected File imageFile;
@@ -536,7 +545,7 @@ public class MediaModule extends KrollModule
 							//Ignore error
 						}
 						
-						imageFile = saveToPhotoGallery? MediaModule.createGalleryImageFile() : MediaModule.createExternalStorageFile();
+						imageFile = saveToPhotoGallery? TiFileHelper.createGalleryImageFile() : TiFileHelper.createExternalStorageFile();
 					}
 					
 					long compareLength = (validFileCreated) ? imageFile.length() : 0;
@@ -671,7 +680,7 @@ public class MediaModule extends KrollModule
 					//Create a blob for response
 					try {
 						TiFile theFile = new TiFile(imageFile, imageFile.toURI().toURL().toExternalForm(), false);
-						TiBlob theBlob = TiBlob.blobFromFile(theFile);
+						TiBlob theBlob = TiBlob.blobFromObject(theFile);
 						KrollDict response = MediaModule.createDictForImage(theBlob, theBlob.getMimeType());
 						if (successCallback != null) {
 							successCallback.callAsync(getKrollObject(), response);
@@ -780,8 +789,15 @@ public class MediaModule extends KrollModule
 					if (requestCode != code) {
 						return;
 					}
-					Log.e(TAG, "OnResult called: " + resultCode);
-					if (resultCode == Activity.RESULT_CANCELED) {
+					Log.d(TAG, "OnResult called: " + resultCode, Log.DEBUG_MODE);
+					
+					String path = null;
+					if (data != null) {
+						path = data.getDataString();
+					}
+					//Starting with Android-L, backing out of the gallery no longer returns cancel code, but with
+					//an ok code and a null path.
+					if (resultCode == Activity.RESULT_CANCELED || (Build.VERSION.SDK_INT >= 20 && path == null)) {
 						if (fCancelCallback != null) {
 							KrollDict response = new KrollDict();
 							response.putCodeAndMessage(NO_ERROR, null);
@@ -789,8 +805,16 @@ public class MediaModule extends KrollModule
 						}
 
 					} else {
-						String path = data.getDataString();
 						try {
+							//Check for invalid path
+							if (path == null) {
+								String msg = "Image path is invalid";
+								Log.e(TAG, msg);
+								if (fErrorCallback != null) {
+									fErrorCallback.callAsync(getKrollObject(), createErrorResponse(UNKNOWN_ERROR, msg));
+								}
+								return;
+							}
 							if (fSuccessCallback != null) {
 								fSuccessCallback.callAsync(getKrollObject(), createDictForImage(path, "image/jpeg"));
 							}
@@ -821,7 +845,7 @@ public class MediaModule extends KrollModule
 
 	protected static KrollDict createDictForImage(String path, String mimeType) {
 		String[] parts = { path };
-		TiBlob imageData = TiBlob.blobFromFile(TiFileFactory.createTitaniumFile(parts, false), mimeType);
+		TiBlob imageData = TiBlob.blobFromObject(TiFileFactory.createTitaniumFile(parts, false), mimeType);
 		return createDictForImage(imageData, mimeType);
 	}
 
@@ -875,7 +899,7 @@ public class MediaModule extends KrollModule
 		cropRect.put("height", height);
 		d.put("cropRect", cropRect);
 		d.put("mediaType", MEDIA_TYPE_PHOTO);
-		d.put("media", TiBlob.blobFromData(data, "image/png"));
+		d.put("media", TiBlob.blobFromObject(data, "image/png"));
 
 		return d;
 	}
@@ -994,7 +1018,7 @@ public class MediaModule extends KrollModule
 				if (winScale != 1.0f) {
 					bitmap = TiImageHelper.imageScaled(bitmap, winScale);
 				}
-				TiBlob blob = TiBlob.blobFromImage(bitmap);
+				TiBlob blob = TiBlob.blobFromObject(bitmap);
 				KrollDict result = new KrollDict();
 				result.put("image", blob);
 				callback.callAsync(getKrollObject(), new Object[] { result });

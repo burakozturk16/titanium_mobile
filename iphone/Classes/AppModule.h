@@ -19,9 +19,6 @@
 #endif
 }
 
--(void)addEventListener:(NSArray*)args;
--(void)removeEventListener:(NSArray*)args;
--(void)fireEvent:(NSArray*)args;
 -(int)garbageCollect:(NSArray*)args;
 
 @property(nonatomic,readonly) NSString *id;

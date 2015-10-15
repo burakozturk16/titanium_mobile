@@ -8,11 +8,11 @@
 
 #import "UtilsModule.h"
 #import "TiUtils.h"
-#import "Base64Transcoder.h"
 #import "TiBlob.h"
 #import "TiFile.h"
 #import <CommonCrypto/CommonDigest.h>
 #import <CommonCrypto/CommonHMAC.h>
+#import "DDMathEvaluator.h"
 
 @implementation UtilsModule
 
@@ -29,6 +29,23 @@
 	THROW_INVALID_ARG(@"invalid type");
 }
 
+-(NSData*)convertToData:(id)arg
+{
+	if ([arg isKindOfClass:[NSString class]])
+	{
+		return [arg dataUsingEncoding:NSUTF8StringEncoding];
+	}
+	else if ([arg isKindOfClass:[TiBlob class]])
+	{
+		return [(TiBlob*)arg data];
+	}
+    else if ([arg isKindOfClass:[NSData class]])
+	{
+		return arg;
+	}
+	THROW_INVALID_ARG(@"invalid type");
+}
+
 -(NSString*)apiName
 {
     return @"Ti.Utils";
@@ -40,62 +57,17 @@
 -(TiBlob*)base64encode:(id)args
 {
 	ENSURE_SINGLE_ARG(args,NSObject);
-	const char *data;
-	size_t len;
-
-	if ([args isKindOfClass:[TiBlob class]]) {
-		NSData * blobData = [(TiBlob*)args data];
-		data = (char *)[blobData bytes];
-		len = [blobData length];
-	}
-	else
-	{
-		NSString *str = [self convertToString:args];
-		data = (char *)[str UTF8String];
-		len = [str length];
-	}
-
-	char *base64Result;
-    size_t theResultLength;
-	bool result = Base64AllocAndEncodeData(data, len, &base64Result, &theResultLength);
-	if (result)
-	{
-		NSData *theData = [NSData dataWithBytes:base64Result length:theResultLength];
-		free(base64Result);
-		return [[[TiBlob alloc] initWithData:theData mimetype:@"application/octet-stream"] autorelease];
-	}    
-	return nil;
+	NSData *data = [self convertToData:args];
+    NSString* result = [TiUtils base64encode:data];
+    return [[[TiBlob alloc] initWithData:[result dataUsingEncoding:NSUTF8StringEncoding] mimetype:@"application/octet-stream"] autorelease];
 }
 
 -(TiBlob*)base64decode:(id)args
 {
 	ENSURE_SINGLE_ARG(args,NSObject);
-	
-	NSString *str = [self convertToString:args];
-	
-	const char *data = [str UTF8String];
-	size_t len = [str length];
-	
-	size_t outsize = TI_EstimateBas64DecodedDataSize(len);
-	char *base64Result = NULL;
-	if(len>0){
-		base64Result = malloc(sizeof(char)*outsize);
-	}
-
-	if (base64Result==NULL) {
-		return nil;
-	}
-
-	size_t theResultLength = outsize;	
-	bool result = TI_Base64DecodeData(data, len, base64Result, &theResultLength);
-	if (result)
-	{
-		NSData *theData = [NSData dataWithBytes:base64Result length:theResultLength];
-		free(base64Result);
-		return [[[TiBlob alloc] initWithData:theData mimetype:@"application/octet-stream"] autorelease];
-	}
-	free(base64Result);
-	return nil;
+	NSString* encoded = [self convertToString:args];
+    NSData* result = [TiUtils base64decode:encoded];
+    return [[[TiBlob alloc] initWithData:result mimetype:@"application/octet-stream"] autorelease];
 }
 
 -(NSString*)md5HexDigest:(id)args
@@ -119,7 +91,7 @@
 	NSString *nstr = [self convertToString:args];
 	const char *cStr = [nstr UTF8String];
 	unsigned char result[CC_SHA1_DIGEST_LENGTH];
-	CC_SHA1(cStr, [nstr lengthOfBytesUsingEncoding:NSUTF8StringEncoding], result);
+	CC_SHA1(cStr, (CC_LONG)[nstr lengthOfBytesUsingEncoding:NSUTF8StringEncoding], result);
 	return [TiUtils convertToHex:(unsigned char*)&result length:CC_SHA1_DIGEST_LENGTH];
 }
 
@@ -129,7 +101,7 @@
 	NSString *nstr = [self convertToString:args];
 	const char *cStr = [nstr UTF8String];
 	unsigned char result[CC_SHA256_DIGEST_LENGTH];
-	CC_SHA256(cStr, [nstr lengthOfBytesUsingEncoding:NSUTF8StringEncoding], result);
+	CC_SHA256(cStr, (CC_LONG)[nstr lengthOfBytesUsingEncoding:NSUTF8StringEncoding], result);
 	return [TiUtils convertToHex:(unsigned char*)&result length:CC_SHA256_DIGEST_LENGTH];
 }
 
@@ -138,6 +110,16 @@
    	ENSURE_SINGLE_ARG(args,NSString);
     TiBlob* result = [[TiBlob alloc] initWithFile:args];
     result.executionContext = [self executionContext];
+    return [result autorelease];
+}
+
+- (NSString *)replacingStringsIn:(NSString*)string fromDictionary:(NSDictionary *)dict
+{
+    NSMutableString *result = [string mutableCopy];
+    for (NSString *target in dict) {
+        [result replaceOccurrencesOfString:target withString:[dict objectForKey:target]
+                                   options:0 range:NSMakeRange(0, [string length])];
+    }
     return [result autorelease];
 }
 

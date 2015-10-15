@@ -20,12 +20,13 @@ import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.IntentProxy;
 import org.appcelerator.titanium.proxy.ServiceProxy;
-import org.appcelerator.titanium.util.TiBindingHelper;
+//import org.appcelerator.titanium.util.TiBindingHelper;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 
+@SuppressWarnings("deprecation")
 public class TiJSIntervalService extends TiJSService
 {
 	private static final String TAG = "TiJSIntervalService";
@@ -194,7 +195,7 @@ public class TiJSIntervalService extends TiJSService
 				{
 					int iteration = counter.incrementAndGet();
 					try {
-						TiBindingHelper.bindCurrentService(proxy);
+//						TiBindingHelper.bindCurrentService(proxy);
 						KrollDict event = new KrollDict();
 						event.put("iteration", iteration);
 						proxy.fireEvent(TiC.EVENT_RESUME, event);

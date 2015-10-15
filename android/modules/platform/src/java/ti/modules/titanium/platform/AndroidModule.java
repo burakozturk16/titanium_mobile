@@ -1,13 +1,25 @@
 package ti.modules.titanium.platform;
 
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
-import org.appcelerator.titanium.TiContext;
 
 import android.os.Build;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+import android.app.Activity;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
+import android.content.Context;
+//import android.os.PowerManager;
+//import android.os.PowerManager.WakeLock;
+//import android.app.KeyguardManager;
+//import android.app.KeyguardManager.KeyguardLock;
+//import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+//import android.os.Build;
 
 @Kroll.module(parentModule=PlatformModule.class)
 public class AndroidModule extends PlatformModule{
@@ -46,6 +58,22 @@ public class AndroidModule extends PlatformModule{
 		return "Ti.Platform.Android";
 	}
 	
+//    @Override
+//    public void onResume(Activity activity) {
+//        super.onResume(activity);
+//        if (batteryStateReceiver != null) {
+//            Log.i(TAG, "Reregistering battery changed receiver", Log.DEBUG_MODE);
+//            registerBatteryReceiver(batteryStateReceiver);
+//        }
+//    }
+//
+//    @Override
+//    public void onPause(Activity activity) {
+//        super.onPause(activity);
+//        partialWakeLock.acquire();
+//
+//    }
+//	
 	@Kroll.method
     public boolean isPackageInstalled(final String packagename) {
 	    PackageManager pm = TiApplication.getInstance().getApplicationContext().getPackageManager();
@@ -55,5 +83,25 @@ public class AndroidModule extends PlatformModule{
 	    } catch (NameNotFoundException e) {
 	        return false;
 	    }
+    }
+	
+    @Kroll.method
+    public void wakeUpScreen() {
+        WakeLock screenLock = ((PowerManager) TiApplication
+                .getAppSystemService(Context.POWER_SERVICE)).newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK
+                        | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
+        screenLock.acquire();
+
+        // later
+        screenLock.release();
+    }
+    
+    @Kroll.method
+    public void unlockDevice() {
+        wakeUpScreen();
+        KeyguardManager keyguardManager = (KeyguardManager) TiApplication.getAppSystemService(Context.KEYGUARD_SERVICE); 
+        KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        keyguardLock.disableKeyguard();
     }
 }

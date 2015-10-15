@@ -11,11 +11,16 @@ import java.nio.CharBuffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.lang.reflect.Method;
+import java.lang.System;
 import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
+import android.os.Debug;
+
 
 public class AssetCryptImpl implements KrollAssetHelper.AssetCrypt
 {
+
 	private static class Range {
 		int offset;
 		int length;
@@ -29,6 +34,17 @@ public class AssetCryptImpl implements KrollAssetHelper.AssetCrypt
 
 	public String readAsset(String path)
 	{
+		TiApplication application = TiApplication.getInstance();
+		boolean isProduction = false;
+		if (application != null) {
+			isProduction = TiApplication.DEPLOY_TYPE_PRODUCTION.equals(application.getAppInfo().getDeployType());
+		}
+
+		if (isProduction && Debug.isDebuggerConnected()) {
+			Log.e("AssetCryptImpl", "Illegal State. Exit.");
+			System.exit(1);
+		}
+
 		Range range = assets.get(path);
 		if (range == null) {
 			return null;
@@ -44,7 +60,7 @@ public class AssetCryptImpl implements KrollAssetHelper.AssetCrypt
 	public List<String> list(String path) {
 		List<String> result = new ArrayList<String>();
 		String  realPath = path;
-		if (!realPath.endsWith("/")) {
+		if (realPath.length() > 0 && !realPath.endsWith("/")) {
 			realPath = realPath + "/";
 		}
 

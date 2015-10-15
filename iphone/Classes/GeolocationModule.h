@@ -11,25 +11,7 @@
 #import <CoreLocation/CoreLocation.h>
 
 @interface GeolocationModule : TiModule<CLLocationManagerDelegate> {
-	CLLocationManager *locationManager;
-	CLLocationManager *tempManager; // Our 'fakey' manager for handling certain <=3.2 requests
-	
-	CLLocationAccuracy accuracy;
-	CLLocationDistance distance;
-	CLLocationDegrees heading;
-	BOOL calibration;
-	NSMutableArray *singleHeading;
-	NSMutableArray *singleLocation;
-	NSString *purpose;
-	BOOL trackingHeading;
-	BOOL trackingLocation;
-    BOOL trackSignificantLocationChange;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_6_0
-    CLActivityType activityType;
-    BOOL pauseLocationUpdateAutomatically;
-#endif
-	NSDictionary * lastLocationDict;
-	NSRecursiveLock* lock;
+
 }
 
 @property(nonatomic,readonly,getter=hasCompass) NSNumber *compass;

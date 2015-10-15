@@ -6,6 +6,9 @@
  */
 package org.appcelerator.titanium.view;
 
+import java.lang.ref.WeakReference;
+
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 
@@ -14,6 +17,7 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Path.Direction;
@@ -26,6 +30,11 @@ public class TiBackgroundDrawable extends Drawable {
 	static final int NOT_SET = -1;
 	private int alpha = NOT_SET;
 	
+	public static interface TiBackgroundDrawableDelegate {
+	    public void onTiBackgroundDrawablePathUpdated();
+	}
+	
+	private WeakReference<TiBackgroundDrawableDelegate> mDelegate = null;
 //	private RectF innerRect;
 	private SparseArray<OneStateDrawable> drawables;
 	private OneStateDrawable currentDrawable;
@@ -39,16 +48,22 @@ public class TiBackgroundDrawable extends Drawable {
 	private float pathWidth = 0;
 	private RectF mPadding;
 	private Paint paint = new Paint();
+	private final boolean isBorder;
 	
-
 	public TiBackgroundDrawable()
 	{
-		currentDrawable = null;
-		mPadding = null;
-		mStateSets = new SparseArray<int[]>();
-		drawables = new SparseArray<OneStateDrawable>();
-//		innerRect = new RectF();
+        this(false);
 	}
+	
+	public TiBackgroundDrawable(final boolean isBorder)
+    {
+        this.isBorder = isBorder;
+        currentDrawable = null;
+        mPadding = null;
+        mStateSets = new SparseArray<int[]>();
+        drawables = new SparseArray<OneStateDrawable>();
+//      innerRect = new RectF();
+    }
 	
 	private int keyOfStateSet(int[] stateSet) {
 		int length = mStateSets.size();
@@ -60,15 +75,15 @@ public class TiBackgroundDrawable extends Drawable {
         return -1;
     }
 	
-	private int keyOfFirstMatchingStateSet(int[] stateSet) {
-		int length = mStateSets.size();
-		for(int i = 0; i < length; i++) {
-		   if (StateSet.stateSetMatches(mStateSets.valueAt(i), stateSet)) {
-               return mStateSets.keyAt(i);
-           }
-		}
-        return -1;
-    }
+//	private int keyOfFirstMatchingStateSet(int[] stateSet) {
+//		int length = mStateSets.size();
+//		for(int i = 0; i < length; i++) {
+//		   if (StateSet.stateSetMatches(mStateSets.valueAt(i), stateSet)) {
+//               return mStateSets.keyAt(i);
+//           }
+//		}
+//        return -1;
+//    }
 	
 	private int keyOfBestMatchingStateSet(int[] stateSet) {
 		int length = mStateSets.size();
@@ -115,22 +130,22 @@ public class TiBackgroundDrawable extends Drawable {
 		return result;
 	}
 	
-	private float[] insetRadius(float[] radius, float inset)
-	{
-		float[] result = new float[8];
-		for (int i = 0; i < result.length; i++) {
-			result[i] = radius[i] + inset;
-		}
-		return result;
-	}
+//	private float[] insetRadius(float[] radius, float inset)
+//	{
+//		float[] result = new float[8];
+//		for (int i = 0; i < result.length; i++) {
+//			result[i] = radius[i] + inset;
+//		}
+//		return result;
+//	}
 	
 	private void updatePath(){
 		if (bounds.isEmpty()) return;
 		path = null;
 		RectF outerRect = TiUIHelper.insetRect(boundsF, mPadding);
 		if (radius != null) {
-			path = new Path();
-			path.setFillType(FillType.EVEN_ODD);
+		    path = new Path();
+            path.setFillType(FillType.EVEN_ODD);
 			if (pathWidth > 0) {
 				path.addRoundRect(outerRect, radius, Direction.CW);
 				float padding = 0;
@@ -141,15 +156,18 @@ public class TiBackgroundDrawable extends Drawable {
 				innerRect.set(outerRect.left + padding, outerRect.top + padding, outerRect.right - padding, outerRect.bottom - padding);
 				path.addRoundRect(innerRect, innerRadiusFromPadding(outerRect, padding), Direction.CCW);
 			}
-			else {
+			else if (!isBorder){
+                
 				//adjustment not see background under border because of antialias
 				path.addRoundRect(TiUIHelper.insetRect(outerRect, 0.3f), radius, Direction.CW);
 			}
 		}
 		else {
+		    if (isBorder || pathWidth > 0) {
+		        path = new Path();
+                path.setFillType(FillType.EVEN_ODD);
+		    }
 			if (pathWidth > 0) {
-				path = new Path();
-				path.setFillType(FillType.EVEN_ODD);
 				path.addRect(outerRect, Direction.CW);
 				int padding = 0;
 				int maxPadding = 0;
@@ -160,23 +178,32 @@ public class TiBackgroundDrawable extends Drawable {
 				path.addRect(innerRect, Direction.CCW);
 			}
 		}
+		if (mDelegate != null) {
+		    mDelegate.get().onTiBackgroundDrawablePathUpdated();
+		}
 	}
 	public Path getPath(){
 		return path;
 	}
+	
+	public final Rect bounds()  {
+        return this.bounds;
+    }
+	        
 
 	@Override
 	protected void onBoundsChange(Rect bounds)
 	{
-		this.boundsF = new RectF(bounds);
-		this.bounds = bounds;
+		this.boundsF.set(bounds);
+		this.bounds.set(bounds);
+        updatePath();
+        int length = drawables.size();
+        for(int i = 0; i < length; i++) {
+           Drawable drawable = drawables.valueAt(i);
+           drawable.setBounds(bounds);
+        }
 		super.onBoundsChange(bounds);
-		updatePath();
-		int length = drawables.size();
-		for(int i = 0; i < length; i++) {
-		   Drawable drawable = drawables.valueAt(i);
-		   drawable.setBounds(bounds);
-		}
+		
 	}
 	
 	public void setRadius(float[] radius)
@@ -273,6 +300,20 @@ public class TiBackgroundDrawable extends Drawable {
 		return drawable;
 	}
 	
+	public void removeDrawableForState(int[] stateSet)
+    {
+        int key = keyOfStateSet(stateSet);
+        if (key != -1)
+        {
+            OneStateDrawable drawable = drawables.get(key);
+            mStateSets.remove(key);
+            drawables.remove(key);
+            if (drawable == currentDrawable) {
+                currentDrawable = null;
+            }
+        }
+    }
+	
 	public int getColorForState(int[] stateSet)
 	{
 		int result = 0;
@@ -287,14 +328,41 @@ public class TiBackgroundDrawable extends Drawable {
 		getOrCreateDrawableForState(stateSet).setColor(color);
 		invalidateSelf();
 	}
+	
+	public void setColorForState(int[] stateSet, Object color)
+    {
+	    if (color == null) {
+	        int key = keyOfStateSet(stateSet);
+            if (key != -1) {
+                OneStateDrawable drawable = drawables.get(key);
+                if (drawable.hasOnlyColor()) {
+                    mStateSets.remove(key);
+                    drawables.remove(key);
+                    if (drawable == currentDrawable) {
+                        currentDrawable = null;
+                    }
+                } else {
+                    drawables.get(key).setColor(TiConvert.toColor(color));             
+                }
+            }
+	    } else {
+	        getOrCreateDrawableForState(stateSet).setColor(TiConvert.toColor(color));
+	    }
+        invalidateSelf();
+    }
 
 	
 	public void setImageDrawableForState(int[] stateSet, Drawable drawable)
 	{
 		if (drawable != null) {
 			drawable.setBounds(this.getBounds());
+	        getOrCreateDrawableForState(stateSet).setBitmapDrawable(drawable);
+		} else {
+		    int key = keyOfStateSet(stateSet);
+	        if (key != -1) {
+                drawables.get(key).setBitmapDrawable(drawable);	            
+	        }
 		}
-		getOrCreateDrawableForState(stateSet).setBitmapDrawable(drawable);
 		invalidateSelf();
 	}
 	
@@ -302,8 +370,13 @@ public class TiBackgroundDrawable extends Drawable {
 	{
 		if (drawable != null) {
 			drawable.setBounds(this.getBounds());
+			getOrCreateDrawableForState(stateSet).setGradientDrawable(drawable);
+        } else {
+            int key = keyOfStateSet(stateSet);
+            if (key != -1) {
+                drawables.get(key).setGradientDrawable(drawable);             
+            }
 		}
-		getOrCreateDrawableForState(stateSet).setGradientDrawable(drawable);
 		invalidateSelf();
 	}
 	
@@ -365,7 +438,11 @@ public class TiBackgroundDrawable extends Drawable {
 
 	@Override
 	public int getOpacity() {
-		return 0;
+	    if (currentDrawable != null) {
+	        return currentDrawable.getOpacity();
+//	        return 255;
+	    }
+		return PixelFormat.OPAQUE;
 	}
 
 	@Override
@@ -380,5 +457,14 @@ public class TiBackgroundDrawable extends Drawable {
 			OneStateDrawable drawable = drawables.valueAt(i);
 			drawable.setDefaultColor(defaultColor);
 		}
+	}
+	
+	public void setDelegate(TiBackgroundDrawableDelegate delegate) {
+	    if (delegate != null) {
+            this.mDelegate = new WeakReference<TiBackgroundDrawableDelegate>(delegate);
+        }
+        else {
+            this.mDelegate = null;
+        }
 	}
 }

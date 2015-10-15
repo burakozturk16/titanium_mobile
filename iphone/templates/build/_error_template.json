@@ -1,0 +1,145 @@
+{
+    "backgroundColor": "#34B7ED",
+    "layout": "vertical",
+    "childTemplates": [{
+        "type": "Ti.UI.Label",
+        "top": 30,
+        "width": "FILL",
+        "bottom": 10,
+        "textAlign": "center",
+        "text": "Application Error",
+        "color": "white",
+        "shadowOffset": [0, 1],
+        "shadowColor": "black",
+        "font": {
+            "weight": "bold",
+            "size": 32
+        }
+    }, {
+        "type": "Ti.UI.ScrollView",
+        "properties": {
+            "layout": "vertical",
+            "contentWidth": "FILL",
+            "contentHeight": "SIZE",
+            "height": "FILL"
+        },
+        "childTemplates": [{
+            "type": "Ti.UI.Label",
+            "height": 20,
+            "left": 20,
+            "top": 10,
+            "text": "Location:",
+            "color": "white",
+            "font": {
+                "weight": "bold",
+                "size": 17
+            }
+        }, {
+            "type": "Ti.UI.Label",
+            "backgroundColor": "white",
+            "width": "FILL",
+            "color": "black",
+            "left": 20,
+            "right": 20,
+            "padding": 5,
+            "font": {
+                "size": 14
+            },
+            "bindId": "location"
+        }, {
+            "type": "Ti.UI.Label",
+            "height": 20,
+            "left": 20,
+            "top": 10,
+            "text": "Message:",
+            "color": "white",
+            "font": {
+                "weight": "bold",
+                "size": 17
+            }
+        }, {
+            "type": "Ti.UI.Label",
+            "backgroundColor": "white",
+            "width": "FILL",
+            "color": "black",
+            "left": 20,
+            "right": 20,
+            "padding": 5,
+            "font": {
+                "size": 14
+            },
+            "bindId": "message"
+        }, {
+            "type": "Ti.UI.Label",
+            "height": 20,
+            "left": 20,
+            "top": 10,
+            "text": "Source:",
+            "color": "white",
+            "font": {
+                "weight": "bold",
+                "size": 17
+            }
+        }, {
+            "type": "Ti.UI.Label",
+            "backgroundColor": "white",
+            "width": "FILL",
+            "color": "black",
+            "left": 20,
+            "right": 20,
+            "padding": 5,
+            "font": {
+                "size": 14
+            },
+            "bindId": "source"
+        }, {
+            "type": "Ti.UI.Label",
+            "height": 20,
+            "left": 20,
+            "top": 10,
+            "text": "Callstack:",
+            "color": "white",
+            "font": {
+                "weight": "bold",
+                "size": 17
+            }
+        }, {
+            "type": "Ti.UI.Label",
+            "backgroundColor": "white",
+            "width": "FILL",
+            "color": "black",
+            "left": 20,
+            "right": 20,
+            "padding": 5,
+            "font": {
+                "size": 14
+            },
+            "bindId": "callstack"
+        }]
+    }, {
+        "layout": "horizontal",
+        "backgroundColor": "white",
+        "height": 50,
+        "childTemplates": [{
+            "bindId": "dismiss",
+            "type": "Ti.UI.Button",
+            "title": "Dismiss",
+            "tintColor": "#34B7ED",
+            "left": 10,
+            "right": 5,
+            "bottom": 5,
+            "width": "FILL",
+            "top": 5,
+        }, {
+            "bindId": "kill",
+            "type": "Ti.UI.Button",
+            "title": "Kill",
+            "tintColor": "#34B7ED",
+            "left": 10,
+            "right": 5,
+            "bottom": 5,
+            "width": "FILL",
+            "top": 5,
+        }]
+    }]
+}

@@ -72,25 +72,22 @@ public class TransitionSwipeDualFade extends Transition {
 	}
 	
 	@Override
-	public void transformView(View view, float position, boolean adjustScroll) {
-		boolean out = (position < 0);
-		float multiplier = 1;
-		float dest = 0;
-		if (!TransitionHelper.isPushSubType(subType)) {
-			multiplier = -1;
-			out = !out;
-		}
-		float alpha = 1 - Math.abs(position);
-		if (out) { //out
-			dest = multiplier* Math.abs(position)*(adjustScroll?(1-destTrans):destTrans);
-		}
-
-		ViewHelper.setAlpha(view, alpha);
-		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setTranslationRelativeY(view, dest);
-		}
-		else {
-			TiViewHelper.setTranslationRelativeX(view, dest);
-		}
+	public void transformView(View view, float position) {
+        boolean out = (position < 0);
+        float multiplier = 1;
+        if (!TransitionHelper.isPushSubType(subType)) {
+            multiplier = -multiplier;
+            out = !out;
+        }
+        float alpha = 1 - Math.abs(position);
+        float translate = position;
+        translate *= multiplier;
+        ViewHelper.setAlpha(view, alpha);
+        if (TransitionHelper.isVerticalSubType(subType)) {
+            TiViewHelper.setTranslationRelativeY(view, translate);
+        }
+        else {
+            TiViewHelper.setTranslationRelativeX(view, translate);
+        }
 	}
 }

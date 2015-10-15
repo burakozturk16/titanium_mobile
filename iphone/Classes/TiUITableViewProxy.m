@@ -21,7 +21,6 @@
 #import "TiComplexValue.h"
 #import "TiApp.h"
 
-NSArray * tableKeySequence;
 
 @interface TiUITableViewProxy ()
 -(void)setData:(id)args withObject:(id)properties immediate:(BOOL)immediate;
@@ -29,22 +28,6 @@ NSArray * tableKeySequence;
 
 @implementation TiUITableViewProxy
 @synthesize internalSections=sections;
-
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"scrollsToTop",
-                                              @"selectedBackgroundGradient",@"data",@"allowSelection",
-                                              @"allowSelectionDuringEditing",@"separatorStyle",
-                                              @"search", @"scrollIndicatorStyle", @"showVerticalScrollIndicator",
-                                              @"searchHidden", @"hideSearchOnSelection", @"filterAttribute",
-                                              @"index", @"filterCaseInsensitive", @"editable",
-                                              @"moveable", @"scrollable", @"editing",
-                                              @"moving", @"rowHeight", @"minRowHeight", @"maxRowHeight",
-                                              @"headerPullView", @"contentInsets",
-                                              @"separatorColor", @"headerTitle", @"headerView",
-                                              @"footerTitle", @"footerView", nil]];
-}
 
 USE_VIEW_FOR_CONTENT_SIZE
 
@@ -109,18 +92,20 @@ USE_VIEW_FOR_CONTENT_SIZE
 		for (TiUITableViewRowProxy *row in section)
 		{
 			row.section = section;
-            [row setParent:section checkForOpen:NO];
+            [row setParent:section];
 		}
 	}
 }
 
+
 -(NSArray *)keySequence
 {
-	if (tableKeySequence == nil)
-	{
-		tableKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"style",@"data",@"search",@"backgroundColor"]] retain];
-	}
-	return tableKeySequence;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"style",@"data",@"search",@"backgroundColor"]] retain];;
+    });
+    return keySequence;
 }
 
 -(NSInteger)indexForRow:(TiUITableViewRowProxy*)row
@@ -158,12 +143,12 @@ USE_VIEW_FOR_CONTENT_SIZE
 -(TiUITableViewRowProxy*)rowForIndex:(NSInteger)index section:(NSInteger*)section
 {
 	int current = 0;
-	int row = index;
+	NSInteger row = index;
 	int sectionIdx = 0;
 	
 	for (TiUITableViewSectionProxy *sectionProxy in sections)
 	{
-		int rowCount = [sectionProxy rowCount];
+		NSInteger rowCount = [sectionProxy rowCount];
 		if (rowCount + current > index)
 		{
 			if (section!=nil)
@@ -188,11 +173,11 @@ USE_VIEW_FOR_CONTENT_SIZE
 	}
 	int section = 0;
 	int current = 0;
-	int row = index;
+	NSInteger row = index;
 	
 	for (TiUITableViewSectionProxy * thisSection in sections)
 	{
-		int rowCount = [thisSection rowCount];
+		NSInteger rowCount = [thisSection rowCount];
 		if (rowCount + current > index)
 		{
 			return [NSIndexPath indexPathForRow:row inSection:section];
@@ -288,7 +273,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 -(TiUITableViewSectionProxy*)sectionForIndex:(NSInteger)index row:(TiUITableViewRowProxy**)rowOut
 {
 	int current = 0;
-	int row = index;
+	NSInteger row = index;
 	int sectionIdx = 0;
 	
 	TiUITableViewRowProxy *rowProxy = nil;
@@ -296,7 +281,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 	
 	for (sectionProxy in sections)
 	{
-		int rowCount = [sectionProxy rowCount];
+		NSInteger rowCount = [sectionProxy rowCount];
 		if (rowCount + current > index)
 		{
 			rowProxy = [sectionProxy rowAtIndex:row];
@@ -362,26 +347,6 @@ USE_VIEW_FOR_CONTENT_SIZE
 	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
 	
 	[(TiUITableView*)[self view] scrollToIndex:index position:scrollPosition animated:animated];
-}
-
--(void)scrollToTop:(id)args
-{
-	ENSURE_UI_THREAD(scrollToTop,args);
-	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
-	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
-	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
-	
-	[(TiUITableView*)[self view] scrollToTop:top animated:animated];
-}
-
--(void)scrollToBottom:(id)args
-{
-	ENSURE_UI_THREAD(scrollToTop,args);
-	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
-	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
-	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
-	
-	[(TiUITableView*)[self view] scrollToBottom:top animated:animated];
 }
 
 -(NSNumber*)getIndexByName:(id)args
@@ -453,7 +418,7 @@ USE_VIEW_FOR_CONTENT_SIZE
         
         for (sectionProxy in sections)
         {
-            int rowCount = [sectionProxy rowCount];
+            NSInteger rowCount = [sectionProxy rowCount];
             if (rowCount + current > index)
             {
                 rowProxy = [sectionProxy rowAtIndex:row];
@@ -528,7 +493,7 @@ USE_VIEW_FOR_CONTENT_SIZE
         }
     }
     else if ([theArg isKindOfClass:[NSNumber class]]) {
-        int index = [TiUtils intValue:theArg];
+        NSInteger index = [TiUtils intValue:theArg];
         section = [self sectionForIndex:index row:&row];
         if (section == nil || row == nil)
         {
@@ -563,7 +528,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 {
 //	ENSURE_UI_THREAD(insertRowBefore,args);
 	
-	int index = [TiUtils intValue:[args objectAtIndex:0]];
+	NSInteger index = [TiUtils intValue:[args objectAtIndex:0]];
 	NSDictionary *data = [args objectAtIndex:1];
 	NSDictionary *anim = [args count] > 2 ? [args objectAtIndex:2] : nil;
 	
@@ -586,13 +551,12 @@ USE_VIEW_FOR_CONTENT_SIZE
 	
 	TiUITableViewRowProxy *newrow = [self tableRowFromArg:data];
     TiUITableViewActionType actionType = TiUITableViewActionInsertRowBefore;
-//    TiUITableViewSectionProxy *actionSection = section;
     id header = [newrow valueForKey:@"header"];
     if (header != nil) {
         TiUITableViewSectionProxy *newSection = [self sectionWithHeader:header table:table];
         
         // Insert the new section into the array - but, exactly WHERE we insert depends.
-        int sectionIndex = [sections indexOfObject:section];
+        NSInteger sectionIndex = [sections indexOfObject:section];
         if (row.row != 0) {
             sectionIndex++;
         }
@@ -602,7 +566,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 		
         // Thanks to how we track sections, we also need to manually update the index
         // of each section in the array after where the insert will be.
-        for (int i=sectionIndex; i < [sections count]; i++) {
+        for (NSUInteger i=sectionIndex; i < [sections count]; i++) {
             TiUITableViewSectionProxy *updateSection = [sections objectAtIndex:i];
             updateSection.section = updateSection.section + 1;
         }
@@ -615,7 +579,6 @@ USE_VIEW_FOR_CONTENT_SIZE
         
         // Configure the action
         actionType = TiUITableViewActionInsertSectionBefore;
-//        actionSection = newSection;
     }
     else {
 		[section rememberProxy:newrow];	//If we wait until the main thread, it'll be too late!
@@ -643,7 +606,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 {
 //	ENSURE_UI_THREAD(insertRowAfter,args);
 	
-	int index = [TiUtils intValue:[args objectAtIndex:0]];
+	NSInteger index = [TiUtils intValue:[args objectAtIndex:0]];
 	NSDictionary *data = [args objectAtIndex:1];
 	NSDictionary *anim = [args count] > 2 ? [args objectAtIndex:2] : nil;
 
@@ -666,7 +629,6 @@ USE_VIEW_FOR_CONTENT_SIZE
 	
 	TiUITableViewRowProxy *newrow = [self tableRowFromArg:data];
     TiUITableViewActionType actionType = TiUITableViewActionInsertRowAfter;
-//    TiUITableViewSectionProxy *actionSection = section;
     id header = [newrow valueForKey:@"header"];
     if (header != nil) {
         TiUITableViewSectionProxy *newSection = [self sectionWithHeader:header table:table];
@@ -675,11 +637,11 @@ USE_VIEW_FOR_CONTENT_SIZE
         newSection.section = section.section + 1;
         
         // Insert the new section into the array
-        int sectionIndex = [sections indexOfObject:section] + 1;
+        NSUInteger sectionIndex = [sections indexOfObject:section] + 1;
         
         // Thanks to how we track sections, we also need to manually update the index
         // of each section in the array after where the insert will be.
-        for (int i=sectionIndex; i < [sections count]; i++) {
+        for (NSUInteger i=sectionIndex; i < [sections count]; i++) {
             TiUITableViewSectionProxy *updateSection = [sections objectAtIndex:i];
             updateSection.section = updateSection.section + 1;
         }
@@ -692,7 +654,6 @@ USE_VIEW_FOR_CONTENT_SIZE
         
         // Configure the action
         actionType = TiUITableViewActionInsertSectionAfter;
-//        actionSection = newSection;
     }
     else {
 		[section rememberProxy:newrow];	//If we wait until the main thread, it'll be too late!
@@ -861,6 +822,24 @@ USE_VIEW_FOR_CONTENT_SIZE
     }, YES);
     return [curSections autorelease];
 }
+-(void)setContentOffset:(id)args
+{
+	id arg1;
+	id arg2;
+	if ([args isKindOfClass:[NSDictionary class]])
+	{
+		arg1 = args;
+		arg2 = [NSDictionary dictionary];
+	}
+	else
+	{
+		arg1 = [args objectAtIndex:0];
+		arg2 = [args count] > 1 ? [args objectAtIndex:1] : [NSDictionary dictionary];
+	}
+	TiThreadPerformOnMainThread(^{
+		[[self tableView] setContentOffset_:arg1 withObject:arg2];
+	}, NO);
+}
 
 -(void)setContentInsets:(id)args
 {
@@ -877,7 +856,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 		arg1 = [args objectAtIndex:0];
 		arg2 = [args count] > 1 ? [args objectAtIndex:1] : [NSDictionary dictionary];
 	}
-	[[self view] performSelector:@selector(setContentInsets_:withObject:) withObject:arg1 withObject:arg2];
+	[[self view] performSelector:NSSelectorFromString(@"setContentInsets_:withObject:") withObject:arg1 withObject:arg2];
 }
 
 DEFINE_DEF_PROP(scrollsToTop,@YES);
@@ -950,7 +929,12 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 	[self setSections:newSections withObject:nil];
 }
 
--(int)sectionCount
+-(void)willShow
+{
+    [(TiUITableView *)[self view] refreshSearchControllerUsingReload:YES];
+}
+
+-(NSUInteger)sectionCount
 { //TODO: Shouldn't this be in the main thread, too?
 	return [sections count];
 }
@@ -975,7 +959,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 -(void)appendSection:(id)args
 {
 	//Step one: sanity
-	int argCount = [args count];
+	NSUInteger argCount = [args count];
 	if(argCount < 1){
 		[self throwException:TiExceptionNotEnoughArguments
 				   subreason:@"expected 1 argument, received none" location:CODELOCATION];
@@ -987,7 +971,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 	NSMutableArray * sectionArray = nil;
 
 	if ([appendum isKindOfClass:[NSArray class]]) {
-		int arrayCount = [appendum count];
+		NSUInteger arrayCount = [appendum count];
 		if (arrayCount < 1) {
 			[self throwException:TiExceptionNotEnoughArguments subreason:@"array must not be empty" location:CODELOCATION];
 		}
@@ -1019,7 +1003,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 		NSRange sectionRange = NSMakeRange([sections count], 1);
 		if (sectionArray != nil){
 			sectionRange.length = [sectionArray count];
-			int sectionIndex = sectionRange.location;
+			NSUInteger sectionIndex = sectionRange.location;
 			for (TiUITableViewSectionProxy * thisSection in sectionArray) {
 				[thisSection setSection:sectionIndex++];
 			}
@@ -1042,7 +1026,6 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 				[ourTable insertSections:[NSIndexSet indexSetWithIndexesInRange:sectionRange] withRowAnimation:ourAnimation];
 			} else { //UITableView doesn't know we had 0 sections.
 				[ourTable beginUpdates];
-//				NSRange insertedSectionRange = NSMakeRange(1, sectionRange.length - 1);
 				[ourTable deleteSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:ourAnimation];
 				[ourTable insertSections:[NSIndexSet indexSetWithIndexesInRange:sectionRange] withRowAnimation:ourAnimation];
 				[ourTable endUpdates];
@@ -1054,7 +1037,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 -(void)deleteSection:(id)args
 {
 	//Step one: sanity
-	int argCount = [args count];
+	NSUInteger argCount = [args count];
 	if(argCount < 1){
 		[self throwException:TiExceptionNotEnoughArguments
 				   subreason:@"expected 1 argument, received none" location:CODELOCATION];
@@ -1093,8 +1076,8 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 {
 	[self rememberSection:section];
 	TiThreadPerformOnMainThread(^{
-		int oldSectionCount = [sections count];
-		int boundSectionIndex = MIN(sectionIndex, oldSectionCount);
+		NSUInteger oldSectionCount = [sections count];
+		NSUInteger boundSectionIndex = MIN(sectionIndex, oldSectionCount);
 		[section setSection:boundSectionIndex];
 		[sections insertObject:section atIndex:boundSectionIndex];
 
@@ -1115,7 +1098,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 -(void)insertSectionAfter:(id)args
 {
-	int argCount = [args count];
+	NSUInteger argCount = [args count];
 	ENSURE_ARG_COUNT(args, 2)
 
 	NSDictionary * options = nil;
@@ -1141,7 +1124,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 -(void)insertSectionBefore:(id)args
 {
-	int argCount = [args count];
+	NSUInteger argCount = [args count];
 	ENSURE_ARG_COUNT(args, 2)
 	
 	NSDictionary * options = nil;
@@ -1167,7 +1150,7 @@ DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 -(void)updateSection:(id)args
 {
-	int argCount = [args count];
+	NSUInteger argCount = [args count];
 	ENSURE_ARG_COUNT(args, 2)
 	
 	NSDictionary * options = nil;

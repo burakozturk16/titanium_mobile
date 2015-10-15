@@ -1,17 +1,13 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
 #ifdef USE_TI_UILABEL
 
 #import "TiUIView.h"
-#import "TTTAttributedLabel.h"
-
-@interface TiLabel : TDTTTAttributedLabel
-
-@end
+#import "TiLabel.h"
 
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
 @private
@@ -23,9 +19,8 @@
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
 -(TiLabel*)label;
 -(void)setPadding:(UIEdgeInsets)inset;
--(void)setReusing:(BOOL)value;
--(int)characterIndexAtPoint:(CGPoint)p;
+//-(void)setReusing:(BOOL)value;
+-(NSInteger)characterIndexAtPoint:(CGPoint)p;
 @end
-
 
 #endif

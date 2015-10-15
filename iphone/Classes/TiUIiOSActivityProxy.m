@@ -36,7 +36,7 @@
 
 -(UIActivity*)asActivity
 {
-    return [TiActivity activityWithProxy:self ofCategory:_category];
+    return [TiActivity activityWithProxy:self ofCategory:[_category integerValue]];
 }
 
 -(BOOL)performActivity:(TiActivity*)activity withItems:(NSArray *)items
@@ -99,9 +99,9 @@
 + (TiActivity*) activityWithProxy:(TiUIiOSActivityProxy *)proxy ofCategory:(UIActivityCategory)category
 {
     if (category == UIActivityCategoryAction) {
-        return [[ApplicationActionActivity alloc] initWithProxy:proxy];
+        return [[[ApplicationActionActivity alloc] initWithProxy:proxy] autorelease];
     } else {
-        return [[ApplicationShareActivity alloc] initWithProxy:proxy];
+        return [[[ApplicationShareActivity alloc] initWithProxy:proxy] autorelease];
     }
 }
 

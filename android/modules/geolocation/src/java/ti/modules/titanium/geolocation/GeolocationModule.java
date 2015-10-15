@@ -20,6 +20,7 @@ import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
@@ -29,9 +30,14 @@ import ti.modules.titanium.geolocation.android.AndroidModule;
 import ti.modules.titanium.geolocation.android.LocationProviderProxy;
 import ti.modules.titanium.geolocation.android.LocationProviderProxy.LocationProviderListener;
 import ti.modules.titanium.geolocation.android.LocationRuleProxy;
+import android.Manifest;
+import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 
@@ -155,6 +161,8 @@ public class GeolocationModule extends KrollModule
 	private static final double SIMPLE_LOCATION_NETWORK_DISTANCE_RULE = 200;
 	private static final double SIMPLE_LOCATION_NETWORK_MIN_AGE_RULE = 60000;
 	public static final double SIMPLE_LOCATION_NETWORK_MIN_DISTANCE_RULE = 0.0001;
+	private static final double SIMPLE_LOCATION_GPS_MIN_AGE_RULE = 30000;
+
 
 	private TiCompass tiCompass;
 	private boolean compassListenersRegistered = false;
@@ -163,7 +171,7 @@ public class GeolocationModule extends KrollModule
 	private LocationRuleProxy simpleLocationGpsRule;
 	private LocationRuleProxy simpleLocationNetworkRule;
 	private int simpleLocationAccuracyProperty = ACCURACY_LOW;
-	private Location currentLocation;
+	private Location lastRulesCheckedLocation;
 	//currentLocation is conditionally updated. lastLocation is unconditionally updated
 	//since currentLocation determines when to send out updates, and lastLocation is passive
 	private Location lastLocation;
@@ -196,8 +204,8 @@ public class GeolocationModule extends KrollModule
 		simpleLocationProviders.put(PROVIDER_PASSIVE, new LocationProviderProxy(PROVIDER_PASSIVE, SIMPLE_LOCATION_PASSIVE_DISTANCE, SIMPLE_LOCATION_PASSIVE_TIME, this));
 
 		// create these now but we don't want to include these in the rule set unless the simple GPS provider is enabled
-		simpleLocationGpsRule = new LocationRuleProxy(PROVIDER_GPS, null, null, null, 0.0, null);
 		simpleLocationNetworkRule = new LocationRuleProxy(PROVIDER_NETWORK, SIMPLE_LOCATION_NETWORK_DISTANCE_RULE, SIMPLE_LOCATION_NETWORK_MIN_AGE_RULE, null, SIMPLE_LOCATION_NETWORK_MIN_DISTANCE_RULE, null);
+		simpleLocationGpsRule = new LocationRuleProxy(PROVIDER_GPS, null, SIMPLE_LOCATION_GPS_MIN_AGE_RULE, null, null, null);
 	}
 
 	/**
@@ -259,12 +267,12 @@ public class GeolocationModule extends KrollModule
 	 */
 	public void onLocationChanged(Location location)
 	{
-		lastLocation = location;
 		if (shouldUseUpdate(location)) {
 			fireEvent(TiC.EVENT_LOCATION, buildLocationEvent(location, tiLocation.locationManager.getProvider(location.getProvider())));
-			currentLocation = location;
+			lastRulesCheckedLocation = location;
 			doAnalytics(location);
 		}
+        lastLocation = location;
 	}
 
 	/**
@@ -285,51 +293,38 @@ public class GeolocationModule extends KrollModule
 		switch (state) {
 			case LocationProviderProxy.STATE_DISABLED:
 				message += " is disabled";
-				Log.i(TAG, message, Log.DEBUG_MODE);
 				fireEvent(TiC.EVENT_LOCATION, buildLocationErrorEvent(state, message));
-
 				break;
 
 			case LocationProviderProxy.STATE_ENABLED:
 				message += " is enabled";
-				Log.d(TAG, message, Log.DEBUG_MODE);
-
 				break;
 
 			case LocationProviderProxy.STATE_OUT_OF_SERVICE:
 				message += " is out of service";
-				Log.d(TAG, message, Log.DEBUG_MODE);
 				fireEvent(TiC.EVENT_LOCATION, buildLocationErrorEvent(state, message));
-
 				break;
 
 			case LocationProviderProxy.STATE_UNAVAILABLE:
 				message += " is unavailable";
-				Log.d(TAG, message, Log.DEBUG_MODE);
 				fireEvent(TiC.EVENT_LOCATION, buildLocationErrorEvent(state, message));
-
 				break;
 
 			case LocationProviderProxy.STATE_AVAILABLE:
 				message += " is available";
-				Log.d(TAG, message, Log.DEBUG_MODE);
-
 				break;
 
 			case LocationProviderProxy.STATE_UNKNOWN:
 				message += " is in a unknown state [" + state + "]";
-				Log.d(TAG, message, Log.DEBUG_MODE);
 				fireEvent(TiC.EVENT_LOCATION, buildLocationErrorEvent(state, message));
-
 				break;
 
 			default:
 				message += " is in a unknown state [" + state + "]";
-				Log.d(TAG, message, Log.DEBUG_MODE);
 				fireEvent(TiC.EVENT_LOCATION, buildLocationErrorEvent(state, message));
-
 				break;
 		}
+        Log.d(TAG, message, Log.DEBUG_MODE);
 	}
 
 	/**
@@ -519,20 +514,41 @@ public class GeolocationModule extends KrollModule
 			legacyLocationPreferredProvider = preferredProviderProperty;
 		}
 	}
-
+	
+	private GpsStatus.Listener mStatusListener = null;
 	/**
 	 * @see org.appcelerator.kroll.KrollProxy#eventListenerAdded(java.lang.String, int, org.appcelerator.kroll.KrollProxy)
 	 */
 	@Override
 	protected void eventListenerAdded(String event, int count, KrollProxy proxy)
 	{
-		if (TiC.EVENT_HEADING.equals(event)) {
-			if (!compassListenersRegistered) {
-				tiCompass.registerListener();
-				compassListenersRegistered = true;
+		if (TiC.EVENT_CHANGE.equals(event)) {
+			if (mStatusListener == null) {
+			    mStatusListener = new android.location.GpsStatus.Listener()
+			    {
+			        public void onGpsStatusChanged(int event)
+			        {
+			            switch(event)
+			            {
+			            case GpsStatus.GPS_EVENT_STARTED:
+			            case GpsStatus.GPS_EVENT_STOPPED:
+			                KrollDict data = new KrollDict();
+			                data.put(TiC.PROPERTY_ENABLED, event == GpsStatus.GPS_EVENT_STARTED);
+	                        fireEvent(TiC.EVENT_CHANGE, data);
+			                break;
+			            }
+			        }
+			    };
+			    tiLocation.locationManager.addGpsStatusListener(mStatusListener);
 			}
 
-		} else if (TiC.EVENT_LOCATION.equals(event)) {
+		} else if (TiC.EVENT_HEADING.equals(event)) {
+            if (!compassListenersRegistered) {
+                tiCompass.registerListener();
+                compassListenersRegistered = true;
+            }
+
+        } else if (TiC.EVENT_LOCATION.equals(event)) {
 			numLocationListeners++;
 			if (numLocationListeners == 1) {
 				HashMap<String, LocationProviderProxy> locationProviders = legacyLocationProviders;
@@ -544,8 +560,15 @@ public class GeolocationModule extends KrollModule
 					locationProviders = simpleLocationProviders;
 				}
 				enableLocationProviders(locationProviders);
-
+				
 				// fire off an initial location fix if one is available
+				if (!hasLocationPermissions()) {
+					Log.e(TAG, "Location permissions missing");
+					return;
+				}
+				//restart rules to be sure.
+				lastRulesCheckedLocation = null;
+                // fire off an initial location fix if one is available
 				onLocationChanged(tiLocation.getLastKnownLocation());
 			}
 		}
@@ -559,7 +582,13 @@ public class GeolocationModule extends KrollModule
 	@Override
 	protected void eventListenerRemoved(String event, int count, KrollProxy proxy)
 	{
-		if (TiC.EVENT_HEADING.equals(event)) {
+	    if (TiC.EVENT_CHANGE.equals(event)) {
+            if (mStatusListener != null) {
+                tiLocation.locationManager.removeGpsStatusListener(mStatusListener);
+                mStatusListener = null;
+            }
+
+        } else if (TiC.EVENT_HEADING.equals(event)) {
 			if (compassListenersRegistered) {
 				tiCompass.unregisterListener();
 				compassListenersRegistered = false;
@@ -612,11 +641,19 @@ public class GeolocationModule extends KrollModule
 	        KrollDict coordinates = new KrollDict();
 	        coordinates.put(TiC.PROPERTY_LATITUDE, lastLocation.getLatitude());
 	        coordinates.put(TiC.PROPERTY_LONGITUDE, lastLocation.getLongitude());
-	        coordinates.put(TiC.PROPERTY_ALTITUDE, lastLocation.getAltitude());
-	        coordinates.put(TiC.PROPERTY_ACCURACY, lastLocation.getAccuracy());
-	        coordinates.put(TiC.PROPERTY_ALTITUDE_ACCURACY, null); // Not provided
-	        coordinates.put(TiC.PROPERTY_HEADING, lastLocation.getBearing());
-	        coordinates.put(TiC.PROPERTY_SPEED, lastLocation.getSpeed());
+	        if (lastLocation.hasAccuracy()) {
+	            coordinates.put(TiC.PROPERTY_ACCURACY, lastLocation.getAccuracy());
+            }
+            if (lastLocation.hasAltitude()) {
+                coordinates.put(TiC.PROPERTY_ALTITUDE_ACCURACY, null); // Not provided
+                coordinates.put(TiC.PROPERTY_ALTITUDE, lastLocation.getAltitude());
+            }
+            if (lastLocation.hasBearing()) {
+                coordinates.put(TiC.PROPERTY_HEADING, lastLocation.getBearing());
+            }
+	        if (lastLocation.hasSpeed()) {
+	            coordinates.put(TiC.PROPERTY_SPEED, lastLocation.getSpeed());
+	        }
 	        coordinates.put(TiC.PROPERTY_TIMESTAMP, lastLocation.getTime());
 	        return coordinates;
 	    }
@@ -640,6 +677,40 @@ public class GeolocationModule extends KrollModule
 		}
 	}
 
+	@Kroll.method
+	public boolean hasLocationPermissions()
+	{
+		if (Build.VERSION.SDK_INT < 23) {
+			return true;
+		}
+		Activity currentActivity  = TiApplication.getInstance().getCurrentActivity();
+		if (currentActivity.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+			return true;
+		} 
+		return false;
+	}
+	
+	@Kroll.method
+	public void requestLocationPermissions(@Kroll.argument(optional=true) Object type, @Kroll.argument(optional=true) KrollFunction permissionCallback)
+	{
+		if (hasLocationPermissions()) {
+			return;
+		}
+
+		if (TiBaseActivity.locationCallbackContext == null) {
+			TiBaseActivity.locationCallbackContext = getKrollObject();
+		}
+
+		if (type instanceof KrollFunction && permissionCallback == null) {
+			TiBaseActivity.locationPermissionCallback = (KrollFunction) type;
+		} else {
+			TiBaseActivity.locationPermissionCallback = permissionCallback;
+		}
+
+		Activity currentActivity  = TiApplication.getInstance().getCurrentActivity();		
+		currentActivity.requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, TiC.PERMISSION_CODE_LOCATION);		
+	}
+
 	/**
 	 * Registers the specified location provider with the OS.  Once the provider is registered, the OS 
 	 * will begin to provider location updates as they are available
@@ -648,6 +719,10 @@ public class GeolocationModule extends KrollModule
 	 */
 	public void registerLocationProvider(LocationProviderProxy locationProvider)
 	{
+		if (!hasLocationPermissions()) {
+			Log.e(TAG, "Location permissions missing", Log.DEBUG_MODE);
+			return;
+		}
 		String provider = TiConvert.toString(locationProvider.getProperty(TiC.PROPERTY_NAME));
 
 		try {
@@ -765,6 +840,10 @@ public class GeolocationModule extends KrollModule
 	@Kroll.method
 	public void getCurrentPosition(KrollFunction callback)
 	{
+		if (!hasLocationPermissions()) {
+			Log.e(TAG, "Location permissions missing");
+			return;
+		}
 		if (callback != null) {
 			Location latestKnownLocation = tiLocation.getLastKnownLocation();
 
@@ -772,7 +851,7 @@ public class GeolocationModule extends KrollModule
 				callback.call(this.getKrollObject(), new Object[] {
 					buildLocationEvent(latestKnownLocation, tiLocation.locationManager.getProvider(latestKnownLocation.getProvider()))
 				});
-
+				lastRulesCheckedLocation = latestKnownLocation;
 			} else {
 				Log.e(TAG, "Unable to get current position, location is null");
 				callback.call(this.getKrollObject(), new Object[] {
@@ -848,10 +927,18 @@ public class GeolocationModule extends KrollModule
 	{
 		boolean passed = false;
 		if (newLocation == null) return passed;
+//		if (lastLocation != null) {
+//		    if (lastLocation.getAltitude() == newLocation.getAltitude() && 
+//		            lastLocation.getLatitude() == newLocation.getLatitude() &&
+//		                    lastLocation.getLongitude() == newLocation.getLongitude() &&
+//		                            lastLocation.getBearing() == newLocation.getBearing()) {
+//		        return passed;
+//		    }
+//		}
 		if (getManualMode()) {
 			if (androidModule.manualLocationRules.size() > 0) {
 				for(LocationRuleProxy rule : androidModule.manualLocationRules) {
-					if (rule.check(currentLocation, newLocation)) {
+					if (rule.check(lastRulesCheckedLocation, newLocation)) {
 						passed = true;
 
 						break;
@@ -864,7 +951,7 @@ public class GeolocationModule extends KrollModule
 
 		} else if (!legacyModeActive) {
 			for(LocationRuleProxy rule : simpleLocationRules) {
-				if (rule.check(currentLocation, newLocation)) {
+				if (rule.check(lastRulesCheckedLocation, newLocation)) {
 					passed = true;
 
 					break;
@@ -938,6 +1025,18 @@ public class GeolocationModule extends KrollModule
 	public String getApiName()
 	{
 		return "Ti.Geolocation";
+	}
+	
+	@Override
+	public void onDestroy(Activity activity) {
+		//clean up event listeners
+		if (compassListenersRegistered) {
+			tiCompass.unregisterListener();
+			compassListenersRegistered = false;
+		}
+		disableLocationProviders();
+		super.onDestroy(activity);
+
 	}
 }
 

@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -9,7 +9,9 @@
 #import "TiDatabaseProxy.h"
 #import "TiDatabaseResultSetProxy.h"
 #import "TiUtils.h"
+#if defined(USE_TI_FILESYSTEM)
 #import "TiFilesystemFileProxy.h"
+#endif
 
 @implementation TiDatabaseProxy
 
@@ -95,8 +97,15 @@
 
 -(NSString*)dbPath:(NSString*)name_
 {
-	NSString *dbDir = [self dbDir];
-	return [[dbDir stringByAppendingPathComponent:name_] stringByAppendingPathExtension:@"sql"];
+    NSString *dbDir = name_;
+    if (![name_ hasPrefix:@"/"] && ![name_ hasPrefix:@"file:"])
+    {
+        dbDir = [[self dbDir] stringByAppendingPathComponent:name_];
+    }
+    if ([[dbDir pathExtension] length] == 0) {
+        return [dbDir stringByAppendingPathExtension:@"sql"];
+    }
+    return dbDir;
 }
 
 -(void)open:(NSString*)name_
@@ -257,7 +266,7 @@
 {
 	if (database!=nil)
 	{
-		return NUMINT([database lastInsertRowId]);
+		return NUMLONGLONG([database lastInsertRowId]);
 	}
 	return NUMINT(0);
 }
@@ -275,10 +284,17 @@
 {
 	return name;
 }
+
+-(NSString*)path
+{
+    return [self dbPath:name];
+}
+#if defined(USE_TI_FILESYSTEM)
 -(TiFilesystemFileProxy*)file
 {
 	return [[[TiFilesystemFileProxy alloc] initWithFile:[self dbPath:name]] autorelease];
 }
+#endif
 
 #pragma mark Internal
 -(PLSqliteDatabase*)database

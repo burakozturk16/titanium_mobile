@@ -35,11 +35,11 @@ public interface KrollExceptionHandler
 {
 	public class ExceptionMessage
 	{
-		public String title, message, sourceName, lineSource;
+		public String title, message, sourceName, lineSource, callstack;
 		public int line, lineOffset;
 
 		public ExceptionMessage(final String title, final String message, final String sourceName, final int line,
-			final String lineSource, final int lineOffset)
+			final String lineSource, final int lineOffset, final String callstack)
 		{
 			this.title = title;
 			this.message = message;
@@ -47,6 +47,7 @@ public interface KrollExceptionHandler
 			this.lineSource = lineSource;
 			this.line = line;
 			this.lineOffset = lineOffset;
+			this.callstack = callstack;
 		}
 	}
 

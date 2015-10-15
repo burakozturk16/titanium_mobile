@@ -57,7 +57,7 @@
 			selector:@selector(rotateEvent:) name:UIDeviceOrientationDidChangeNotification object:nil];
 }
 
--(void)_listenerAdded:(NSString *)type count:(int)count
+-(void)_listenerAdded:(NSString *)type count:(NSInteger)count
 {
 	if (count == 1 && [type isEqualToString:@"shake"])
 	{
@@ -76,7 +76,7 @@
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:oldNotification object:nil];
 }
 
--(void)_listenerRemoved:(NSString *)type count:(int)count
+-(void)_listenerRemoved:(NSString *)type count:(NSInteger)count
 {
 	if (count == 0 && [type isEqualToString:@"shake"])
 	{

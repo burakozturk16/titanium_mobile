@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -18,11 +18,16 @@
 #import "TiColor.h"
 #import "TiFile.h"
 #import "TiBlob.h"
-#import "Base64Transcoder.h"
 #import "TiExceptionHandler.h"
 #import "SVGKit.h"
 #import "TiFileSystemHelper.h"
 #import	"Ti2DMatrix.h"
+
+#import "TouchDelegate_Views.h"
+#import "TiUIView.h"
+#import "TiApp.h"
+
+#import "DDMathEvaluator.h"
 
 // for checking version
 #import <sys/utsname.h>
@@ -38,30 +43,7 @@ static NSDictionary* typeMap = nil;
 static NSDictionary* sizeMap = nil;
 static NSString* kAppUUIDString = @"com.appcelerator.uuid"; // don't obfuscate
 
-bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, char **outOutputDataPtr, size_t *outOutputDataSize)
-{
-	//outsize is the same as *outOutputDataSize, but is a local copy.
-	size_t outSize = EstimateBas64EncodedDataSize(inInputDataSize);
-	char *outData = NULL;
-	if (outSize > 0) {
-		outData = malloc(sizeof(char)*outSize);
-	}
-	if (outData == NULL) {
-		*outOutputDataSize = 0;
-		*outOutputDataPtr = NULL;
-		return NO;
-	}
-	bool result = Base64EncodeData(inInputData, inInputDataSize, outData, &outSize);
-	if (!result) {
-		free(outData);
-		*outOutputDataSize = 0;
-		*outOutputDataPtr = NULL;
-		return NO;
-	}
-	*outOutputDataSize = outSize;
-	*outOutputDataPtr = outData;
-	return YES;
-}
+const TiCap TiCapUndefined = {{TiDimensionTypeUndefined, 0}, {TiDimensionTypeUndefined, 0}, {TiDimensionTypeUndefined, 0}, {TiDimensionTypeUndefined, 0}};
 
 @implementation TiUtils
 
@@ -101,91 +83,188 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 
 +(int) dpi
 {
-    if ([TiUtils isIPad]) {
-        if ([TiUtils isRetinaDisplay]) {
-            return 260;
+    static int dpi;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        if ([TiUtils isIPad]) {
+            if ([TiUtils isRetinaDisplay]) {
+                dpi = 260;
+            }
+            else {
+                dpi = 130;
+            }
         }
-        return 130;
-    }
-    else {    
-        if ([TiUtils isRetinaDisplay]) {
-            return 320;
+        else {
+          	if ([TiUtils isRetinaHDDisplay]) {
+         	   dpi = 480;
+        	} else if ([TiUtils isRetinaDisplay]) {
+        	    dpi = 320;
+        	}
+            else {
+                dpi = 160;
+            }
         }
-        return 160;
-    }    
+    });
+    
+    return dpi;
 }
 
 +(BOOL)isRetinaFourInch
 {
-    return ([[UIScreen mainScreen] bounds].size.height == 568);
+    static BOOL isRetinaFourInch = NO;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        CGSize mainScreenBoundsSize = [[UIScreen mainScreen] bounds].size;
+        if ([TiUtils isIOS8OrGreater]) {
+            isRetinaFourInch = (mainScreenBoundsSize.height == 568 || mainScreenBoundsSize.width == 568);
+        } else {
+            isRetinaFourInch =  (mainScreenBoundsSize.height == 568);
+        }
+    });
+    return isRetinaFourInch;
+}
+
++(BOOL)isRetinaiPhone6
+{
+    static BOOL isRetinaiPhone6 = NO;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        if ([TiUtils isIOS8OrGreater]) {
+            CGSize mainScreenBoundsSize = [[UIScreen mainScreen] bounds].size;
+            isRetinaiPhone6 = (mainScreenBoundsSize.height == 667 || mainScreenBoundsSize.width == 667);
+        }
+    });
+    return isRetinaiPhone6;
+}
+
++(BOOL)isRetinaHDDisplay
+{
+    static BOOL isRetinaHDDisplay;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        isRetinaHDDisplay = ([UIScreen mainScreen].scale == 3.0);
+    });
+    return isRetinaHDDisplay;
+}
+
+
++(CGFloat)screenScale {
+    static CGFloat scale = 0.0;
+    if (scale == 0.0)
+    {
+        // NOTE: iPad in iPhone compatibility mode will return a scale factor of 2.0
+        // when in 2x zoom, which leads to false positives and bugs. This tries to
+        // future proof against possible different model names, but in the event of
+        // an iPad with a retina display, this will need to be fixed.
+        // Credit to Brion on github for the origional fix.
+        if(UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPhone)
+        {
+            NSRange iPadStringPosition = [[[UIDevice currentDevice] model] rangeOfString:@"iPad"];
+            if(iPadStringPosition.location != NSNotFound)
+            {
+                scale = 1.0;
+            }
+        }
+        scale = [[UIScreen mainScreen] scale];
+    }
+    return scale;
 }
 
 +(BOOL)isRetinaDisplay
 {
-	// since we call this alot, cache it
-	static CGFloat scale = 0.0;
-	if (scale == 0.0)
-	{
-// NOTE: iPad in iPhone compatibility mode will return a scale factor of 2.0
-// when in 2x zoom, which leads to false positives and bugs. This tries to
-// future proof against possible different model names, but in the event of
-// an iPad with a retina display, this will need to be fixed.
-// Credit to Brion on github for the origional fix.
-		if(UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPhone)
-		{
-			NSRange iPadStringPosition = [[[UIDevice currentDevice] model] rangeOfString:@"iPad"];
-			if(iPadStringPosition.location != NSNotFound)
-			{
-				scale = 1.0;
-				return NO;
-			}
-		}
-
-		if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)])
-		{
-			scale = [[UIScreen mainScreen] scale];
-		}
-
-	}
-	return scale > 1.0;
+    static BOOL isRetinaDisplay;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        isRetinaDisplay = [TiUtils screenScale] > 1.0;
+    });
+    return isRetinaDisplay;
 }
 
-+(BOOL)isIOS4_2OrGreater
+
+//+(BOOL)isIOS4_2OrGreater
+//{
+//    static BOOL isIOS4_2OrGreater;
+//    static dispatch_once_t predicate;
+//    dispatch_once(&predicate, ^{
+//        isIOS4_2OrGreater = [UIView instancesRespondToSelector:@selector(drawRect:forViewPrintFormatter:)];
+//    });
+//    
+//    return isIOS4_2OrGreater;
+//}
+
+//+(BOOL)isIOS5OrGreater
+//{
+//    static BOOL isIOS5OrGreater;
+//    static dispatch_once_t predicate;
+//    dispatch_once(&predicate, ^{
+//        isIOS5OrGreater = [UIAlertView instancesRespondToSelector:@selector(alertViewStyle)];
+//    });
+//    
+//    return isIOS5OrGreater;
+//}
+//
+//+(BOOL)isIOS6OrGreater
+//{
+//    static BOOL isIOS6OrGreater;
+//    static dispatch_once_t predicate;
+//    dispatch_once(&predicate, ^{
+//        isIOS6OrGreater = [UIViewController instancesRespondToSelector:@selector(shouldAutomaticallyForwardRotationMethods)];
+//    });
+//    
+//    return isIOS6OrGreater;
+//}
+
+//+(BOOL)isIOS7OrGreater
+//{
+//    static BOOL isIOS7OrGreater;
+//    static dispatch_once_t predicate;
+//    dispatch_once(&predicate, ^{
+//        isIOS7OrGreater = [UIViewController instancesRespondToSelector:@selector(childViewControllerForStatusBarStyle)];
+//    });
+//
+//    return isIOS7OrGreater;
+//}
+
++(BOOL)isIOS8OrGreater
 {
-	return [UIView instancesRespondToSelector:@selector(drawRect:forViewPrintFormatter:)];
+    static BOOL isIOS8OrGreater;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        isIOS8OrGreater = [UIView instancesRespondToSelector:@selector(layoutMarginsDidChange)];
+    });
+    
+    return isIOS8OrGreater;
 }
 
-+(BOOL)isIOS5OrGreater
++(BOOL)isIOS9OrGreater
 {
-  return [UIAlertView instancesRespondToSelector:@selector(alertViewStyle)];
-}
-
-+(BOOL)isIOS6OrGreater
-{
-    return [UIViewController instancesRespondToSelector:@selector(shouldAutomaticallyForwardRotationMethods)];
-}
-
-+(BOOL)isIOS7OrGreater
-{
-    return [UIViewController instancesRespondToSelector:@selector(childViewControllerForStatusBarStyle)];
+    static BOOL isIOS9OrGreater;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        isIOS9OrGreater = [UIImage instancesRespondToSelector:@selector(flipsForRightToLeftLayoutDirection)];
+    });
+    
+    return isIOS9OrGreater;
 }
 
 +(BOOL)isIPad
 {
-	return [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
+    static BOOL isIPad;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        isIPad = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad;
+    });
+    
+    return isIPad;
 }
 
 +(BOOL)isIPhone4
 {
-	static bool iphone_checked = NO;
-	static bool iphone4 = NO;
-	if (iphone_checked==NO)
-	{
-		iphone_checked = YES;
-		// for now, this is all we know. we assume this
-		// will continue to increase with new models but
-		// for now we can't really assume
-		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+    static BOOL iphone4;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        iphone4 = NO;
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 		{
 			struct utsname u;
 			uname(&u);
@@ -194,7 +273,8 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 				iphone4 = YES;
 			}
 		}
-	}
+    });
+    
 	return iphone4;
 }
 
@@ -205,7 +285,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		return value;
 	}
     else {
-        int milliseconds = [self intValue:value def:-1];
+        NSInteger milliseconds = [self intValue:value def:-1];
         if (milliseconds != -1) {
             return [[[NSDate alloc] initWithTimeIntervalSince1970:milliseconds/1000] autorelease];
         }
@@ -373,6 +453,14 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return [value description];
 }
 
++(NSString*)stringValue:(id)value def:(NSString*)def
+{
+    NSString* result = [self stringValue:value];
+    if (result)
+        return result;
+    return def;
+}
+
 +(BOOL)boolValue:(id)value def:(BOOL)def;
 {
 	if ([value respondsToSelector:@selector(boolValue)])
@@ -445,6 +533,10 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	{
 		return CGPointMake([[value objectForKey:@"x"] floatValue],[[value objectForKey:@"y"] floatValue]);
 	}
+    if ([value isKindOfClass:[NSArray class]] && [value count] >= 2)
+    {
+        return CGPointMake([[value objectAtIndex:0] floatValue],[[value objectAtIndex:1] floatValue]);
+    }
 	return defaultValue;
 }
 
@@ -460,12 +552,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
             *isValid = YES;
         }
 		return [value point];
-	} else if ([value isKindOfClass:[NSDictionary class]]) {
+    } else if ([value isKindOfClass:[NSDictionary class]]) {
         id xVal = [value objectForKey:@"x"];
         id yVal = [value objectForKey:@"y"];
         if (xVal && yVal) {
             if (![xVal respondsToSelector:@selector(floatValue)] ||
-                ![yVal respondsToSelector:@selector(floatValue)]) 
+                ![yVal respondsToSelector:@selector(floatValue)])
             {
                 if (isValid) {
                     *isValid = NO;
@@ -478,7 +570,25 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
             }
             return CGPointMake([xVal floatValue], [yVal floatValue]);
         }
-	}
+    } else if ([value isKindOfClass:[NSArray class]] && [value count] >= 2) {
+        id xVal = [value objectAtIndex:0];
+        id yVal = [value objectAtIndex:1];
+        if (xVal && yVal) {
+            if (![xVal respondsToSelector:@selector(floatValue)] ||
+                ![yVal respondsToSelector:@selector(floatValue)])
+            {
+                if (isValid) {
+                    *isValid = NO;
+                }
+                return CGPointMake(0.0, 0.0);
+            }
+            
+            if (isValid) {
+                *isValid = YES;
+            }
+            return CGPointMake([xVal floatValue], [yVal floatValue]);
+        }
+    }
     if (isValid) {
         *isValid = NO;
     }
@@ -501,6 +611,11 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		xDimension = [self dimensionValue:@"x" properties:value];
 		yDimension = [self dimensionValue:@"y" properties:value];
 	}
+    else if ([value isKindOfClass:[NSArray class]] && [value count] >= 2)
+    {
+        xDimension = [self dimensionValue:[value objectAtIndex:0]];
+        yDimension = [self dimensionValue:[value objectAtIndex:1]];
+    }
 	else
 	{
 		xDimension = TiDimensionUndefined;
@@ -583,7 +698,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
     return [shadow autorelease];
 }
 
-+(int)intValue:(id)value def:(int)def valid:(BOOL *) isValid {
++(NSInteger)intValue:(id)value def:(NSInteger)def valid:(BOOL *) isValid {
 	if ([value respondsToSelector:@selector(intValue)])
 	{	
 		if(isValid != NULL) {
@@ -597,12 +712,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return def;	
 }
 
-+(int)intValue:(id)value def:(int)def
++(NSInteger)intValue:(id)value def:(NSInteger)def
 {
 	return [self intValue:value def:def valid:NULL];
 }
 
-+(int)intValue:(id)value
++(NSInteger)intValue:(id)value
 {
 	return [self intValue:value def:0];
 }
@@ -636,8 +751,9 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 
 +(TiPoint*)tiPointValue:(id)value def:(TiPoint*)def
 {
-    if (value != nil)
-        return [TiPoint pointWithObject:value];
+    TiPoint* result = [TiPoint pointWithObject:value];
+    if (result)
+        return result;
     return def;
 }
 
@@ -654,6 +770,48 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
         return result;
     return def;
 }
+
++(TiCap)capValue:(id)value def:(TiCap)def
+{
+    if (!value) {
+        return def;
+    }
+    TiCap result;
+    if ([value isKindOfClass:[NSDictionary class]])
+    {
+        result.leftCap = TiDimensionFromObject([value objectForKey:@"left"]);
+        result.rightCap = TiDimensionFromObject([value objectForKey:@"right"]);
+        result.topCap = TiDimensionFromObject([value objectForKey:@"top"]);
+        result.bottomCap = TiDimensionFromObject([value objectForKey:@"bottom"]);
+    } else {
+        TiDimension dim = TiDimensionFromObject(value);
+        result.leftCap = dim;
+        result.rightCap = dim;
+        result.topCap = dim;
+        result.bottomCap = dim;
+    }
+    return result;
+}
+
++(TiCap)capValue:(id)value
+{
+    TiCap result;
+    if ([value isKindOfClass:[NSDictionary class]])
+    {
+        result.leftCap = TiDimensionFromObject([value objectForKey:@"left"]);
+        result.rightCap = TiDimensionFromObject([value objectForKey:@"right"]);
+        result.topCap = TiDimensionFromObject([value objectForKey:@"top"]);
+        result.bottomCap = TiDimensionFromObject([value objectForKey:@"bottom"]);
+    } else {
+        TiDimension dim = TiDimensionFromObject(value);
+        result.leftCap = dim;
+        result.rightCap = dim;
+        result.topCap = dim;
+        result.bottomCap = dim;
+    }
+    return result;
+}
+
 
 +(id)valueFromDimension:(TiDimension)dimension
 {
@@ -762,8 +920,26 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 
 	NSString *os = [TiUtils isIPad] ? @"~ipad" : @"~iphone";
 
+	if ([TiUtils isRetinaHDDisplay]) {
+		// first try -736h@3x iphone6 Plus specific
+		NSString *testpath = [NSString stringWithFormat:@"%@-736h@3x.%@",partial,ext];
+		if ([fm fileExistsAtPath:testpath]) {
+			return [NSURL fileURLWithPath:testpath];
+		}
+		// second try plain @3x
+		testpath = [NSString stringWithFormat:@"%@@3x.%@",partial,ext];
+		if ([fm fileExistsAtPath:testpath]) {
+			return [NSURL fileURLWithPath:testpath];
+		}
+	}
 	if([TiUtils isRetinaDisplay]){
-		if ([TiUtils isRetinaFourInch]) {
+		if ([TiUtils isRetinaiPhone6]) {
+			// first try -667h@2x iphone6 specific
+			NSString *testpath = [NSString stringWithFormat:@"%@-667h@2x.%@",partial,ext];
+			if ([fm fileExistsAtPath:testpath]) {
+				return [NSURL fileURLWithPath:testpath];
+			}
+		} else if ([TiUtils isRetinaFourInch]) {
 			// first try -568h@2x iphone5 specific
 			NSString *testpath = [NSString stringWithFormat:@"%@-568h@2x.%@",partial,ext];
 			if ([fm fileExistsAtPath:testpath]) {
@@ -824,38 +1000,51 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	{
 		return [NSURL URLWithString:relativeString];
 	}
-    
-    if ([relativeString hasPrefix:@"file://"])
+
+	if ([relativeString hasPrefix:@"file://"])
 	{
         return [NSURL fileURLWithPath:[TiFileSystemHelper pathFromComponents:@[relativeString]]];
     }
-    
-	NSURL *result = nil;
-		
-	// don't bother if we don't at least have a path and it's not remote
-	//TODO: What is this mess? -BTH
-	if ([relativeString hasPrefix:@"http://"] || [relativeString hasPrefix:@"https://"])
-	{
-		NSRange range = [relativeString rangeOfString:@"/" options:0 range:NSMakeRange(7, [relativeString length]-7)];
-		if (range.location!=NSNotFound)
-		{
-			NSString *firstPortion = [relativeString substringToIndex:range.location];
-			NSString *pathPortion = [relativeString substringFromIndex:range.location];
-			CFStringRef escapedPath = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-					(CFStringRef)pathPortion, charactersToNotEscape,charactersThatNeedEscaping,
-					kCFStringEncodingUTF8);
-			relativeString = [firstPortion stringByAppendingString:(NSString *)escapedPath];
-			if(escapedPath != NULL)
-			{
-				CFRelease(escapedPath);
-			}
-		}
-	}
-//    else {
-//        relativeString = [relativeString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-//    }
 
-	result = [NSURL URLWithString:relativeString relativeToURL:rootPath];
+    NSURL *result = nil;
+    
+    // don't bother if we don't at least have a path and it's not remote
+    //TODO: What is this mess? -BTH
+    if ([relativeString hasPrefix:@"http://"] || [relativeString hasPrefix:@"https://"])
+    {
+        NSRange range = [relativeString rangeOfString:@"/" options:0 range:NSMakeRange(7, [relativeString length]-7)];
+        if (range.location!=NSNotFound)
+        {
+            NSString *firstPortion = [relativeString substringToIndex:range.location];
+            NSString *pathPortion = [relativeString substringFromIndex:range.location];
+            CFStringRef escapedPath = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
+                                                                              (CFStringRef)pathPortion, charactersToNotEscape,charactersThatNeedEscaping,
+                                                                              kCFStringEncodingUTF8);
+            relativeString = [firstPortion stringByAppendingString:(NSString *)escapedPath];
+            if(escapedPath != NULL)
+            {
+                CFRelease(escapedPath);
+            }
+        }
+        result = [NSURL URLWithString:relativeString relativeToURL:rootPath];
+    } else {
+        //only add percentescape if there are spaces in relativestring
+        if ([[relativeString componentsSeparatedByString:@" "] count] -1 == 0) {
+            result = [NSURL URLWithString:relativeString relativeToURL:rootPath];
+        }
+        else {
+            result = [NSURL URLWithString:[relativeString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] relativeToURL:rootPath];
+        }
+    }
+    //TIMOB-18262
+    if (result && ([[result scheme] isEqualToString:@"file"])){
+        BOOL isDir = NO;
+        BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:[result path] isDirectory:&isDir];
+        
+        if (exists && !isDir) {
+            return [TiUtils checkFor2XImage:result];
+        }
+    }
 
 	//TODO: Make this less ugly.
 	if ([relativeString hasPrefix:@"/"])
@@ -999,22 +1188,18 @@ If the new path starts with / and the base url is app://..., we have to massage 
 
 +(CGPoint)pointValue:(NSString*)name properties:(NSDictionary*)properties def:(CGPoint)def exists:(BOOL*) exists
 {
-	if ([properties isKindOfClass:[NSDictionary class]])
-	{
-		id value = [properties objectForKey:name];
-		if ([value isKindOfClass:[NSDictionary class]])
-		{
-			NSDictionary *dict = (NSDictionary*)value;
-			CGPoint point;
-			point.x = [self doubleValue:@"x" properties:dict def:def.x];
-			point.y = [self doubleValue:@"y" properties:dict def:def.y];
-			if (exists != NULL) *exists = YES;
-			return point;
-		}
-	}
-
-	if (exists != NULL) *exists = NO;
-	return def;
+    if ([properties isKindOfClass:[NSDictionary class]])
+    {
+        id value = [properties objectForKey:name];
+        if (value)
+        {
+            if (exists != NULL) *exists = YES;
+            return [TiUtils pointValue:value def:def];
+        }
+    }
+    
+    if (exists != NULL) *exists = NO;
+    return def;
 }
 
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties def:(TiColor*)def exists:(BOOL*) exists
@@ -1126,6 +1311,33 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	
 }
 
++(TiCap)capValue:(NSString*)name properties:(NSDictionary*)properties def:(TiCap)def exists:(BOOL*) exists
+{
+    if ([properties isKindOfClass:[NSDictionary class]])
+    {
+        id value = [properties objectForKey:name];
+        if (value == [NSNull null])
+        {
+            if (exists != NULL) *exists = YES;
+            return TiCapUndefined;
+        }
+        if (value != nil)
+        {
+            if (exists != NULL)
+            {
+                *exists = YES;
+            }
+            return [self capValue:value];
+        }
+    }
+    if (exists != NULL)
+    {
+        *exists = NO;
+    }
+    return def;
+    
+}
+
 
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props def:(int)def;
 {
@@ -1170,6 +1382,16 @@ If the new path starts with / and the base url is app://..., we have to massage 
 +(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def
 {
 	return [self tiPointValue:name properties:properties def:def exists:NULL];
+}
+
++(TiCap)capValue:(NSString*)name properties:(NSDictionary*)properties def:(TiCap)def
+{
+    return [self capValue:name properties:properties def:def exists:NULL];
+}
+
++(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties def:(Ti2DMatrix*)def
+{
+    return [self matrixValue:name properties:properties def:def exists:NULL];
 }
 
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props;
@@ -1223,17 +1445,75 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return [self matrixValue:name properties:properties def:nil exists:NULL];
 }
 
-
-
-+(NSDictionary*)dictionaryFromTouchableEvent:(id)touch inView:(UIView*)view
++(TiCap)capValue:(NSString*)name properties:(NSDictionary*)properties
 {
-    if (touch == nil) return [NSDictionary dictionary];
+    return [self capValue:name properties:properties def:TiCapUndefined exists:NULL];
+}
+
+
++(NSMutableDictionary*)dictionaryFromPoint:(CGPoint)localPoint inView:(UIView*)view
+{
+    CGPoint globalPoint = [view convertPoint:localPoint toView:nil];
+    NSString* xProp = @"x";
+    NSString* yProp = @"y";
+    float xFactor = 1;
+    float yFactor = 1;
+    
+    UIInterfaceOrientation o = (UIInterfaceOrientation)[[UIApplication sharedApplication] statusBarOrientation];
+    
+    switch (o) {
+        case UIInterfaceOrientationPortraitUpsideDown:
+            
+            xFactor = -1;
+            yFactor = -1;
+            break;
+            
+        case UIInterfaceOrientationLandscapeLeft:
+            xProp = @"y";
+            yProp = @"x";
+            yFactor = -1;
+            break;
+            
+        case UIInterfaceOrientationLandscapeRight:
+            xProp = @"y";
+            yProp = @"x";
+            xFactor = -1;
+            break;
+        default:
+            break;
+    }
+    
+    return [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithDouble:xFactor*localPoint.x],xProp,
+            [NSNumber numberWithDouble:yFactor*localPoint.y],yProp,
+            [NSDictionary dictionaryWithObjectsAndKeys:
+             [NSNumber numberWithDouble:xFactor*globalPoint.x],xProp,
+             [NSNumber numberWithDouble:yFactor*globalPoint.y],yProp,
+             nil], @"globalPoint",
+            nil];
+}
+
++(NSMutableDictionary*)dictionaryFromTouchableEvent:(id)touch inView:(UIView*)view
+{
+    NSMutableDictionary* result = [NSMutableDictionary dictionary] ;
+    if (touch == nil) {
+        return result;
+    }
     CGPoint localPoint = [touch locationInView:view];
     CGPoint globalPoint = [touch locationInView:nil];
     NSString* xProp = @"x";
     NSString* yProp = @"y";
     float xFactor = 1;
     float yFactor = 1;
+    
+    if (IS_OF_CLASS(view, TiUIView)) {
+        [result setObject:[(TiUIView*)view proxy] forKey:@"source"];
+    } else if ([view respondsToSelector:@selector(touchDelegate)]) {
+        id touchDelegate = [(id)view touchDelegate];
+        if (IS_OF_CLASS(touchDelegate, TiUIView)) {
+            [result setObject:[(TiUIView*)touchDelegate proxy] forKey:@"source"];
+        }
+    }
     
  	UIInterfaceOrientation o = (UIInterfaceOrientation)[[UIApplication sharedApplication] statusBarOrientation];
     
@@ -1258,52 +1538,108 @@ If the new path starts with / and the base url is app://..., we have to massage 
         default:
             break;
     }
-    
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:
-                         [NSNumber numberWithDouble:xFactor*localPoint.x],xProp,
-                         [NSNumber numberWithDouble:yFactor*localPoint.y],yProp,
-                         [NSDictionary dictionaryWithObjectsAndKeys:
-                          [NSNumber numberWithDouble:xFactor*globalPoint.x],xProp,
-                          [NSNumber numberWithDouble:yFactor*globalPoint.y],yProp,
-                          nil], @"globalPoint",
-                         nil];
-    return evt;
+    [result setObject:@{
+                       xProp: [NSNumber numberWithDouble:xFactor*globalPoint.x],
+                       yProp: [NSNumber numberWithDouble:yFactor*globalPoint.y]
+                       } forKey:@"globalPoint"];
+    [result setObject:[NSNumber numberWithDouble:xFactor*localPoint.x] forKey:xProp];
+    [result setObject:[NSNumber numberWithDouble:yFactor*localPoint.y] forKey:yProp];
+    return result;
 }
 
-+(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view
++(NSString*) stateStringFromGesture:(UIGestureRecognizer *)recognizer
+{
+    NSString* swipeString;
+    switch ([recognizer state]) {
+        case UIGestureRecognizerStateBegan:
+            return @"start";
+            break;
+        case UIGestureRecognizerStateEnded:
+            return @"end";
+            break;
+        case UIGestureRecognizerStateChanged:
+            return @"move";
+            break;
+        default:
+        case UIGestureRecognizerStateCancelled:
+            return @"cancel";
+            break;
+    }
+}
+
++(NSString*) swipeStringFromGesture:(UISwipeGestureRecognizer *)recognizer
+{
+    NSString* swipeString;
+    switch ([recognizer direction]) {
+        case UISwipeGestureRecognizerDirectionUp:
+            swipeString = @"up";
+            break;
+        case UISwipeGestureRecognizerDirectionDown:
+            swipeString = @"down";
+            break;
+        case UISwipeGestureRecognizerDirectionLeft:
+            swipeString = @"left";
+            break;
+        case UISwipeGestureRecognizerDirectionRight:
+            swipeString = @"right";
+            break;
+        default:
+            swipeString = @"unknown";
+            break;
+    }
+    return swipeString;
+}
+
++(NSMutableDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view
 {
     return [self dictionaryFromTouchableEvent:touch inView:view];
 }
 
-+(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view
++(NSMutableDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)recognizer inView:(UIView*)view
 {
-    return [self dictionaryFromTouchableEvent:gesture inView:view];
+    NSMutableDictionary* event = [self dictionaryFromTouchableEvent:recognizer inView:view];
+    [event setValue:[TiUtils stateStringFromGesture:((UISwipeGestureRecognizer*)recognizer)] forKey:@"state"];
+    if (IS_OF_CLASS(recognizer, UIPinchGestureRecognizer)) {
+        [event setValue:NUMDOUBLE(((UIPinchGestureRecognizer*)recognizer).scale) forKey:@"scale"];
+        [event setValue:NUMDOUBLE(((UIPinchGestureRecognizer*)recognizer).velocity) forKey:@"velocity"];
+    } else if(IS_OF_CLASS(recognizer, UISwipeGestureRecognizer)) {
+        [event setValue:[TiUtils swipeStringFromGesture:((UISwipeGestureRecognizer*)recognizer)] forKey:@"direction"];
+    } else if(IS_OF_CLASS(recognizer, UIPanGestureRecognizer)) {
+        CGPoint translation = [((UIPanGestureRecognizer*)recognizer) translationInView:view];
+        [event setValue:[TiUtils pointToDictionary:[((UIPanGestureRecognizer*)recognizer) translationInView:view]] forKey:@"translation"];
+        [event setValue:[TiUtils pointToDictionary:[((UIPanGestureRecognizer*)recognizer) velocityInView:view]] forKey:@"velocity"];
+    } else if(IS_OF_CLASS(recognizer, UIRotationGestureRecognizer)) {
+        [event setValue:NUMDOUBLE(((UIRotationGestureRecognizer*)recognizer).rotation * 180 / M_PI) forKey:@"angle"];
+        [event setValue:NUMDOUBLE(((UIRotationGestureRecognizer*)recognizer).velocity) forKey:@"velocity"];
+
+    }
+    return event;
 }
 
 +(NSDictionary*)pointToDictionary:(CGPoint)point
 {
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithDouble:point.x],@"x",
-			[NSNumber numberWithDouble:point.y],@"y",
-			nil];
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithDouble:point.x],@"x",
+            [NSNumber numberWithDouble:point.y],@"y",
+            nil];
 }
 
 +(NSDictionary*)rectToDictionary:(CGRect)rect
 {
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithDouble:rect.origin.x],@"x",
-			[NSNumber numberWithDouble:rect.origin.y],@"y",
-			[NSNumber numberWithDouble:rect.size.width],@"width",
-			[NSNumber numberWithDouble:rect.size.height],@"height",
-			nil];
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithDouble:rect.origin.x],@"x",
+            [NSNumber numberWithDouble:rect.origin.y],@"y",
+            [NSNumber numberWithDouble:rect.size.width],@"width",
+            [NSNumber numberWithDouble:rect.size.height],@"height",
+            nil];
 }
 
 +(NSDictionary*)sizeToDictionary:(CGSize)size
 {
-	return [NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithDouble:size.width],@"width",
-			[NSNumber numberWithDouble:size.height],@"height",
-			nil];
+    return [NSDictionary dictionaryWithObjectsAndKeys:
+            [NSNumber numberWithDouble:size.width],@"width",
+            [NSNumber numberWithDouble:size.height],@"height",
+            nil];
 }
 
 +(CGRect)contentFrame:(BOOL)window
@@ -1322,12 +1658,9 @@ If the new path starts with / and the base url is app://..., we have to massage 
 
 +(CGRect)appFrame
 {
-	CGRect result;
-    if ([TiUtils isIOS7OrGreater]) {
-        result = [[UIScreen mainScreen] bounds];
-    }
-    else {
-        result = [[UIScreen mainScreen] applicationFrame];
+	CGRect result = [[UIScreen mainScreen] bounds];
+    if ([TiUtils isIOS8OrGreater]) {
+        return result;
     }
 	switch ([[UIApplication sharedApplication] statusBarOrientation])
 	{
@@ -1405,7 +1738,17 @@ If the new path starts with / and the base url is app://..., we have to massage 
         if ([paddingDict objectForKey:@"bottom"]) {
             inset.bottom = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
         }
+    } else if (IS_OF_CLASS(value, NSArray) && [value count] == 4) {
+        NSArray* array = (NSArray*)value;
+        inset = UIEdgeInsetsMake([TiUtils floatValue:[array objectAtIndex:0]],
+                                 [TiUtils floatValue:[array objectAtIndex:1]],
+                                 [TiUtils floatValue:[array objectAtIndex:2]],
+                                 [TiUtils floatValue:[array objectAtIndex:3]]);
+    } else if (IS_OF_CLASS(value, NSNumber)) {
+        CGFloat padding = [value floatValue];
+        inset = UIEdgeInsetsMake(padding, padding, padding, padding);
     }
+
     return inset;
 }
 
@@ -1423,23 +1766,23 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return [[[TiScriptError alloc] initWithMessage:[value description] sourceURL:nil lineNo:0] autorelease];
 }
 
-+(UITextAlignment)textAlignmentValue:(id)alignment
++(NSTextAlignment)textAlignmentValue:(id)alignment
 {
-	UITextAlignment align = UITextAlignmentLeft;
+	NSTextAlignment align = NSTextAlignmentLeft;
 
 	if ([alignment isKindOfClass:[NSString class]])
 	{
 		if ([alignment isEqualToString:@"left"])
 		{
-			align = UITextAlignmentLeft;
+			align = NSTextAlignmentLeft;
 		}
 		else if ([alignment isEqualToString:@"middle"] || [alignment isEqualToString:@"center"])
 		{
-			align = UITextAlignmentCenter;
+			align = NSTextAlignmentCenter;
 		}
 		else if ([alignment isEqualToString:@"right"])
 		{
-			align = UITextAlignmentRight;
+			align = NSTextAlignmentRight;
 		}
 	}
 	else if ([alignment isKindOfClass:[NSNumber class]])
@@ -1517,10 +1860,10 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	{
 		align = [alignment intValue];
 		switch (align) {
-            case UITextAlignmentLeft:
+            case NSTextAlignmentLeft:
                 align = UIControlContentHorizontalAlignmentLeft;
                 break;
-            case UITextAlignmentRight:
+            case NSTextAlignmentRight:
                 align = UIControlContentHorizontalAlignmentRight;
                 break;
             default:
@@ -1671,17 +2014,19 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 	if ([url isFileURL] || app)
 	{
 		BOOL leadingSlashRemoved = NO;
-		NSString *urlstring = [[url standardizedURL] path];
-		NSString *resourceurl = [[NSBundle mainBundle] resourcePath];
+        NSString *urlstring = [[url standardizedURL] path];
+        NSString *resourceurl = [[TiFileSystemHelper resourcesDirectory] stringByStandardizingPath];
 		NSRange range = [urlstring rangeOfString:resourceurl];
 		NSString *appurlstr = urlstring;
 		if (range.location!=NSNotFound)
 		{
-			appurlstr = [urlstring substringFromIndex:range.location + range.length + 1];
+			appurlstr = [urlstring substringFromIndex:range.location + range.length];
 		}
 		if ([appurlstr hasPrefix:@"/"])
 		{
-//			leadingSlashRemoved = YES;
+#ifndef __clang_analyzer__
+			leadingSlashRemoved = YES;
+#endif
 			appurlstr = [appurlstr substringFromIndex:1];
 		}
 #if TARGET_IPHONE_SIMULATOR
@@ -1733,12 +2078,16 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 {
     NSURL *url = [NSURL fileURLWithPath:path];
     NSString *urlstring = [[url standardizedURL] path];
-    NSString *resourceurl = [[NSBundle mainBundle] resourcePath];
+    NSString *resourceurl = [[TiFileSystemHelper resourcesDirectory] stringByStandardizingPath];
     NSRange range = [urlstring rangeOfString:resourceurl];
     NSString *appurlstr = urlstring;
     if (range.location!=NSNotFound)
     {
-        appurlstr = [urlstring substringFromIndex:range.location + range.length + 1];
+        appurlstr = [urlstring substringFromIndex:range.location + range.length];
+    }
+    if ([appurlstr hasPrefix:@"/"])
+    {
+        appurlstr = [appurlstr substringFromIndex:1];
     }
     static id AppRouter;
     if (AppRouter==nil)
@@ -1764,10 +2113,10 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 	UIColor * result = [color _color];
 	// TODO: Return nil for the appropriate colors once Apple fixes how the 'cancel' button
 	// is displayed on nil-color bars.
-	if ((result == [UIColor clearColor]))
-	{
-		return nil;
-	}
+//	if ((result == [UIColor clearColor]))
+//	{
+//		return nil;
+//	}
 	return result;
 }
 
@@ -1783,6 +2132,17 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 	return UIBarStyleDefault;
 }
 
++ (UIImage *)imageFromColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0, 0, 1, 1);
+    UIGraphicsBeginImageContextWithOptions( rect.size, NO, [UIScreen mainScreen].scale );
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
 +(NSUInteger)extendedEdgesFromProp:(id)prop
 {
     if (![prop isKindOfClass:[NSArray class]]) {
@@ -1791,7 +2151,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     
     NSUInteger result = 0;
     for (id mode in prop) {
-        int value = [TiUtils intValue:mode def:0];
+        NSInteger value = [TiUtils intValue:mode def:0];
         switch (value) {
             case 0:
             case 1:
@@ -1809,41 +2169,62 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     return result;
 }
 
-+(void)configureController:(id)controller withObject:(id)object
++(void)setVolume:(float)volume onObject:(id)theObject
 {
-    if ([self isIOS7OrGreater]) {
-        id edgesValue = nil;
-        id includeOpaque = nil;
-        id autoAdjust = nil;
-        if ([object isKindOfClass:[TiProxy class]]) {
-            edgesValue = [(TiProxy*)object valueForUndefinedKey:@"extendEdges"];
-            includeOpaque = [(TiProxy*)object valueForUndefinedKey:@"includeOpaqueBars"];
-            autoAdjust = [(TiProxy*)object valueForUndefinedKey:@"autoAdjustScrollViewInsets"];
-        } else if ([object isKindOfClass:[NSDictionary class]]){
-            edgesValue = [(NSDictionary*)object objectForKey:@"extendEdges"];
-            includeOpaque = [(NSDictionary*)object objectForKey:@"includeOpaqueBars"];
-            autoAdjust = [(NSDictionary*)object objectForKey:@"autoAdjustScrollViewInsets"];
-        } 
-        id<TiUIViewControllerIOS7Support> theController = controller;
-        
-        [theController setEdgesForExtendedLayout:[self extendedEdgesFromProp:edgesValue]];
-        [theController setExtendedLayoutIncludesOpaqueBars:[self boolValue:includeOpaque def:NO]];
-        [theController setAutomaticallyAdjustsScrollViewInsets:[self boolValue:autoAdjust def:NO]];
+    //Must be called on the main thread
+    if ([NSThread isMainThread]) {
+        if ([theObject respondsToSelector:@selector(setVolume:)]) {
+            [(id<VolumeSupport>)theObject setVolume:volume];
+        } else {
+            DebugLog(@"[WARN] The Object %@ does not respond to method -(void)setVolume:(float)volume",[theObject description]);
+        }
     }
 }
 
-
-+(CGRect)frameForController:(id)theController
++(float)volumeFromObject:(id)theObject default:(float)def
 {
-    CGRect mainScreen = [[UIScreen mainScreen] bounds];
-    CGRect rect = [[UIScreen mainScreen] applicationFrame];
-    if ([TiUtils isIOS7OrGreater]) {
-        NSUInteger edges = [(id<TiUIViewControllerIOS7Support>)theController edgesForExtendedLayout];
-        //Check if I cover status bar
-        if ( ((edges & 1/*UIRectEdgeTop*/) != 0) ){
-            return mainScreen;
+    //Must be called on the main thread
+    float returnValue = def;
+    if ([NSThread isMainThread]) {
+        if ([theObject respondsToSelector:@selector(volume)]) {
+            returnValue = [(id<VolumeSupport>)theObject volume];
+        } else {
+            DebugLog(@"[WARN] The Object %@ does not respond to method -(float)volume",[theObject description]);
         }
     }
+    return returnValue;
+}
+
++(void)configureController:(UIViewController*)controller withObject:(id)object
+{
+    id edgesValue = nil;
+    id includeOpaque = nil;
+    id autoAdjust = nil;
+    if ([object isKindOfClass:[TiProxy class]]) {
+        edgesValue = [(TiProxy*)object valueForUndefinedKey:@"extendEdges"];
+        includeOpaque = [(TiProxy*)object valueForUndefinedKey:@"includeOpaqueBars"];
+        autoAdjust = [(TiProxy*)object valueForUndefinedKey:@"autoAdjustScrollViewInsets"];
+    } else if ([object isKindOfClass:[NSDictionary class]]){
+        edgesValue = [(NSDictionary*)object objectForKey:@"extendEdges"];
+        includeOpaque = [(NSDictionary*)object objectForKey:@"includeOpaqueBars"];
+        autoAdjust = [(NSDictionary*)object objectForKey:@"autoAdjustScrollViewInsets"];
+    } 
+    
+    [controller setEdgesForExtendedLayout:[self extendedEdgesFromProp:edgesValue]];
+    [controller setExtendedLayoutIncludesOpaqueBars:[self boolValue:includeOpaque def:NO]];
+    [controller setAutomaticallyAdjustsScrollViewInsets:[self boolValue:autoAdjust def:NO]];
+}
+
+
++(CGRect)frameForController:(UIViewController*)theController
+{
+    CGRect rect = [[UIScreen mainScreen] applicationFrame];
+    NSUInteger edges = [theController edgesForExtendedLayout];
+    //Check if I cover status bar
+    if ( ((edges & UIRectEdgeTop) != 0) ){
+        rect = [[UIScreen mainScreen] bounds];
+    }
+    
     return rect;
 }
 
@@ -1853,26 +2234,16 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     UIBarStyle barStyle = [self barStyleForColor:color];
     BOOL isTranslucent = [self barTranslucencyForColor:color];
 
-    BOOL isIOS7 = [self isIOS7OrGreater];
-
     UINavigationBar * navBar = [navController navigationBar];
     [navBar setBarStyle:barStyle];
     [navBar setTranslucent:isTranslucent];
-    if(isIOS7) {
-        [navBar performSelector:@selector(setBarTintColor:) withObject:barColor];
-    } else {
-        [navBar setTintColor:barColor];
-    }
+    [navBar setBarTintColor:barColor];
     
     //This should not be here but in setToolBar. But keeping in place. Clean in 3.2.0
     UIToolbar * toolBar = [navController toolbar];
     [toolBar setBarStyle:barStyle];
     [toolBar setTranslucent:isTranslucent];
-    if(isIOS7) {
-        [toolBar performSelector:@selector(setBarTintColor:) withObject:barColor];
-    } else {
-        [toolBar setTintColor:barColor];
-    }
+    [toolBar setBarTintColor:barColor];
 }
 
 +(NSString*)replaceString:(NSString *)string characters:(NSCharacterSet *)characterSet withString:(NSString *)replacementString
@@ -1896,15 +2267,15 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 {
     if (encodingMap == nil) {
         encodingMap = [[NSDictionary alloc] initWithObjectsAndKeys:
-                       NUMLONGLONG(NSASCIIStringEncoding),kTiASCIIEncoding,
-                       NUMLONGLONG(NSISOLatin1StringEncoding),kTiISOLatin1Encoding,
-                       NUMLONGLONG(NSUTF8StringEncoding),kTiUTF8Encoding,
-                       NUMLONGLONG(NSUTF16StringEncoding),kTiUTF16Encoding,
-                       NUMLONGLONG(NSUTF16BigEndianStringEncoding),kTiUTF16BEEncoding,
-                       NUMLONGLONG(NSUTF16LittleEndianStringEncoding),kTiUTF16LEEncoding,
+                       NUMUINT(NSASCIIStringEncoding),kTiASCIIEncoding,
+                       NUMUINT(NSISOLatin1StringEncoding),kTiISOLatin1Encoding,
+                       NUMUINT(NSUTF8StringEncoding),kTiUTF8Encoding,
+                       NUMUINT(NSUTF16StringEncoding),kTiUTF16Encoding,
+                       NUMUINT(NSUTF16BigEndianStringEncoding),kTiUTF16BEEncoding,
+                       NUMUINT(NSUTF16LittleEndianStringEncoding),kTiUTF16LEEncoding,
                        nil];
     }
-    return [[encodingMap valueForKey:type] longLongValue];
+    return [[encodingMap valueForKey:type] unsignedIntegerValue];
 }
 
 +(TiDataType)constantToType:(NSString *)type
@@ -1922,7 +2293,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     return [[typeMap valueForKey:type] intValue];
 }
 
-+(size_t)dataSize:(TiDataType)type
++(int)dataSize:(TiDataType)type
 {
     if (sizeMap == nil) {
         sizeMap = [[NSDictionary alloc] initWithObjectsAndKeys:
@@ -1937,7 +2308,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     return [[sizeMap objectForKey:NUMINT(type)] intValue];
 }
 
-+(int)encodeString:(NSString *)string toBuffer:(TiBuffer *)dest charset:(NSString*)charset offset:(int)destPosition sourceOffset:(int)srcPosition length:(int)srcLength
++(int)encodeString:(NSString *)string toBuffer:(TiBuffer *)dest charset:(NSString*)charset offset:(NSUInteger)destPosition sourceOffset:(NSUInteger)srcPosition length:(NSUInteger)srcLength
 {
     // TODO: Define standardized behavior.. but for now:
     // 1. Throw exception if destPosition extends past [dest length]
@@ -1957,16 +2328,16 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
         return BAD_ENCODING;
     }
     
-    int length = MIN(srcLength, [string length] - srcPosition);
+    NSUInteger length = MIN(srcLength, [string length] - srcPosition);
     NSData* encodedString = [[string substringWithRange:NSMakeRange(srcPosition, length)] dataUsingEncoding:encoding];
-    int encodeLength = MIN([encodedString length], [[dest data] length] - destPosition);
+    NSUInteger encodeLength = MIN([encodedString length], [[dest data] length] - destPosition);
     
     void* bufferBytes = [[dest data] mutableBytes];
     const void* stringBytes = [encodedString bytes];
     
     memcpy(bufferBytes+destPosition, stringBytes, encodeLength);
     
-    return destPosition+encodeLength;
+    return (int)(destPosition+encodeLength);
 }
 
 +(int)encodeNumber:(NSNumber *)data toBuffer:(TiBuffer *)dest offset:(int)position type:(NSString *)type endianness:(CFByteOrder)byteOrder
@@ -1985,7 +2356,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     
     void* bytes = [[dest data] mutableBytes];
     TiDataType dataType = [TiUtils constantToType:type];
-    size_t size = [TiUtils dataSize:dataType];
+    int size = [TiUtils dataSize:dataType];
     
     if (size > MIN([[dest data] length], [[dest data] length] - position)) {
         return TOO_SMALL;
@@ -2103,7 +2474,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 +(NSString*)md5:(NSData*)data
 {
 	unsigned char result[CC_MD5_DIGEST_LENGTH];
-	CC_MD5([data bytes], [data length], result);
+	CC_MD5([data bytes], (CC_LONG)[data length], result);
 	return [self convertToHex:(unsigned char*)&result length:CC_MD5_DIGEST_LENGTH];    
 }
 
@@ -2174,7 +2545,53 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     return nil;
 }
 
-+(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
++(UIImage*)stretchedImage:(UIImage*)image withCap:(TiCap)cap {
+    CGFloat maxWidth = [image size].width * image.scale;
+    CGFloat maxHeight = [image size].height * image.scale;
+    
+    NSInteger left = (TiDimensionIsAuto(cap.leftCap) || TiDimensionIsUndefined(cap.leftCap) || cap.leftCap.value == 0) ?
+    maxWidth/2  :
+    TiDimensionCalculateValue(cap.leftCap, maxWidth);
+    NSInteger top = (TiDimensionIsAuto(cap.topCap) || TiDimensionIsUndefined(cap.topCap) || cap.topCap.value == 0) ?
+    maxHeight/2  :
+    TiDimensionCalculateValue(cap.topCap, maxHeight);
+    
+    if ([image respondsToSelector:@selector(resizableImageWithCapInsets:resizingMode:)]) {
+        
+        if (left >= maxWidth) {
+            left = maxWidth - 2;
+        }
+        if (top >= maxHeight) {
+            top = maxHeight - 2;
+        }
+        
+        NSInteger right = TiDimensionIsUndefined(cap.rightCap)?left:TiDimensionCalculateValue(cap.rightCap, maxWidth);
+        NSInteger bottom = TiDimensionIsUndefined(cap.bottomCap)?top:TiDimensionCalculateValue(cap.bottomCap, maxHeight);
+        
+        if ((left + right) >= maxWidth) {
+            right = maxWidth - (left + 1);
+        }
+        if ((top + bottom) >= maxHeight) {
+            bottom = maxHeight - (top + 1);
+        }
+        
+        return [image resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right) resizingMode:UIImageResizingModeStretch];
+    }
+    else
+    {
+        if (left >= maxWidth) {
+            left = maxWidth - 2;
+        }
+        
+        if (top > maxHeight) {
+            top = maxHeight - 2;
+        }
+        return [image stretchableImageWithLeftCapWidth:left topCapHeight:top];
+    }
+    return image;
+}
+
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withCap:(TiCap)cap
 {
     UIImage* resultImage = nil;
     if ([image isKindOfClass:[UIImage class]]) {
@@ -2184,7 +2601,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     }
     else if ([image isKindOfClass:[NSString class]]) {
         NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
-        id resultImage = [[ImageLoader sharedLoader] loadImmediateStretchableImage:bgURL withLeftCap:left topCap:top rightCap:right bottomCap:bottom];
+        id resultImage = [[ImageLoader sharedLoader] loadImmediateStretchableImage:bgURL withCap:cap];
         if (resultImage==nil && [image isEqualToString:@"Default.png"])
         {
             // special case where we're asking for Default.png and it's in Bundle not path
@@ -2228,11 +2645,11 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 	return result;
 }
 
-+ (NSMutableDictionary *)dictionaryWithCode:(int)code message:(NSString *)message
++ (NSMutableDictionary *)dictionaryWithCode:(NSInteger)code message:(NSString *)message
 {
 	return [NSMutableDictionary dictionaryWithObjectsAndKeys:
 			NUMBOOL(code==0), @"success",
-			NUMINT(code), @"code",
+			NUMLONG(code), @"code",
 			message,@"error", nil];
 }
 
@@ -2281,5 +2698,199 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     }
     return r;
 }
+
++(BOOL)forceTouchSupported
+{
+#if IS_XCODE_7
+    if ([self isIOS9OrGreater] == NO) {
+        return NO;
+    }
+    return [[[[TiApp app] window] traitCollection] forceTouchCapability] == UIForceTouchCapabilityAvailable;
+#else
+    return NO;
+#endif
+}
+
++(NSString*)currentArchitecture
+{
+#ifdef __arm64__
+    return @"arm64";
+#endif
+#ifdef __arm__
+    return @"armv7";
+#endif
+#ifdef __x86_64__
+    return @"x86_64";
+#endif
+#ifdef __i386__
+    return @"i386";
+#endif
+    return @"Unknown";
+}
+
++(NSString*)base64encode:(NSData*)toEncode
+{
+    NSString* result = nil;
+//    if ([toEncode respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
+        return [toEncode base64EncodedStringWithOptions:0];
+//    } else {
+//        return [toEncode base64Encoding];
+//    }
+}
+
++(NSData*)base64decode:(NSString*)encoded
+{
+//    if ([NSData respondsToSelector:@selector(initWithBase64EncodedString:options:)]) {
+        return [[[NSData alloc] initWithBase64EncodedString:encoded options:0] autorelease];
+//    } else {
+//        return [[[NSData alloc] initWithBase64Encoding:encoded] autorelease];
+//    }
+}
+
++(NSString *)colorHexString:(UIColor *)color {
+    
+    if (!color || color == [UIColor clearColor]) {
+        return @"transparent";
+    }
+    
+    if (color == [UIColor whiteColor]) {
+        // Special case, as white doesn't fall into the RGB color space
+        return @"ffffff";
+    }
+    
+    CGFloat red;
+    CGFloat blue;
+    CGFloat green;
+    CGFloat alpha;
+    
+    [color getRed:&red green:&green blue:&blue alpha:&alpha];
+    
+    int redDec = (int)(red * 255);
+    int greenDec = (int)(green * 255);
+    int blueDec = (int)(blue * 255);
+    
+    if (alpha == 1.0f) {
+        return [NSString stringWithFormat:@"#%02x%02x%02x", (unsigned int)redDec, (unsigned int)greenDec, (unsigned int)blueDec];
+    }
+    else {
+        int alphaDec = (int)(alpha * 255);
+        return [NSString stringWithFormat:@"#%02x%02x%02x%02x", (unsigned int)alphaDec, (unsigned int)redDec, (unsigned int)greenDec, (unsigned int)blueDec];
+    }
+}
+
+
++ (NSString *)replacingStringsIn:(NSString*)string fromDictionary:(NSDictionary *)dict
+{
+    NSMutableString *result = [string mutableCopy];
+    [dict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [result replaceOccurrencesOfString:key withString:obj
+                                   options:0 range:NSMakeRange(0, [result length])];
+        
+    }];
+    for (NSString *target in dict) {
+        
+    }
+    return [result autorelease];
+}
+
++ (NSString *)replacingStringsIn:(NSString*)string fromDictionary:(NSDictionary *)dict withPrefix:(NSString*)prefix
+{
+    NSMutableString *result = [string mutableCopy];
+    [dict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [result replaceOccurrencesOfString:[prefix stringByAppendingString:key] withString:[TiUtils stringValue:obj]
+                                   options:0 range:NSMakeRange(0, [result length])];
+        
+    }];
+    for (NSString *target in dict) {
+        
+    }
+    return [result autorelease];
+}
+
++(BOOL)applyMathDict:(NSDictionary*)mathDict forEvent:(NSDictionary*)event fromProxy:(TiProxy*)proxy
+{
+    NSMutableDictionary* variables = nil;
+    NSMutableDictionary* expressions = nil;
+
+    NSDictionary* vars = [mathDict objectForKey:@"variables"];
+    if (vars) {
+        variables = [NSMutableDictionary dictionaryWithCapacity:[vars count]];
+        [vars enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            id value = [event valueForKeyPath:obj];
+            if (value) {
+                [variables setObject:value forKey:key];
+            }
+        }];
+    }
+    
+    DDMathEvaluator *eval = [DDMathEvaluator defaultMathEvaluator];
+    if ([mathDict objectForKey:@"condition"]) {
+        NSNumber* result = [eval evaluateString:[mathDict objectForKey:@"condition"] withSubstitutions:variables];
+        if ([result boolValue] == NO) {
+            return NO;
+        }
+    }
+    
+    NSDictionary* exps = [mathDict objectForKey:@"expressions"];
+    if ([mathDict objectForKey:@"expressions"]) {
+        expressions = [NSMutableDictionary dictionaryWithDictionary:variables];
+        [exps enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            NSNumber* result = [eval evaluateString:obj withSubstitutions:expressions];
+            if (result) {
+                [expressions setObject:result forKey:key];
+            }
+            
+        }];
+    } else {
+        expressions = variables;
+    }
+    
+    NSArray* targets = [mathDict objectForKey:@"targets"];
+    
+    if (targets) {
+        for (NSDictionary* targetDict in targets) {
+            id target = [targetDict valueForKey:@"target"];
+            
+            if (!target) {
+                target = proxy;
+            } else if (IS_OF_CLASS(target, NSString)) {
+                target = [proxy valueForKey:target];
+            }
+            if (!target) continue;
+            NSDictionary* props = [targetDict valueForKey:@"properties"];
+            NSDictionary* targetVariables = [targetDict valueForKey:@"targetVariables"];
+            NSMutableDictionary* targetVariablesComputed = nil;
+            if (targetVariables) {
+                targetVariablesComputed = [NSMutableDictionary dictionaryWithCapacity:[targetVariables count]];
+                [targetVariables enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+                    id value = [target valueForKey:obj];
+                    [targetVariablesComputed setObject:value?value:@"0" forKey:key];
+                }];
+            }
+            NSMutableDictionary* realProps = [NSMutableDictionary dictionaryWithCapacity:[props count]];
+            __block NSError* error;
+            __block NSMutableDictionary* toUse;
+            [props enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+                toUse = [NSMutableDictionary dictionaryWithDictionary:expressions];
+                if (targetVariablesComputed) {
+                    [toUse addEntriesFromDictionary:targetVariablesComputed];
+                }
+                id current = [target valueForKey:key];
+                if (!current || IS_OF_CLASS(current, NSNull)) {
+                    current = @"0";
+                }
+                [toUse setObject:current forKey:@"current"];
+
+                [realProps setValue:[eval evaluateString:obj withSubstitutions:toUse error:&error] forKey:key];
+                if (error) {
+                    [realProps setValue:[TiUtils replacingStringsIn:obj fromDictionary:toUse withPrefix:@"_"] forKey:key];
+                }
+            }];
+            [target applyProperties:realProps];
+        }
+    }
+    return YES;
+}
+
 
 @end

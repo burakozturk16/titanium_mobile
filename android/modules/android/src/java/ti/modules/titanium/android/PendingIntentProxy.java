@@ -6,6 +6,8 @@
  */
 package ti.modules.titanium.android;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
@@ -42,6 +44,15 @@ public class PendingIntentProxy extends KrollProxy
 	{
 		this();
 	}
+	
+	public static PendingIntentProxy fromObject(Object obj) {
+        if (obj instanceof PendingIntentProxy) {
+            return (PendingIntentProxy) obj;
+        } else if (obj instanceof HashMap) {
+            return (PendingIntentProxy) KrollProxy.createProxy(PendingIntentProxy.class, null, new Object[]{obj}, null);
+        }
+        return null;
+    }
 
 	@Override
 	public void handleCreationArgs(KrollModule createdInModule, Object[] args)
@@ -88,7 +99,7 @@ public class PendingIntentProxy extends KrollProxy
 	public void handleCreationDict(KrollDict dict)
 	{
 		if (dict.containsKey(TiC.PROPERTY_INTENT)) {
-			intent = (IntentProxy) dict.get(TiC.PROPERTY_INTENT);
+			intent = IntentProxy.fromObject(dict.get(TiC.PROPERTY_INTENT));
 		}
 		if (dict.containsKey(TiC.PROPERTY_UPDATE_CURRENT_INTENT)) {
 			updateCurrentIntent = TiConvert.toBoolean(dict.get(TiC.PROPERTY_UPDATE_CURRENT_INTENT));

@@ -15,7 +15,7 @@
 //	UIImage * backgroundImageCache;
 //	UIImage * backgroundImageUnstretchedCache;
 
-	int style;
+	NSInteger style;
 	
     BOOL touchStarted;    
 }

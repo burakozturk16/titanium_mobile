@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.Stack;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollEventCallback;
@@ -88,16 +86,17 @@ public class TiWebViewBinding
 
 	private ApiBinding apiBinding;
 	private AppBinding appBinding;
+	private TiReturn tiReturn;
+	private WebView webView;
+	private boolean interfacesAdded = false;
 
 	public TiWebViewBinding(WebView webView)
 	{
 		codeSnippets = new Stack<String>();
-
+		this.webView = webView;
 		apiBinding = new ApiBinding();
 		appBinding = new AppBinding();
-		webView.addJavascriptInterface(appBinding, "TiApp");
-		webView.addJavascriptInterface(apiBinding, "TiAPI");
-		webView.addJavascriptInterface(new TiReturn(), "_TiReturn");
+		tiReturn = new TiReturn();
 	}
 
 	public TiWebViewBinding(TiContext tiContext, WebView webView)
@@ -105,12 +104,32 @@ public class TiWebViewBinding
 		this(webView);
 	}
 
+	public void addJavascriptInterfaces() 
+	{
+		if (webView != null && !interfacesAdded) {
+			webView.addJavascriptInterface(appBinding, "TiApp");
+			webView.addJavascriptInterface(apiBinding, "TiAPI");
+			webView.addJavascriptInterface(tiReturn, "_TiReturn");
+			interfacesAdded = true;
+		}
+	}
+	
+	public void removeJavascriptInterfaces() 
+    {
+        if (webView != null && interfacesAdded) {
+            webView.removeJavascriptInterface("TiApp");
+            webView.removeJavascriptInterface("TiAPI");
+            webView.removeJavascriptInterface("_TiReturn");
+            interfacesAdded = false;
+        }
+    }
+
 	public void destroy()
 	{
 		// remove any event listener that have already been added to the Ti.APP through
 		// this web view instance
 		appBinding.clearEventListeners();
-
+		webView = null;
 		returnSemaphore.release();
 		codeSnippets.clear();
 		destroyed = true;
@@ -144,12 +163,13 @@ public class TiWebViewBinding
 	private Semaphore returnSemaphore = new Semaphore(0);
 	private String returnValue;
 
-    @JavascriptInterface
+//    @JavascriptInterface
 	synchronized public String getJSValue(String expression)
 	{
 		// Don't try to evaluate js code again if the binding has already been destroyed
-		if (!destroyed) {
-			String code = "_TiReturn.setValue((function(){try{return eval(\"" + expression + "\")+\"\";}catch(ti_eval_err){return '';}})());";
+		if (!destroyed && interfacesAdded) {
+			String code = "_TiReturn.setValue((function(){try{return " + expression
+				+ "+\"\";}catch(ti_eval_err){return '';}})());";
 			Log.d(TAG, "getJSValue:" + code, Log.DEBUG_MODE);
 			returnSemaphore.drainPermits();
 			synchronized (codeSnippets) {
@@ -170,7 +190,6 @@ public class TiWebViewBinding
 		return null;
 	}
 
-	@SuppressWarnings("unused")
 	private class TiReturn
 	{
 		@JavascriptInterface
@@ -291,7 +310,6 @@ public class TiWebViewBinding
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private class ApiBinding
 	{
 		private KrollLogging logging;

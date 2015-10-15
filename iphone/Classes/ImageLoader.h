@@ -8,6 +8,7 @@
 #import <UIKit/UIKit.h>
 #import "TiDimension.h"
 #import "APSHTTPClient.h"
+#import "TiUtils.h"
 
 typedef enum {
 	TiImageScalingDefault,
@@ -177,14 +178,11 @@ typedef enum {
 /**
  Tells the loader to return previously loaded stretchable image with URL and specified cap values.
  @param url The image URL
- @param left The value to use for the left cap width. Specify 0 if you want the entire image to be horizontally stretchable.
- @param top The value to use for the top cap width. Specify 0 if you want the entire image to be vertically stretchable.
- @param right The value to use for the right cap width. Specify 0 if you want the entire image to be vertically stretchable.
- @param bottom The value to use for the bottom cap width. Specify 0 if you want the entire image to be vertically stretchable.
+ @param cap the TiCap value.
  @return The loaded image or _nil_ if the image is not available from cache.
  @see loadRemote:
  */
--(id)loadImmediateStretchableImage:(NSURL *)url withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom;
+-(id)loadImmediateStretchableImage:(NSURL *)url withCap:(TiCap)cap;
 
 /**
  Returns the full image size.
@@ -225,4 +223,6 @@ typedef enum {
 -(id)cache:(id)image forURL:(NSURL*)url;
 
 -(void)clearCache;
+-(void)clearMemoryCache;
+-(void)clearDiskCache;
 @end

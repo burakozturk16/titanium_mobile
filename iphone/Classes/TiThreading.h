@@ -14,8 +14,16 @@ if (![NSThread isMainThread]) { \
 	return; \
 } \
 
+#define ENSURE_UI_THREAD_WAIT_1_ARG(x)	\
+if (![NSThread isMainThread]) { \
+SEL callback = _cmd;\
+TiThreadPerformOnMainThread(^{[self performSelector:callback withObject:x];}, YES);\
+return; \
+} \
 
-#define ENSURE_UI_THREAD_0_ARGS		ENSURE_UI_THREAD_1_ARG(nil)
+
+#define ENSURE_UI_THREAD_0_ARGS         ENSURE_UI_THREAD_1_ARG(nil)
+#define ENSURE_UI_THREAD_WAIT_0_ARGS	ENSURE_UI_THREAD_WAIT_1_ARG(nil)
 
 //TODO: Is there any time where @selector(x:) is not _sel (IE, the called method for 1 arg?
 //Similarly, if we already have x:withObject: as a selector in _sel, could we 
@@ -25,6 +33,12 @@ if (![NSThread isMainThread]) { \
 #define ENSURE_UI_THREAD(x,y) \
 if (![NSThread isMainThread]) { \
 	TiThreadPerformOnMainThread(^{[self x:y];},NO); \
+return; \
+} \
+
+#define ENSURE_UI_THREAD_WAIT(x,y) \
+if (![NSThread isMainThread]) { \
+TiThreadPerformOnMainThread(^{[self x:y];},YES); \
 return; \
 } \
 

@@ -13,7 +13,7 @@
  to the user - UIColor doesn't give you a way to get the RGB complements
  so this proxy does it for you.
  */
-@interface TiColor : TiProxy {
+@interface TiColor : NSObject {
 	UIColor *color;
 	NSString *name;
 }

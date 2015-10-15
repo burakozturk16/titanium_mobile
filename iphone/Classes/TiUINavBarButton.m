@@ -49,7 +49,6 @@ DEFINE_EXCEPTIONS
 -(void)detachProxy
 {
     RELEASE_TO_NIL(proxy)
-//	proxy = nil;
 }
 
 -(UIBarButtonItemStyle)style:(TiUIButtonProxy*)proxy_
@@ -70,10 +69,11 @@ DEFINE_EXCEPTIONS
 
 -(id)initWithProxy:(TiUIButtonProxy*)proxy_
 {
+	self = [super init];
 	id systemButton = [proxy_ valueForKey:@"systemButton"];
 	if (systemButton!=nil)
 	{
-		int type = [TiUtils intValue:systemButton];
+		NSInteger type = [TiUtils intValue:systemButton];
 		UIView *button = [TiButtonUtil systemButtonWithType:type];
 		if (button!=nil)
 		{
@@ -115,7 +115,12 @@ DEFINE_EXCEPTIONS
             //Sanity check. If the view bounds are zero set the bounds to auto dimensions
             CGRect bounds = [[proxy_ view] bounds];
             if (bounds.size.width == 0 || bounds.size.height == 0) {
+#ifdef TI_USE_AUTOLAYOUT
+                bounds.size = [[proxy_ view] sizeThatFits:CGSizeMake(1000, 1000)];
+#else
                 bounds.size = [proxy_ autoSizeForSize:CGSizeMake(1000, 1000)];
+#endif
+                
             }
             [[proxy_ view] setBounds:bounds];
         }
@@ -129,8 +134,9 @@ DEFINE_EXCEPTIONS
         }
     }
 	
-    proxy = [proxy_ retain]; // Don't retain
+    proxy = [proxy_ retain];
     proxy.modelDelegate = self;
+    self.accessibilityLabel = [proxy_ valueForUndefinedKey:@"accessibilityLabel"];
     
     id<NSFastEnumeration> values = [proxy allKeys];
     [self readProxyValuesWithKeys:values];
@@ -180,7 +186,7 @@ DEFINE_EXCEPTIONS
         newColor = [UIColor lightTextColor];
     }
     NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
-    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [dict setObject:newColor forKey:NSForegroundColorAttributeName];
     [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
 }
 
@@ -191,10 +197,10 @@ DEFINE_EXCEPTIONS
         newColor = [UIColor lightTextColor];
     }
     NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
-    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [dict setObject:newColor forKey:NSForegroundColorAttributeName];
     [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
     dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateSelected]];
-    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [dict setObject:newColor forKey:NSForegroundColorAttributeName];
     [super setTitleTextAttributes:dict forState:UIControlStateSelected];
 }
 
@@ -205,7 +211,7 @@ DEFINE_EXCEPTIONS
         newColor = [UIColor lightTextColor];
     }
     NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateDisabled]];
-    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [dict setObject:newColor forKey:NSForegroundColorAttributeName];
     [super setTitleTextAttributes:dict forState:UIControlStateDisabled];
 }
 
@@ -213,14 +219,14 @@ DEFINE_EXCEPTIONS
 -(void)setShadowColor_:(id)color
 {
     NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
+    color = [[TiUtils colorValue:color] _color];
 	if (color==nil)
 	{
-        [dict setObject:nil forKey:UITextAttributeTextShadowColor];
+        [dict removeObjectForKey:UITextAttributeTextShadowColor];
 	}
 	else
 	{
-        color = [TiUtils colorValue:color];
-        [dict setObject:(color!=nil)?[color _color]:nil forKey:UITextAttributeTextShadowColor];
+        [dict setObject:color forKey:UITextAttributeTextShadowColor];
 	}
     [super setTitleTextAttributes:dict forState:UIControlStateNormal];
 }

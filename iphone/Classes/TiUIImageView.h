@@ -26,11 +26,6 @@
 -(void)resume;
 -(void)playpause;
 -(id)getImage;
--(float)getProgress;
--(float)getIndex;
-
--(void)setProgress:(float)progress;
--(void)setIndex:(int)index;
 
 
 -(void)setImage_:(id)arg;

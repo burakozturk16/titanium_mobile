@@ -12,24 +12,14 @@
 @implementation TiUIScrollableViewProxy
 @synthesize viewProxies, verticalLayout;
 
-NSArray* keySequence;
-
--(NSArray*)keySequence
+-(NSArray *)keySequence
 {
-	if (keySequence == nil) {
-		keySequence = [[NSArray alloc] initWithObjects:@"views",@"currentPage",nil];
-	}
-	return keySequence;
-}
-
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"currentPage",
-                                              @"pagingControlColor",@"pagingControlHeight",@"showPagingControl",
-                                              @"pagingControlAlpha",@"overlayEnabled",
-                                              @"pagingControlOnTop", @"cacheSize", @"views",
-                                              @"pageControlHeight", @"scrollingEnabled", @"disableBounce", nil]];
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"views",@"currentPage"]] retain];;
+    });
+    return keySequence;
 }
 
 -(void)_initWithProperties:(NSDictionary *)properties
@@ -97,36 +87,65 @@ NSArray* keySequence;
 	return [result autorelease];
 }
 
--(int)viewCount
+-(NSUInteger)viewCount
 {
 	[self lockViews];
-	int result = [viewProxies count];
+	NSUInteger result = [viewProxies count];
 	[self unlockViews];
 	return result;
 }
 
 -(void)setViews:(id)args
 {
-	ENSURE_ARRAY(args);
-	for (id newViewProxy in args)
-	{
-		[self rememberProxy:newViewProxy];
-		[newViewProxy setParent:self];
-	}
-	[self lockViewsForWriting];
-	for (id oldViewProxy in viewProxies)
-	{
-		if (![args containsObject:oldViewProxy])
-		{
-			[oldViewProxy setParent:nil];
-			TiThreadPerformOnMainThread(^{[oldViewProxy detachView];}, NO);
-			[self forgetProxy:oldViewProxy];			
-		}
-	}
-	[viewProxies autorelease];
-	viewProxies = [args mutableCopy];
-	[self unlockViews];
-	[self replaceValue:args forKey:@"views" notification:YES];
+    ENSURE_ARRAY(args);
+    NSMutableArray* newViews = [NSMutableArray array];
+    for (id arg in args)
+    {
+        //dont set rootproxy that the view itself becomes the rootproxy
+        TiProxy *child = [self createChildFromObject:arg rootProxy:nil];
+        if (child) {
+            [self rememberProxy:child];
+            [self childAdded:child atIndex:-1 shouldRelayout:NO];
+            [newViews addObject:child];
+        }
+        
+    }
+    [self lockViewsForWriting];
+    for (id oldViewProxy in viewProxies)
+    {
+        if (![args containsObject:oldViewProxy])
+        {
+            [self childRemoved:oldViewProxy wasChild:NO shouldDetach:YES];
+        }
+    }
+    [viewProxies release];
+    viewProxies = [newViews retain];
+#ifdef TI_USE_AUTOLAYOUT
+    for (TiViewProxy* proxy in viewProxies)
+    {
+        [[self view] addSubview:[proxy view]];
+    }
+#endif
+    [self unlockViews];
+    [self replaceValue:args forKey:@"views" notification:YES];
+}
+
+-(void)makeChildrenPerformSelector:(SEL)selector withObject:(id)object
+{
+    [super makeChildrenPerformSelector:selector withObject:object];
+    [self lockViewsForWriting];
+    [viewProxies makeObjectsPerformSelector:selector withObject:object];
+    [self unlockViews];
+}
+
+-(id)getView:(id)args
+{
+    ENSURE_SINGLE_ARG(args, NSNumber)
+    NSInteger index = [TiUtils intValue:args def:-1];
+    if (index >= 0 && index < [viewProxies count]) {
+        return [viewProxies objectAtIndex:index];
+    }
+    return nil;
 }
 
 -(void)addView:(id)args
@@ -195,9 +214,9 @@ NSArray* keySequence;
 	[self makeViewPerformSelector:@selector(removeView:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
--(int)indexFromArg:(id)args
+-(NSInteger)indexFromArg:(id)args
 {
-	int pageNum = 0;
+	NSInteger pageNum = 0;
 	if ([args isKindOfClass:[TiViewProxy class]])
 	{
 		[self lockViews];
@@ -240,7 +259,7 @@ NSArray* keySequence;
 	[super childWillResize:child withinAnimation:animation];
 }
 
--(TiViewProxy *)viewAtIndex:(int)index
+-(TiViewProxy *)viewAtIndex:(NSInteger)index
 {
 	[self lockViews];
 	// force index to be in range in case the scrollable view is rotated while scrolling
@@ -254,10 +273,11 @@ NSArray* keySequence;
 	return result;
 }
 
+#ifndef TI_USE_AUTOLAYOUT
 -(UIView *)parentViewForChild:(TiViewProxy *)child
 {
 	[self lockViews];
-	int index = [viewProxies indexOfObject:child];
+	NSUInteger index = [viewProxies indexOfObject:child];
 	[self unlockViews];
 	
 	if (index != NSNotFound)
@@ -279,7 +299,7 @@ NSArray* keySequence;
 	//Adding the view to a scrollable view is invalid.
 	return nil;
 }
-
+#endif
 -(CGSize)autSizeForSize:(CGSize)size
 {
     CGSize result = CGSizeZero;

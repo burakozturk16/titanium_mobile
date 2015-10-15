@@ -29,7 +29,8 @@ public interface KrollProxyListener
 	 * @param properties  a set of properties to process.
 	 * @module.api
 	 */
-	public void processProperties(KrollDict properties);
+    public void processProperties(KrollDict properties);
+    public void processApplyProperties(KrollDict properties);
 	public void propertiesChanged(List<KrollPropertyChange> changes, KrollProxy proxy);
 	
 	/**

@@ -13,6 +13,8 @@
 #import "TiFile.h"
 #import "TiBlob.h"
 #import "TiSVGImage.h"
+#import "UIImage+UserInfo.h"
+#import "NSDictionary+Merge.h"
 
 #define DEBUG_IMAGEVIEW
 #define DEFAULT_IMAGEVIEW_INTERVAL 200
@@ -20,26 +22,19 @@
 @implementation TiUIImageViewProxy
 @synthesize imageURL;
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"image",
-                                              @"scaleType",@"localLoadSync",@"images",
-                                              @"duration", @"repeatCount", @"reverse",@"animatedImages", nil]];
-}
-
-static NSArray* imageKeySequence;
 
 #pragma mark Internal
 
 -(NSArray *)keySequence
 {
-	if (imageKeySequence == nil)
-	{
-		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync",  @"duration", @"repeatCount", @"reverse",@"image",@"animatedImages"]] retain];
-	}
-	return imageKeySequence;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync",  @"duration", @"repeatCount", @"reverse",@"image",@"animatedImages"]] retain];;
+    });
+    return keySequence;
 }
+
 
 -(NSString*)apiName
 {
@@ -48,23 +43,28 @@ static NSArray* imageKeySequence;
 
 -(void)propagateLoadEvent:(NSString *)stateString
 {
+#ifndef TI_USE_AUTOLAYOUT
     //Send out a content change message if we are auto sizing
     if (TiDimensionIsAuto(layoutProperties.width) || TiDimensionIsAutoSize(layoutProperties.width) || TiDimensionIsUndefined(layoutProperties.width) ||
         TiDimensionIsAuto(layoutProperties.height) || TiDimensionIsAutoSize(layoutProperties.height) || TiDimensionIsUndefined(layoutProperties.height)) {
         [self refreshSize];
         [self willChangeSize];
     }
-    
-    if ([self _hasListeners:@"load"]) {
+    #endif
+    if ([self _hasListeners:@"load" checkParent:NO]) {
         TiUIImageView *iv = (TiUIImageView*)[self view];
-        TiBlob* blob = [[TiBlob alloc] initWithImage:[iv getImage]];
-        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:stateString,@"state", [blob autorelease], @"image", nil];
+        UIImage* image = [iv getImage];
+        TiBlob* blob = [[TiBlob alloc] initWithImage:image];
         
-        [self fireEvent:@"load" withObject:event];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:stateString,@"state", [blob autorelease], @"image", nil];
+        if (image.info) {
+            event = [event dictionaryByMergingWith:image.info];
+        }
+        [self fireEvent:@"load" withObject:event propagate:NO checkForListener:NO];
     }
-    else if(eventOverrideDelegate) {
-        [eventOverrideDelegate overrideEventObject:nil forEvent:@"load" fromViewProxy:self];
-    }
+//    else if(eventOverrideDelegate) {
+//        [eventOverrideDelegate overrideEventObject:nil forEvent:@"load" fromViewProxy:self];
+//    }
 }
 
 -(void)_configure
@@ -143,7 +143,7 @@ static NSArray* imageKeySequence;
 - (void) dealloc
 {
 	RELEASE_TO_NIL(urlRequest);
-    [self replaceValue:nil forKey:@"image" notification:NO];
+//    [self replaceValue:nil forKey:@"image" notification:NO];
     
     RELEASE_TO_NIL(imageURL);
 	[super dealloc];
@@ -166,17 +166,21 @@ static NSArray* imageKeySequence;
 
 	if (imageValue!=nil)
 	{
-		NSURL *url_ = [TiUtils toURL:[TiUtils stringValue:imageValue] proxy:self];
-		id theimage = [[ImageLoader sharedLoader] loadImmediateImage:url_];
-		
-		if (theimage == nil)
-		{
-            theimage = [[ImageLoader sharedLoader] loadRemote:url_ withOptions:[self valueForUndefinedKey:@"httpOptions"]];
-		}
-
-		// we're on the non-UI thread, we need to block to load
         TiUIImageView* imageView = (TiUIImageView*)[self view];
-        UIImage *imageToUse = [imageView prepareImage:[imageView convertToUIImage:theimage]];
+        UIImage* imageToUse = [imageView getImage];
+        if (!imageToUse) {
+            NSURL *url_ = [TiUtils toURL:[TiUtils stringValue:imageValue] proxy:self];
+            id theimage = [[ImageLoader sharedLoader] loadImmediateImage:url_];
+            
+            if (theimage == nil)
+            {
+                theimage = [[ImageLoader sharedLoader] loadRemote:url_ withOptions:[self valueForUndefinedKey:@"httpOptions"]];
+            }
+            
+            // we're on the non-UI thread, we need to block to load
+            UIImage *imageToUse = [imageView prepareImage:[imageView convertToUIImage:theimage]];
+        }
+		
 		return [[[TiBlob alloc] initWithImage:imageToUse] autorelease];
 	}
 	return nil;
@@ -188,14 +192,9 @@ static NSArray* imageKeySequence;
 }
 
 -(CGSize) imageSize {
-    CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(layoutProperties.width, 0.0),
-                                   TiDimensionCalculateValue(layoutProperties.height,0.0));
-    if ([TiUtils boolValue:[self valueForKey:@"hires"]])
-    {
-        _imagesize.width *= 2;
-        _imagesize.height *= 2;
-    }
-    return _imagesize;
+    CGFloat scale = [TiUtils screenScale];
+    return CGSizeMake(TiDimensionCalculateValue(layoutProperties.width, 0.0) * scale,
+                      TiDimensionCalculateValue(layoutProperties.height,0.0) * scale);
 }
 
 -(UIImage*)rotatedImage:(UIImage*)originalImage
@@ -352,9 +351,9 @@ static NSArray* imageKeySequence;
 {
 	if (request == urlRequest)
 	{
-		if ([self _hasListeners:@"error"])
+        if ([self _hasListeners:@"error" checkParent:NO])
 		{
-			[self fireEvent:@"error" withObject:[NSDictionary dictionaryWithObject:[request url] forKey:@"image"] errorCode:[error code] message:[TiUtils messageFromError:error]];
+            [self fireEvent:@"error" withObject:[NSDictionary dictionaryWithObject:[request url] forKey:@"image"] propagate:NO reportSuccess:YES errorCode:[error code] message:[TiUtils messageFromError:error] checkForListener:NO];
 		}
 		RELEASE_TO_NIL(urlRequest);
 	}
@@ -375,15 +374,15 @@ static NSArray* imageKeySequence;
 
 - (void)prepareForReuse
 {
-    [(TiUIImageView *)[self view] setReusing:YES];
+    [(TiUIImageView *)view setReusing:YES];
     [super prepareForReuse];
 }
 
 
 - (void)configurationSet:(BOOL)recursive
 {
-    [(TiUIImageView *)[self view] setReusing:NO];
     [super configurationSet:recursive];
+    [(TiUIImageView *)view setReusing:NO];
 }
 
 @end

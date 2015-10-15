@@ -11,17 +11,18 @@
 
 @implementation TiUIActivityIndicatorProxy
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"style",
-                                              @"font", @"color", @"message", nil]];
-}
 
 -(NSMutableDictionary*)langConversionTable
 {
     return [NSMutableDictionary dictionaryWithObject:@"message" forKey:@"messageid"];
 }
+
+-(void)_initWithProperties:(NSDictionary*)properties
+{
+    [self initializeProperty:@"visible" defaultValue:NUMBOOL(NO)];
+    [super _initWithProperties:properties];
+}
+
 
 -(NSString*)apiName
 {
@@ -37,8 +38,9 @@
     return TiDimensionAutoSize;
 }
 
+#ifndef TI_USE_AUTOLAYOUT
 USE_VIEW_FOR_CONTENT_SIZE
-
+#endif
 @end
 
 #endif

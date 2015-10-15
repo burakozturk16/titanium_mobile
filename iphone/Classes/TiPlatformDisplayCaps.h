@@ -15,8 +15,10 @@
 
 @property(nonatomic,readonly) NSNumber* platformHeight;
 @property(nonatomic,readonly) NSNumber* platformWidth;
-@property(nonatomic,readonly) NSNumber* density;
-@property(nonatomic,readonly) NSString* dpi;
+@property(nonatomic,readonly) NSString* density;
+@property(nonatomic,readonly) NSString* retinaSuffix;
+@property(nonatomic,readonly) NSNumber* dpi;
+@property(nonatomic,readonly) NSNumber* logicalDensityFactor;
 
 @end
 

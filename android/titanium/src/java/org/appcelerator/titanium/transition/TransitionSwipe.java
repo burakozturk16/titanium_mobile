@@ -1,8 +1,6 @@
 package org.appcelerator.titanium.transition;
 
 import org.appcelerator.titanium.animation.TranslationProperty;
-import org.appcelerator.titanium.animation.TranslationRelativeProperty;
-import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.view.View;
 

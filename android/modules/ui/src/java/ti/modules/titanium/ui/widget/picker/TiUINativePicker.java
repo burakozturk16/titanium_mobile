@@ -13,16 +13,20 @@ import java.util.List;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiViewHelper;
+import org.appcelerator.titanium.util.TiUIHelper.FontDesc;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.PickerColumnProxy;
 import ti.modules.titanium.ui.PickerProxy;
 import android.app.Activity;
 import android.content.Context;
-import android.os.Build;
+import android.support.v7.widget.AppCompatSpinner;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +45,7 @@ public class TiUINativePicker extends TiUIPicker
 	
 	public static class TiSpinnerAdapter<T> extends ArrayAdapter<T>
 	{
-		String[] fontProperties;
+	    FontDesc fontDesc;
 
 		public TiSpinnerAdapter(Context context, int textViewResourceId, List<T> objects)
 		{
@@ -52,10 +56,8 @@ public class TiUINativePicker extends TiUIPicker
 		public View getView(int position, View convertView, ViewGroup parent)
 		{
 			TextView tv = (TextView) super.getView(position, convertView, parent);
-			if (fontProperties != null) {
-				TiUIHelper.styleText(tv, fontProperties[TiUIHelper.FONT_FAMILY_POSITION],
-					fontProperties[TiUIHelper.FONT_SIZE_POSITION], fontProperties[TiUIHelper.FONT_WEIGHT_POSITION],
-					fontProperties[TiUIHelper.FONT_STYLE_POSITION]);
+			if (fontDesc != null) {
+                TiUIHelper.styleText(tv, fontDesc);
 			}
 			return tv;
 		}
@@ -64,17 +66,15 @@ public class TiUINativePicker extends TiUIPicker
 		public View getDropDownView(int position, View convertView, ViewGroup parent)
 		{
 			TextView tv = (TextView) super.getDropDownView(position, convertView, parent);
-			if (fontProperties != null) {
-				TiUIHelper.styleText(tv, fontProperties[TiUIHelper.FONT_FAMILY_POSITION],
-					fontProperties[TiUIHelper.FONT_SIZE_POSITION], fontProperties[TiUIHelper.FONT_WEIGHT_POSITION],
-					fontProperties[TiUIHelper.FONT_STYLE_POSITION]);
+			if (fontDesc != null) {
+				TiUIHelper.styleText(tv, fontDesc);
 			}
 			return tv;
 		}
 		
-		public void setFontProperties(KrollDict d)
+		public void setFontDesc(FontDesc desc)
 		{
-			fontProperties = TiUIHelper.getFontProperties(d);
+		    fontDesc = desc;
 		}
 	}
 	
@@ -85,7 +85,7 @@ public class TiUINativePicker extends TiUIPicker
 	public TiUINativePicker(final TiViewProxy proxy, Activity activity)
 	{
 		this(proxy);
-		Spinner spinner = new Spinner(activity)
+		AppCompatSpinner spinner = new AppCompatSpinner(activity)
 		{
 			@Override
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
@@ -97,60 +97,72 @@ public class TiUINativePicker extends TiUIPicker
 			@Override
 			public boolean onTouchEvent(MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
-					KrollDict data = new KrollDict();
-					data.put(TiC.PROPERTY_X, event.getX());
-					data.put(TiC.PROPERTY_Y, event.getY());
-					fireEvent(TiC.EVENT_CLICK, data, false);
+					fireEventNoCheck(TiC.EVENT_CLICK, TiViewHelper
+                            .dictFromMotionEvent(getTouchView(), lastUpEvent));
 				}
 				return super.onTouchEvent(event);
 			}
 		};
 		setNativeView(spinner);
 		refreshNativeView();
-		preselectRows();
 
 		spinner.setOnItemSelectedListener(this);
 	}
 	
-	private void preselectRows()
-	{
-		ArrayList<Integer> preselectedRows = getPickerProxy().getPreselectedRows();
-		if (preselectedRows == null || preselectedRows.size() == 0) {
-			return;
-		}
-		Spinner spinner = (Spinner)nativeView;
-		if (spinner == null)return;
-		try {
-			spinner.setOnItemSelectedListener(null);
-			for (int i = 0; i < preselectedRows.size(); i++) {
-				Integer rowIndex = preselectedRows.get(i);
-				if (rowIndex == 0 || rowIndex.intValue() < 0) {
-					continue;
-				}
-				selectRow(i, rowIndex, false);
-			}
-		} finally {
-			spinner.setOnItemSelectedListener(this);
-			firstSelectedFired = true;
-		}
+	private AppCompatSpinner getSpinner() {
+	    return (AppCompatSpinner)getNativeView();
 	}
+	
+	@Override
+	protected void handlePreselectedRows(Object[] preselectedRows){
+	    Spinner spinner = getSpinner();
+        if (spinner == null)return;
+        try {
+            spinner.setOnItemSelectedListener(null);
+            for (int i = 0; i < preselectedRows.length; i++) {
+                Integer rowIndex = TiConvert.toInt(preselectedRows[i], -1);
+                if (rowIndex == 0 || rowIndex.intValue() < 0) {
+                    continue;
+                }
+                selectRow(i, rowIndex, false);
+            }
+        } finally {
+            spinner.setOnItemSelectedListener(this);
+            firstSelectedFired = true;
+        }
+    }
 
 	@Override
-	public void selectRow(int columnIndex, int rowIndex, boolean animated)
+	public void selectRow(final int columnIndex, final int rowIndex, final boolean animated)
 	{
 		// At the moment we only support one column.
 		if (columnIndex != 0) {
 			Log.w(TAG, "Only one column is supported. Ignoring request to set selected row of column " + columnIndex);
 			return;
 		}
-		Spinner view = (Spinner)nativeView;
-		int rowCount = view.getAdapter().getCount();
+        final Spinner spinner = getSpinner();
+		int rowCount = spinner.getAdapter().getCount();
 		if (rowIndex < 0 || rowIndex >= rowCount) {
 			Log.w(TAG, "Ignoring request to select out-of-bounds row index " + rowIndex);
 			return;
 		}
-		view.setSelection(rowIndex, animated);
+		if (TiApplication.isUIThread()) {
+	        spinner.setSelection(rowIndex, animated);
+        } else {
+            proxy.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    spinner.setSelection(rowIndex, animated);
+                }
+            });
+        }
 	}
+	
+	@Override
+	public void openPicker()
+	{
+        getSpinner().performClick();
+	};
 
 	@Override
 	public int getSelectedRowIndex(int columnIndex)
@@ -159,7 +171,7 @@ public class TiUINativePicker extends TiUIPicker
 			Log.w(TAG, "Ignoring request to get selected row from out-of-bounds columnIndex " + columnIndex);
 			return -1;
 		}
-		return ((Spinner)getNativeView()).getSelectedItemPosition();
+		return getSpinner().getSelectedItemPosition();
 	}
 
 	@Override
@@ -167,7 +179,7 @@ public class TiUINativePicker extends TiUIPicker
 	{
 		// Don't allow change events here
 		suppressChangeEvent = true;
-		Spinner spinner = (Spinner)nativeView;
+		Spinner spinner = getSpinner();
 		if (spinner == null) {
 			return;
 		}
@@ -192,7 +204,7 @@ public class TiUINativePicker extends TiUIPicker
 			// layouts (maybe our own Adapter too.)
 			TiSpinnerAdapter<KrollProxy> adapter = new TiSpinnerAdapter<KrollProxy>(spinner.getContext(),
 				android.R.layout.simple_spinner_item, rows);
-			adapter.setFontProperties(proxy.getProperties());
+			processProperties(getProxy().getProperties());
 			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 			spinner.setAdapter(adapter);
 			if (rememberSelectedRow >= 0) {
@@ -221,7 +233,7 @@ public class TiUINativePicker extends TiUIPicker
 		fireSelectionChange(0, position);
 
 		// Invalidate the parent view after the item is selected (TIMOB-13540).
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
+		if (TiC.HONEYCOMB_OR_GREATER) {
 			ViewParent p = nativeView.getParent();
 			if (p instanceof View) {
 				((View) p).invalidate();
@@ -275,16 +287,23 @@ public class TiUINativePicker extends TiUIPicker
 		((PickerProxy)proxy).fireSelectionChange(columnIndex, rowIndex);
 	}
 	
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		if (key.equals(TiC.PROPERTY_FONT)) {
-			Spinner spinner = (Spinner) nativeView;
-			TiSpinnerAdapter<TiViewProxy> adapter = (TiSpinnerAdapter<TiViewProxy>) spinner.getAdapter();
-			adapter.setFontProperties(proxy.getProperties());
-			adapter.notifyDataSetChanged();
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
-	}
+    @Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_FONT:
+            if (changedProperty) {
+                FontDesc desc = TiUIHelper.getFontStyle(getContext(),
+                        TiConvert.toKrollDict(newValue));    
+                TiSpinnerAdapter<TiViewProxy> adapter = (TiSpinnerAdapter<TiViewProxy>) getSpinner().getAdapter();
+                adapter.setFontDesc(desc);
+                adapter.notifyDataSetChanged();
+            }
+            break;
+
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
 }

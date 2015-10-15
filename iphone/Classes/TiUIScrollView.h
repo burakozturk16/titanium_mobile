@@ -6,48 +6,38 @@
  */
 #ifdef USE_TI_UISCROLLVIEW
 
-#import "TiUIView.h"
+#import "TiScrollingView.h"
 
-@interface TiUIScrollViewImpl : UIScrollView {
-@private
-    TiUIView * touchHandler;
-    UIView * touchedContentView;
-    //TIMOB-12988 Additions
-    BOOL delay;
-    BOOL ignore;
-    BOOL offsetAnimated;
-    CGPoint offsetPoint;
-}
--(void)setTouchHandler:(TiUIView*)handler;
-@end
 
-@interface TiUIScrollView : TiUIView<TiScrolling,UIScrollViewDelegate> {
+
+@interface TiUIScrollView : TiScrollingView<TiScrolling> {
 
 @private
-	TiUIScrollViewImpl * scrollView;
+	TDUIScrollView * scrollview;
+#ifdef TI_USE_AUTOLAYOUT
+    TiLayoutView* contentView;
+#else
 	UIView * wrapperView;
 	TiDimension contentWidth;
 	TiDimension contentHeight;
-	
+#endif
 	CGFloat minimumContentHeight;
 	
 	BOOL needsHandleContentSize;
 	
-//	id	lastFocusedView; //DOES NOT RETAIN.
 }
 
-@property(nonatomic,retain,readonly) TiUIScrollViewImpl * scrollView;
+@property(nonatomic,retain,readonly) TDUIScrollView * scrollview;
 
-@property(nonatomic,readonly) TiDimension contentWidth;
+//@property(nonatomic,readonly) TiDimension contentWidth;
 
 -(void)setNeedsHandleContentSize;
 -(void)setNeedsHandleContentSizeIfAutosizing;
 -(BOOL)handleContentSizeIfNeeded;
 -(void)handleContentSize;
--(void)setContentOffset_:(id)value withObject:(id)property;
--(void)setZoomScale_:(id)value withObject:(id)property;
+#ifndef TI_USE_AUTOLAYOUT
 -(UIView *)wrapperView;
--(void)scrollToBottom;
+#endif
 -(BOOL)flexibleContentWidth;
 -(BOOL)flexibleContentHeight;
 @end

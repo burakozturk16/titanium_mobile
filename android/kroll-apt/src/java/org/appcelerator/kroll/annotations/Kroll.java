@@ -224,6 +224,12 @@ public @interface Kroll
 		 * @module.api
 		 */
 		String[] propertyAccessors() default {};
+		
+		/**
+         * <p>When set to false, the module won't be seen as an instantiable module. Useful for inheritance</p>
+         * @module.api
+         */
+        boolean creatable() default true;
 	}
 
 	/**
@@ -469,6 +475,31 @@ public @interface Kroll
 	public static @interface onAppCreate
 	{
 	}
+	
+
+    /**
+     * A special module method that gets called when the application's
+     * verifyModules is called (after the first Activity is started).
+     * 
+     * Methods with this annotation must be public, static, and accept
+     * a single argument of the type TiApplication.
+     * 
+     * <b>Examples</b>:<br>
+     * <pre>
+     * &#064;Kroll.onVerifyModule
+     * public static void onVerifyModule(TiApplication app)
+     * {
+     *     // do something with app
+     * }
+     * </pre>
+     * @module.api
+     */
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @Target({ElementType.METHOD})
+    public static @interface onVerifyModule
+    {
+    }
 
 	/**
 	 * Intercepts all property gets on a specific proxy.

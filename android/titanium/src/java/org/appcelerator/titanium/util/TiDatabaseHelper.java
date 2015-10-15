@@ -12,7 +12,6 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.TiFileProxy;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
 
@@ -24,7 +23,11 @@ public class TiDatabaseHelper {
     private static String TAG = "TiDatabaseHelper";
 
     private static SQLiteDatabase openDatabase(final String name) {
-        return TiApplication.getInstance().openOrCreateDatabase(name, Context.MODE_PRIVATE, null);
+        return openDatabase(name, Context.MODE_PRIVATE);
+    }
+    
+    private static SQLiteDatabase openDatabase(final String name, final int mode) {
+        return TiApplication.getInstance().openOrCreateDatabase(name, mode, null);
     }
     
     public static SQLiteDatabase getDatabase(final KrollProxy proxy, final String url, boolean writable) throws IOException
@@ -43,9 +46,10 @@ public class TiDatabaseHelper {
         
         final String name  = srcFile.getNativeFile().getName();
         try {
+            final int mode = (writable?SQLiteDatabase.OPEN_READWRITE:SQLiteDatabase.OPEN_READONLY) | SQLiteDatabase.NO_LOCALIZED_COLLATORS;
             String path = srcFile.nativePath();
             if (!path.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)) {
-                return SQLiteDatabase.openDatabase(path.replace("file://", ""), null, (writable?SQLiteDatabase.OPEN_READWRITE:SQLiteDatabase.OPEN_READONLY) | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+                return SQLiteDatabase.openDatabase(path.replace("file://", ""), null, mode);
             }
 
             Context ctx = TiApplication.getInstance();
@@ -53,7 +57,7 @@ public class TiDatabaseHelper {
             {
                 if (dbname.equals(name))
                 {
-                    return openDatabase(name);
+                    return openDatabase(name, mode);
                 }
             }
 
@@ -65,7 +69,7 @@ public class TiDatabaseHelper {
                 InputStream is = null;
                 OutputStream os = null;
     
-                byte[] buf = new byte[8096];
+                byte[] buf = new byte[1024];
                 int count = 0;
                 try
                 {

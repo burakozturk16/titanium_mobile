@@ -27,6 +27,7 @@
 @property(readonly,nonatomic) NSString *name;
 @property(readonly,nonatomic) NSString *model;
 @property(readonly,nonatomic) NSString *version;
+@property(readonly,nonatomic) NSNumber *SDKVersion;
 @property(readonly,nonatomic) NSString *architecture;
 @property(readonly,nonatomic) NSString *manufacturer;
 @property(readonly,nonatomic) NSString *macaddress;

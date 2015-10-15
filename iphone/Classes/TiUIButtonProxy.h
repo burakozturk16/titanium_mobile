@@ -17,6 +17,7 @@
 	TiUINavBarButton *button;
 	id<TiToolbar> toolbar; // weak
 }
+-(UIButton*)button;
 
 @end
 

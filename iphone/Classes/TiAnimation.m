@@ -22,7 +22,8 @@
 @end
 
 @implementation TiAnimation
-@synthesize callback, duration, repeat, autoreverse, delay, restartFromBeginning, curve = _curve, cancelRunningAnimations;
+@synthesize callback, duration, reverseDuration, repeat, autoreverse, delay, restartFromBeginning, cancelRunningAnimations, dontApplyOnFinish;
+@synthesize curve = _curve, reverseCurve = _reverseCurve;
 @synthesize animation, animatedProxy;
 @synthesize animated, transition, view;
 
@@ -35,11 +36,12 @@ static NSArray *animProps;
         autoreverse = NO;
         repeat = [NSNumber numberWithInt:1];
         duration = 0;
+        reverseDuration = 0;
         _curve = [[TiAnimation timingFunctionForCurve:kTiAnimCurveEaseInOut] retain];
-        
+        restartFromBeginning = NO;
         transition = UIViewAnimationTransitionNone;
         animated = NO;
-        
+        dontApplyOnFinish = NO;
         [super _initWithProperties:properties];
         if (context_!=nil)
         {
@@ -65,10 +67,14 @@ static NSArray *animProps;
 	[super dealloc];
 }
 
+-(BOOL)shouldBeginFromCurrentState {
+    return ![self valueForKey:@"from"] && (!restartFromBeginning && !cancelRunningAnimations);
+}
+
 -(void)setCallBack:(KrollCallback*)callback_ context:(id<TiEvaluator>)context_
 {
     RELEASE_TO_NIL(callback);
-    if (context_ != nil) {
+    if (context_ != nil && callback_ != nil) {
         callback = [[ListenerEntry alloc] initWithListener:callback_ context:context_ proxy:self];
     }
 }
@@ -103,7 +109,7 @@ static NSArray *animProps;
 		arg = args;
 	}
     
-	if ([arg isKindOfClass:[NSDictionary class]])
+	if ([arg isKindOfClass:[NSDictionary class]] && [arg count] > 0)
 	{
 		NSDictionary *properties = arg;
 		KrollCallback *cb = nil;
@@ -146,9 +152,78 @@ static NSArray *animProps;
     return properties;
 }
 
+-(NSDictionary*)propertiesForAnimation:(TiAnimatableProxy*)animProxy destination:(BOOL)destination reverse:(BOOL)reversed
+{
+    if (destination) {
+        NSDictionary* result = [self valueForUndefinedKey:@"to"];
+        if (!result) {
+            NSDictionary* from = [self valueForUndefinedKey:@"from"];
+            if (from) {
+                result = [[[NSMutableDictionary alloc]initWithCapacity:[from count]] autorelease];
+                for (NSString* key in [from allKeys]) {
+                    id value = [animProxy valueForUndefinedKey:key];
+                    if (value) [(NSMutableDictionary*)result setObject:value forKey:key];
+                    else {
+                        [(NSMutableDictionary*)result setObject:[NSNull null] forKey:key];
+                    }
+                }
+            } else {
+                result = [self allProperties];
+            }
+        }
+        return result;
+    } else {
+        NSDictionary* result = [self valueForUndefinedKey:@"from"];
+        if (!result) {
+            if (reversed) {
+                id<NSFastEnumeration> keys = [self allKeys];
+                NSMutableDictionary* reverseProps = [[NSMutableDictionary alloc] initWithCapacity:[(NSArray*)keys count]];
+                for (NSString* key in keys) {
+                    id value = [animProxy valueForUndefinedKey:key];
+                    if (value) [reverseProps setObject:value forKey:key];
+                    else {
+                        [reverseProps setObject:[NSNull null] forKey:key];
+                    }
+                }
+                result = [NSDictionary dictionaryWithDictionary:reverseProps];
+                [reverseProps release];
+            } else {
+                result = [animProxy allProperties];
+            }
+        }
+        return result;
+    }
+}
+
+
+-(NSDictionary*)propertiesForAnimation:(TiHLSAnimation*)anim destination:(BOOL)destination
+{
+    return [self propertiesForAnimation:anim.animatedProxy destination:destination reverse:anim.isReversed];
+}
+
+-(NSDictionary*)fromPropertiesForAnimation:(TiHLSAnimation*)anim
+{
+    return [self propertiesForAnimation:anim destination:anim.isReversed];
+}
+
+-(NSDictionary*)toPropertiesForAnimation:(TiHLSAnimation*)anim
+{
+    return [self propertiesForAnimation:anim destination:!anim.isReversed];
+}
+
+-(NSDictionary*)fromPropertiesForAnimatableProxy:(TiAnimatableProxy*)animProxy
+{
+    return [self propertiesForAnimation:animProxy destination:false reverse:true];
+}
+
+-(NSDictionary*)toPropertiesForAnimatableProxy:(TiAnimatableProxy*)animProxy
+{
+    return [self propertiesForAnimation:animProxy destination:true reverse:false];
+}
+
 -(void)updateProxyProperties
 {
-    NSDictionary* props = [self allProperties];
+    NSDictionary* props = [self toPropertiesForAnimatableProxy:animatedProxy];
     if (props) [animatedProxy applyProperties:props];
 }
 
@@ -183,11 +258,15 @@ static NSArray *animProps;
     [self handleCompletedAnimation:!autoreverse];
 }
 
--(float) getDuration {
+-(CGFloat) getDuration {
     return duration/1000;
 }
 
--(float) delay {
+-(CGFloat) getReverseDuration {
+    return reverseDuration/1000;
+}
+
+-(CGFloat) delay {
     return delay/1000;
 }
 
@@ -211,12 +290,20 @@ static NSArray *animProps;
 
 -(NSTimeInterval)getAnimationDuration
 {
-    NSTimeInterval animDuration = ([self isTransitionAnimation]) ? 1 : 0.2;
     if (self.duration!=0)
 	{
-		animDuration = [self getDuration];
+		return [self getDuration];
 	}
-    return animDuration;
+    return ([self isTransitionAnimation]) ? 1 : 0.2;
+}
+
+-(NSTimeInterval)getAnimationReverseDuration
+{
+    if (self.reverseDuration!=0)
+    {
+        return [self getReverseDuration];
+    }
+    return [self getAnimationDuration];
 }
 
 +(CAMediaTimingFunction*) timingFunctionForCurve:(int)curve_
@@ -261,6 +348,21 @@ static NSArray *animProps;
     [curve_ getControlPointAtIndex:2 values:coords2];
     CAMediaTimingFunction* function = [CAMediaTimingFunction functionWithControlPoints:coords2[0] :coords1[1] :coords1[0] :coords2[1]];
     return function;
+}
+
++ (CAMediaTimingFunction *)inverseFunction:(CAMediaTimingFunction*)function
+{
+    float values1[2];
+    memset(values1, 0, sizeof(values1));
+    [function getControlPointAtIndex:1 values:values1];
+    
+    float values2[2];
+    memset(values2, 0, sizeof(values2));
+    [function getControlPointAtIndex:2 values:values2];
+    
+    // Flip the original curve around the y = 1 - x axis
+    // Refer to the "Introduction to Animation Types and Timing Programming Guide"
+    return [CAMediaTimingFunction functionWithControlPoints:1.f - values2[0] :1.f - values2[1] :1.f - values1[0] :1.f - values1[1]];
 }
 
 -(void)cancelMyselfBeforeStarting
@@ -332,13 +434,32 @@ static NSArray *animProps;
     else if ([value isKindOfClass:[NSArray class]])
     {
         NSArray* array = (NSArray*)value;
-        int count = [array count];
+        NSUInteger count = [array count];
         if (count == 4)
         {
             _curve = [[CAMediaTimingFunction functionWithControlPoints: [[array objectAtIndex:0] doubleValue] : [[array objectAtIndex:1] doubleValue] : [[array objectAtIndex:2] doubleValue] : [[array objectAtIndex:3] doubleValue]] retain];
         }
     }
     [self replaceValue:value forKey:@"curve" notification:NO];
+}
+
+-(void)setReverseCurve:(id)value
+{
+    RELEASE_TO_NIL(_curve);
+    if ([value isKindOfClass:[NSNumber class]])
+    {
+        _reverseCurve = [[TiAnimation timingFunctionForCurve:[value intValue]] retain];
+    }
+    else if ([value isKindOfClass:[NSArray class]])
+    {
+        NSArray* array = (NSArray*)value;
+        NSUInteger count = [array count];
+        if (count == 4)
+        {
+            _reverseCurve = [[CAMediaTimingFunction functionWithControlPoints: [[array objectAtIndex:0] doubleValue] : [[array objectAtIndex:1] doubleValue] : [[array objectAtIndex:2] doubleValue] : [[array objectAtIndex:3] doubleValue]] retain];
+        }
+    }
+    [self replaceValue:value forKey:@"reverseCurve" notification:NO];
 }
 
 #pragma mark -
@@ -365,7 +486,9 @@ static NSArray *animProps;
 	{
 		[self.delegate animationDidComplete:self];
 	}
-    [self handleCompletedAnimation:animated_];
+    if (!dontApplyOnFinish) {
+        [self handleCompletedAnimation:animated_];
+    }
 }
 
 /**

@@ -27,42 +27,42 @@
 @private
     TiViewProxy* m_tiViewProxy;
     
-    NSNumber	*zIndex;
-    id  left;
-    id  right;
-    id  top;
-    id  bottom;
-    id  width;
-    id  height;
-    BOOL  _fullscreen;
-    
-    id minWidth;
-    id minHeight;
-    id maxWidth;
-    id maxHeight;
- 
-    BOOL  leftDefined;
-    BOOL  rightDefined;
-    BOOL  topDefined;
-    BOOL  bottomDefined;
-    BOOL  widthDefined;
-    BOOL  heightDefined;
-    BOOL  transformDefined;
-    BOOL  fullscreenDefined;
-    
-    BOOL minWidthDefined;
-    BOOL minHeightDefined;
-    BOOL maxWidthDefined;
-    BOOL maxHeightDefined;
+//    NSNumber	*zIndex;
+//    id  left;
+//    id  right;
+//    id  top;
+//    id  bottom;
+//    id  width;
+//    id  height;
+//    BOOL  _fullscreen;
+//    
+//    id minWidth;
+//    id minHeight;
+//    id maxWidth;
+//    id maxHeight;
+// 
+//    BOOL  leftDefined;
+//    BOOL  rightDefined;
+//    BOOL  topDefined;
+//    BOOL  bottomDefined;
+//    BOOL  widthDefined;
+//    BOOL  heightDefined;
+//    BOOL  transformDefined;
+//    BOOL  fullscreenDefined;
+//    
+//    BOOL minWidthDefined;
+//    BOOL minHeightDefined;
+//    BOOL maxWidthDefined;
+//    BOOL maxHeightDefined;
    
     
-    TiPoint		*center;
-    TiColor		*backgroundColor;
-    TiColor		*color;
-    NSNumber	*opacity;
-    NSNumber	*opaque;
-    NSNumber	*visible;
-    TiProxy		*transform;
-    NSNumber	*transition;
+//    TiPoint		*center;
+//    TiColor		*backgroundColor;
+//    TiColor		*color;
+//    NSNumber	*opacity;
+//    NSNumber	*opaque;
+//    NSNumber	*visible;
+//    TiProxy		*transform;
+//    NSNumber	*transition;
 }
 @end

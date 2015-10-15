@@ -14,8 +14,6 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-import org.appcelerator.kroll.common.TiFastDev;
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
@@ -41,6 +39,9 @@ public class KrollAssetHelper
 
 	public static void init(Context context)
 	{
+	    if (KrollAssetHelper.manager != null) {
+	        return;
+	    }
 		KrollAssetHelper.manager = new WeakReference<AssetManager>(context.getAssets());
 		KrollAssetHelper.packageName = context.getPackageName();
 		KrollAssetHelper.cacheDir = context.getCacheDir().getAbsolutePath();
@@ -50,19 +51,6 @@ public class KrollAssetHelper
 	{
 
 		String resourcePath = path.replace("Resources/", "");
-
-		if (TiFastDev.isFastDevEnabled()) {
-			if (resourcePath != null) {
-				Log.d(TAG, "Fetching \"" + resourcePath + "\" with Fastdev...");
-				InputStream stream = TiFastDev.getInstance().openInputStream(resourcePath);
-				String asset = KrollStreamHelper.toString(stream);
-				if (!asset.equals("NOT_FOUND")) {
-					return asset;
-				} else {
-					Log.d(TAG, "File not found with Fastdev.");
-				}
-			}
-		}
 
 		if (assetCrypt != null) {
 			String asset = assetCrypt.readAsset(resourcePath);
@@ -132,21 +120,18 @@ public class KrollAssetHelper
 		if (resourcePath != null && resourcePath.startsWith("Resources/")) {
 			resourcePath = resourcePath.replace("Resources/", "");
 		}
-		if (TiFastDev.isFastDevEnabled()) {
-			return TiFastDev.getInstance().fileExists(resourcePath);
-		}
 
 		return (assetCrypt != null && assetCrypt.assetExists(resourcePath));
 	}
 
 	public static void getDirectoryListing(String path, List<String> listing)
 	{
-		if (assetCrypt == null) return;
+		if (assetCrypt == null || path == null) return;
 		String resourcePath = path;
-		if (resourcePath != null && resourcePath.startsWith("Resources/")) {
+		if (resourcePath.startsWith("Resources/")) {
 			resourcePath = resourcePath.replace("Resources/", "");
 		}
-		if (resourcePath.endsWith("/")) {
+		if (resourcePath.endsWith("/")) { 
 			resourcePath = resourcePath.substring(0, resourcePath.lastIndexOf("/"));
 		}
 		listing.addAll(assetCrypt.list(resourcePath));

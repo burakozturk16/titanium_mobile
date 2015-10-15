@@ -14,6 +14,9 @@
     TiViewProxy* _proxy;
     TiOrientationFlags _supportedOrientations;
 }
+
+@property(nonatomic,retain) NSArray *previewActions;
+
 -(id)initWithViewProxy:(TiViewProxy*)window;
 -(void)detachProxy;
 -(TiViewProxy*) proxy;

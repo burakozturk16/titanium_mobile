@@ -101,7 +101,7 @@ timodule.xml.
 			<pathelement location="${ti.module.support.dir}/android/ant-contrib-1.0b3.jar" />
 		</classpath>
 	</taskdef>
-	
+
 	<property name="src" location="${ti.module.root}/src"/>
 	<property name="build" location="${ti.module.root}/build"/>
 	<property name="gen" location="${build}/generated"/>
@@ -118,6 +118,11 @@ timodule.xml.
 	<property name="libs" location="${ti.module.root}/libs"/>
 	<property name="assets" location="${ti.module.root}/assets"/>
 	<property name="javac.debug" value="true"/>
+	<property name="jversion" value="1.7"/>
+	<property name="dependency.json" location="${ti.module.root}/dependency.json"/>
+	<property name="ti.dependencies" location="none"/>
+	<property name="ti.dependency.json" location="${titanium.platform}/dependency.json"/>
+	<property name="v8.native" location="${titanium.platform}/native"/>
 
 	<path id="project.classpath">
 		<fileset dir="${lib}">
@@ -189,11 +194,12 @@ timodule.xml.
 		<mkdir dir="${genjson}"/>
 		<mkdir dir="${genjava}"/>
 
-		<javac 
-			srcdir="${src}" 
+		<javac
+			srcdir="${src}"
 			destdir="${classes}"
-			target="1.6"
-			source="1.6"
+			target="${jversion}"
+			source="${jversion}"
+			fork="true"
 			debug="${javac.debug}"
 			includeantruntime="false">
 			<src path="${genjava}" />
@@ -210,6 +216,7 @@ timodule.xml.
 
 	<macrodef name="generate.runtime.bindings">
 		<attribute name="outdir"/>
+		
 		<sequential>
 			<java classname="org.appcelerator.kroll.annotations.generator.KrollBindingGenerator" classpathref="project.classpath">
 				<!-- output directory -->
@@ -218,6 +225,8 @@ timodule.xml.
 				<arg value="true"/>
 				<!-- modulePackage -->
 				<arg value="${manifest.moduleid}"/>
+				<!-- dependency json -->
+				<arg value="${ti.dependencies}"/>
 				<!-- binding json -->
 				<arg value="${genjson}/org/appcelerator/titanium/bindings/${manifest.name}.json"/>
 			</java>
@@ -225,6 +234,47 @@ timodule.xml.
 	</macrodef>
 
 	<target name="generate.v8.bindings">
+		<script language="javascript">
+	        importClass(java.io.File);
+	        importClass(java.io.FileReader);
+	        importClass(java.io.BufferedReader);
+	        importClass(java.io.FileWriter);
+	        importClass(java.io.BufferedWriter); 
+
+	        function union(a1, a2) {
+	        	if (!a2) {
+	        		return a1;
+	        	}
+	        	var r = a1.slice(0);
+			    a2.forEach(function(i) { if (r.indexOf(i) &lt; 0) r.push(i); });
+			    return r;
+	        }
+
+	        function getJSONRequired(path) {
+		        var file = new File(path);
+		        if (file.exists()) {
+		         	var fr = new FileReader(file);
+		         	var json = '';
+		         	var line ;
+			        var br = new BufferedReader(fr);
+			        while ((line = br.readLine()) != null)
+			        {
+			        	json +=  line;
+			        }
+			        // Evaluate the JSON.
+			        var struct = eval("(" + json + ")");
+			        return struct['required'];
+		        }
+		        return undefined;
+	        }
+	        var required = [];
+	        required = union(required, getJSONRequired(project.getProperty('ti.dependency.json')));
+	        required = union(required, getJSONRequired(project.getProperty('dependency.json')));
+	        if (required.length > 0) {
+	        	project.setProperty('ti.dependencies', required.join(','));
+	        }
+	       
+	    </script>
 		<generate.runtime.bindings outdir="${genjni}"/>
 		<property name="bootstrap.py" location="${ti.module.support.dir}/android/bootstrap.py"/>
 		<property name="js2c.py" location="${ti.module.support.dir}/android/js2c.py"/>
@@ -255,17 +305,18 @@ timodule.xml.
 		</condition>
 	</target>
 
-	<target name="compile" depends="process.annotations,generate.bindings,pre.compile,js.compile,ndk.build,ndk.build.local" description="Compile this module's source code">
-		<javac 
+	<target name="compile" depends="process.annotations,generate.bindings,pre.compile,js.compile,ndk.build,check.build.arch,ndk.build.local" description="Compile this module's source code">
+		<javac
 			destdir="${classes}"
 			debug="${javac.debug}"
-			target="1.6"
-			source="1.6"
+			target="${jversion}"
+			source="${jversion}"
+			fork="true"
 			includeantruntime="false">
 			<src path="${src}" />
 			<src path="${genjava}" />
 			<include name="**/*.java" />
-			
+
 			<classpath refid="project.classpath" />
 		</javac>
 		<copy todir="${classes}">
@@ -295,16 +346,16 @@ timodule.xml.
 			</condition>
 		</sequential>
 	</macrodef>
-	
+
 	<macrodef name="build.ndk">
 		<attribute name="gendir"/>
 		<sequential>
-			<condition property="ndk.build" 
-				value="${ndk.path}/ndk-build.cmd" 
+			<condition property="ndk.build"
+				value="${ndk.path}/ndk-build.cmd"
 				else="${ndk.path}/ndk-build">
 				<os family="windows"/>
 			</condition>
-			
+
 			<property name="mobilesdk.dir" location="${titanium.platform}/.."/>
 			<if>
 				<isset property="ndk.verbose"/> 
@@ -328,6 +379,7 @@ timodule.xml.
 				<arg value="NDK_PROJECT_PATH=${tmpdir}"/>
 				<arg value="NDK_APPLICATION_MK=${tmpdir}/Application.mk"/>
 				<arg value="PYTHON=${python.exec}"/>
+				<arg value="CUSTOM_APP_ABI=${app.abi}"/>
 				<arg value="V=${ndk.verbose}"/>
 			</exec>
 
@@ -336,7 +388,7 @@ timodule.xml.
 			</move>
 		</sequential>
 	</macrodef>
-	
+
 	<target name="ndk.build">
 		<check.ndk/>
 
@@ -367,6 +419,13 @@ timodule.xml.
 			file="${module.generated.dir}/Android.mk">
 			<filterset refid="ndk.filter"/>
 		</copy>
+
+		<mkdir dir="${gen}/v8"/>
+		<copy todir="${gen}/v8">
+			<fileset dir="${v8.native}">
+				<include name="**"/>
+			</fileset>
+		</copy>
 		
 		<copy overwrite="true" failonerror="false" tofile="${genjni.local}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
 		<copy overwrite="true" failonerror="false" tofile="${gen}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
@@ -377,10 +436,47 @@ timodule.xml.
 			<fileset dir="${gen}/libs">
 				<include name="**/*"/>
 				<exclude name="**/libstlport_shared.so"/>
+				<exclude name="**/libkroll-v8.so"/>
 			</fileset>
 		</copy>
 	</target>
-	
+
+	<target name="check.build.arch">
+		<if>
+			<isset property="manifest.architectures"/> 
+			<then>
+				<dirset id="build.archs" dir="${libs}" includes="*"/>
+
+				<echo>Architectures in manifest: ${manifest.architectures}</echo>
+				<echo>Compiled binary architectures: ${toString:build.archs}</echo>
+
+				<property name="manifest.archs" value="${manifest.architectures};" />
+
+				<loadresource property="new.manifest.archs">
+					<propertyresource name="manifest.archs"/>
+					<filterchain>
+						<tokenfilter>
+							<filetokenizer/>
+							<replacestring from=" " to=";"/>
+						</tokenfilter>
+					</filterchain>
+				</loadresource>
+
+				<for param="line" list="${toString:build.archs}" delimiter=";">
+					<sequential>
+						<fail message="There is discrepancy between the architectures specified in manifest and compiled binary.">
+							<condition>
+								<not>
+									<contains string="${new.manifest.archs}" substring="@{line};"/>
+								</not>
+							</condition>
+						</fail>
+					</sequential>
+				</for>
+			</then>
+		</if>
+	</target>
+
 	<target name="js.compile" if="${isJSModule}">
 		<echo>CommonJS module files found. Compiling.</echo>
 		<!-- If applicable, will set commonjs key value in manifest and
@@ -409,7 +505,7 @@ timodule.xml.
 				<include name="**"/>
 			</fileset>
 		</copy>
-		
+
 		<build.ndk gendir="${genjni.local}"/>
 
 		<copy todir="${libs}">
@@ -485,6 +581,7 @@ timodule.xml.
 			<zipfileset dir="${lib}" includes="**/*.jar" prefix="${zip.prefix}/lib"/>
 			<zipfileset dir="${ti.module.root}" includes="platform/**" excludes="platform/README" prefix="${zip.prefix}"/>
 			<zipfileset dir="${ti.module.root}" includes="license.json" prefix="${zip.prefix}"/>
+			<zipfileset dir="${ti.module.root}" includes="dependency.json" prefix="${zip.prefix}"/>
 			<zipfileset dir="${ti.module.root}" includes="example/**" prefix="${zip.prefix}"/>
 			<zipfileset file="${dist}/respackageinfo" prefix="${zip.prefix}"/>
 		</zip>
@@ -519,7 +616,7 @@ timodule.xml.
 			<fileset dir="${libs}" includes="**/*"/>
 		</delete>
 	</target>
-	
+
 
 	<macrodef name="titanium">
 		<attribute name="command"/>

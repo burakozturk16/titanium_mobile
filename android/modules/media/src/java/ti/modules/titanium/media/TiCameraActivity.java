@@ -21,6 +21,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.io.TiFile;
 import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiActivityHelper;
+import org.appcelerator.titanium.util.TiFileHelper;
 
 import android.app.Activity;
 import android.content.Context;
@@ -46,6 +48,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.FrameLayout;
 
+@SuppressWarnings("deprecation")
 public class TiCameraActivity extends TiBaseActivity implements SurfaceHolder.Callback
 {
 	private static final String TAG = "TiCameraActivity";
@@ -137,6 +140,9 @@ public class TiCameraActivity extends TiBaseActivity implements SurfaceHolder.Ca
 		
 		super.onCreate(savedInstanceState);
 
+		// checks if device has only front facing camera and sets it
+		checkWhichCameraAsDefault();
+
 		// create camera preview
 		preview = new SurfaceView(this);
 		SurfaceHolder previewHolder = preview.getHolder();
@@ -209,7 +215,7 @@ public class TiCameraActivity extends TiBaseActivity implements SurfaceHolder.Ca
 		try {
 			//This needs to be called to make sure action bar is gone
 			if (android.os.Build.VERSION.SDK_INT < 11) {
-				ActionBar actionBar = getSupportActionBar();
+		        ActionBar actionBar = TiActivityHelper.getActionBar(this);
 				if (actionBar != null) {
 					actionBar.hide();
 				}
@@ -463,7 +469,7 @@ public class TiCameraActivity extends TiBaseActivity implements SurfaceHolder.Ca
 		{
 			File imageFile = null;
 			if (saveToGallery) {
-				imageFile = MediaModule.createGalleryImageFile();
+				imageFile = TiFileHelper.createGalleryImageFile();
 			} else {
 				// Save the picture in the internal data directory so it is private to this application.
 				imageFile = TiFileFactory.createDataFile("tia", ".jpg");
@@ -541,7 +547,7 @@ public class TiCameraActivity extends TiBaseActivity implements SurfaceHolder.Ca
 				File imageFile = writeToFile(data, saveToPhotoGallery);
 				if (successCallback != null) {
 					TiFile theFile = new TiFile(imageFile, imageFile.toURI().toURL().toExternalForm(), false);
-					TiBlob theBlob = TiBlob.blobFromFile(theFile);
+					TiBlob theBlob = TiBlob.blobFromObject(theFile);
 					KrollDict response = MediaModule.createDictForImage(theBlob, theBlob.getMimeType());
 					successCallback.callAsync(callbackContext, response);
 				}				
@@ -561,6 +567,19 @@ public class TiCameraActivity extends TiBaseActivity implements SurfaceHolder.Ca
 			}
 		}
 	};
+
+	private void checkWhichCameraAsDefault(){
+		// This is to check if device has only front facing camera
+		// TIMOB-15812: Fix for Devices like Nexus 7 (2012) that only
+		// has front facing camera and no rear camera.
+		TiCameraActivity.getFrontCameraId();
+		TiCameraActivity.getBackCameraId();
+		if (backCameraId == Integer.MIN_VALUE && frontCameraId != Integer.MIN_VALUE) {
+			TiCameraActivity.whichCamera = MediaModule.CAMERA_FRONT;
+		} else {
+			TiCameraActivity.whichCamera = MediaModule.CAMERA_REAR;
+		}
+	}
 
 	private static int getFrontCameraId()
 	{

@@ -51,7 +51,7 @@
 	TiViewProxy* view = [args objectForKey:@"view"];
 	if (view!=nil)
 	{
-		if ([view supportsNavBarPositioning])
+		if ([view supportsNavBarPositioning] && [view isUsingBarButtonItem])
 		{
 			UIBarButtonItem *item = [view barButtonItem];
 			[[self controller] presentOptionsMenuFromBarButtonItem:item animated:animated];
@@ -87,14 +87,12 @@
 {
 	ENSURE_TYPE(value,NSString);
 	NSURL *url = [TiUtils toURL:value proxy:self];
-	if (controller!=nil)
-	{
-		[self controller].URL = url;
-	}
-	else 
-	{
-		[self replaceValue:url forKey:@"url" notification:NO];
-	}
+	//UIDocumentInteractionController is recommended to be a new instance for every different url
+	//instead of having titanium developer create a new instance every time a new document url is loaded
+	//we assume that setUrl is called to change doc, so we go ahead and release the controller and create
+	//a new one when asked to present
+	RELEASE_TO_NIL(controller);
+	[self replaceValue:url forKey:@"url" notification:NO];
 }
 
 -(id)icons
@@ -124,8 +122,7 @@
 
 - (UIViewController *)documentInteractionControllerViewControllerForPreview:(UIDocumentInteractionController *)controller
 {
-	UIViewController *ac = [[TiApp app] controller];
-	return ac;
+    return [[TiApp controller] topPresentedController];
 }
  
 /*

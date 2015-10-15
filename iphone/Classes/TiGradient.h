@@ -26,7 +26,7 @@ typedef enum {
 
 	TiDimension startRadius;
 	TiDimension endRadius;
-
+    
 	BOOL backfillStart;
 	BOOL backfillEnd;
 	
@@ -34,23 +34,14 @@ typedef enum {
     
 	CFMutableArrayRef colorValues;
 	CGFloat * colorOffsets;	//A -1 indicates a lack of entry.
-	int arraySize;
+	NSUInteger arraySize;
 	int offsetsDefined;
 @private
 
 }
 
-//@property(nonatomic,readwrite,copy)	id	type;
-//
-//@property(nonatomic,readwrite,copy)	id	startPoint;
-//@property(nonatomic,readwrite,copy)	id	endPoint;
-//@property(nonatomic,readwrite,copy)	id startRadius;
-//@property(nonatomic,readwrite,copy)	id endRadius;
-
 @property(nonatomic,readwrite,assign)	BOOL backfillStart;
 @property(nonatomic,readwrite,assign)	BOOL backfillEnd;
-
-//@property(nonatomic,readwrite,copy)	NSArray * colors;
 
 -(void)paintContext:(CGContextRef)context bounds:(CGRect)bounds;
 

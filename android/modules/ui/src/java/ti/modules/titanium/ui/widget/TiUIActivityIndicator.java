@@ -6,10 +6,7 @@
  */
 package ti.modules.titanium.ui.widget;
 
-import java.util.HashMap;
-
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
@@ -19,18 +16,18 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
+import android.support.v7.widget.AppCompatTextView;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 public class TiUIActivityIndicator extends TiUIView
 {
 	private static final String TAG = "TiUIActivityIndicator";
 
 	protected int currentStyle;
-	private TextView label;
+	private AppCompatTextView label;
 	private ProgressBar progress;
 	private LinearLayout view;
 
@@ -49,7 +46,7 @@ public class TiUIActivityIndicator extends TiUIView
 		 * should show up on top of the current activity when called - not just the
 		 * activity it was created in
 		 */
-		Activity activity = TiApplication.getAppCurrentActivity();
+		final Activity activity = proxy.getActivity();
 
 		if (activity == null) {
 			Log.w(TAG, "Unable to create an activity indicator. Activity is null");
@@ -67,7 +64,7 @@ public class TiUIActivityIndicator extends TiUIView
 		view.setOrientation(LinearLayout.HORIZONTAL);
 		view.setGravity(Gravity.CENTER);
 
-		label = new TextView(activity);
+		label = new AppCompatTextView(activity);
 		label.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
 		label.setPadding(0, 0, 0, 0);
 		label.setSingleLine(false);
@@ -80,47 +77,43 @@ public class TiUIActivityIndicator extends TiUIView
 
 		setNativeView(view);
 	}
+	
+    @Override
+	public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_STYLE:
+            setStyle(TiConvert.toInt(newValue));
+            break;
+        case TiC.PROPERTY_FONT:
+            TiUIHelper.styleText(label, TiConvert.toKrollDict(newValue));
+            if (changedProperty) {
+                label.requestLayout();
+            }
+            break;
+        case TiC.PROPERTY_MESSAGE:
+            label.setText(TiConvert.toString(newValue));
+            if (changedProperty) {
+                label.requestLayout();
+            }
+            break;
+        case TiC.PROPERTY_COLOR:
+            label.setTextColor(TiConvert.toColor(newValue));
+            break;
+
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
 
 	@Override
 	public void processProperties(KrollDict d)
 	{
 		super.processProperties(d);
-
-		if (d.containsKey(TiC.PROPERTY_STYLE)) {
-			setStyle(TiConvert.toInt(d, TiC.PROPERTY_STYLE));
-		}
-		if (d.containsKey(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(label, d.getKrollDict(TiC.PROPERTY_FONT));
-		}
-		if (d.containsKey(TiC.PROPERTY_MESSAGE)) {
-			label.setText(TiConvert.toString(d, TiC.PROPERTY_MESSAGE));
-		}
-		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			label.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
-		}
         if (view != null) {
             view.invalidate();
         }
-	}
-
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
-
-		if (key.equals(TiC.PROPERTY_STYLE)) {
-			setStyle(TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_FONT) && newValue instanceof HashMap) {
-			TiUIHelper.styleText(label, (HashMap) newValue);
-			label.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_MESSAGE)) {
-			label.setText(TiConvert.toString(newValue));
-			label.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			label.setTextColor(TiConvert.toColor((String) newValue));
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
 	}
 
 	protected int getStyle()
@@ -138,7 +131,7 @@ public class TiUIActivityIndicator extends TiUIView
 
 	protected void setStyle(int style)
 	{
-		if (style == currentStyle) {
+		if (style == currentStyle || view == null) {
 			return;
 		}
 		if (style != PLAIN && style != BIG && style != DARK && style != BIG_DARK) {
@@ -147,7 +140,7 @@ public class TiUIActivityIndicator extends TiUIView
 		}
 
 		view.removeAllViews();
-		progress = new ProgressBar(TiApplication.getAppCurrentActivity(), null, style);
+		progress = new ProgressBar(proxy.getActivity(), null, style);
 		currentStyle = style;
 		view.addView(progress);
 		view.addView(label);

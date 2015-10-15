@@ -6,48 +6,42 @@
  */
 package ti.modules.titanium.android;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.IntentProxy;
 import org.appcelerator.titanium.proxy.RProxy;
 import org.appcelerator.titanium.proxy.ServiceProxy;
+import org.appcelerator.titanium.util.TiActivityHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiIntentHelper;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.LabeledIntent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.media.AudioManager;
-import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
-@SuppressLint("InlinedApi")
+@SuppressWarnings("deprecation")
 @Kroll.module
 public class AndroidModule extends KrollModule
 {
@@ -237,6 +231,28 @@ public class AndroidModule extends KrollModule
 	@Kroll.constant public static final int FLAG_ONLY_ALERT_ONCE = Notification.FLAG_ONLY_ALERT_ONCE;
 	@Kroll.constant public static final int FLAG_SHOW_LIGHTS = Notification.FLAG_SHOW_LIGHTS;
 	@Kroll.constant public static final int STREAM_DEFAULT = Notification.STREAM_DEFAULT;
+	@Kroll.constant public static final int VISIBILITY_PRIVATE = NotificationCompat.VISIBILITY_PRIVATE;
+	@Kroll.constant public static final int VISIBILITY_PUBLIC = NotificationCompat.VISIBILITY_PUBLIC;
+	@Kroll.constant public static final int VISIBILITY_SECRET = NotificationCompat.VISIBILITY_SECRET;
+	@Kroll.constant public static final int PRIORITY_HIGH = NotificationCompat.PRIORITY_HIGH;
+	@Kroll.constant public static final int PRIORITY_MAX = NotificationCompat.PRIORITY_MAX;
+	@Kroll.constant public static final int PRIORITY_DEFAULT = NotificationCompat.PRIORITY_DEFAULT;
+	@Kroll.constant public static final int PRIORITY_LOW = NotificationCompat.PRIORITY_LOW;
+	@Kroll.constant public static final int PRIORITY_MIN = NotificationCompat.PRIORITY_MIN;
+	@Kroll.constant public static final String CATEGORY_ALARM = NotificationCompat.CATEGORY_ALARM;
+	@Kroll.constant public static final String CATEGORY_CALL = NotificationCompat.CATEGORY_CALL;
+	@Kroll.constant public static final String CATEGORY_EMAIL = NotificationCompat.CATEGORY_EMAIL;
+	@Kroll.constant public static final String CATEGORY_ERROR = NotificationCompat.CATEGORY_ERROR;
+	@Kroll.constant public static final String CATEGORY_EVENT = NotificationCompat.CATEGORY_EVENT;
+	@Kroll.constant public static final String CATEGORY_MESSAGE = NotificationCompat.CATEGORY_MESSAGE;
+	@Kroll.constant public static final String CATEGORY_PROGRESS = NotificationCompat.CATEGORY_PROGRESS;
+	@Kroll.constant public static final String CATEGORY_PROMO = NotificationCompat.CATEGORY_PROMO;
+	@Kroll.constant public static final String CATEGORY_RECOMMENDATION = NotificationCompat.CATEGORY_RECOMMENDATION;
+	@Kroll.constant public static final String CATEGORY_SERVICE = NotificationCompat.CATEGORY_SERVICE;
+	@Kroll.constant public static final String CATEGORY_SOCIAL = NotificationCompat.CATEGORY_SOCIAL;
+	@Kroll.constant public static final String CATEGORY_STATUS = NotificationCompat.CATEGORY_STATUS;
+	@Kroll.constant public static final String CATEGORY_TRANSPORT = NotificationCompat.CATEGORY_TRANSPORT;
+
 
 	@Kroll.constant public static final int START_NOT_STICKY = Service.START_NOT_STICKY;
 	@Kroll.constant public static final int START_REDELIVER_INTENT = Service.START_REDELIVER_INTENT;
@@ -339,39 +355,32 @@ public class AndroidModule extends KrollModule
 		return r;
 	}
 	
-	private static String capitalize(String line)
-	{
-		return Character.toUpperCase(line.charAt(0)) + line.substring(1).toLowerCase();
-	}
-	public static String getMainActivityName(){
-		Pattern pattern = Pattern.compile("[^A-Za-z0-9_]");
-		ITiAppInfo appInfo = TiApplication.getInstance().getAppInfo();
-		String str = appInfo.getName();
-		String className = "";
-		String[] splitStr = pattern.split(str);
-		for (int i = 0; i < splitStr.length; i++) {
-			className = className + capitalize(splitStr[i]);
-		}
-		Pattern pattern2 = Pattern.compile("^[0-9]");
-		Matcher matcher = pattern2.matcher(className);
-		if (matcher.matches()) {
-			className = "_" + className;
-		}
-		return appInfo.getId() + "." + className + "Activity";
-	}
-	
 	@Kroll.getProperty(name="appActivityClassName")
 	public String getAppActivityClassName() {
 		if (_AppActivityClassName == null) {
-			_AppActivityClassName = getMainActivityName();
+			_AppActivityClassName = TiActivityHelper.getMainActivityName();
 		}
 		return _AppActivityClassName;
 	}
-
+	
+	@Kroll.method
+    public void showMainActivity()
+    {
+        TiApplication app = TiApplication.getInstance();
+	    Intent i = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
+        i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        i.setAction(Intent.ACTION_MAIN);
+        app.startActivity(i);
+    }
 
 	@Kroll.method
-	public void startService(IntentProxy intentProxy)
+	public void startService(Object intentValue)
 	{
+	    IntentProxy intentProxy = IntentProxy.fromObject(intentValue);
+        if (intentProxy == null) { 
+            return;
+        }
 		TiApplication app = TiApplication.getInstance();
 		if (app != null) {
 			app.startService(intentProxy.getIntent());
@@ -381,8 +390,12 @@ public class AndroidModule extends KrollModule
 	}
 
 	@Kroll.method
-	public void stopService(IntentProxy intentProxy)
+	public void stopService(Object intentValue)
 	{
+	    IntentProxy intentProxy = IntentProxy.fromObject(intentValue);
+        if (intentProxy == null) { 
+            return;
+        }
 		TiApplication app = TiApplication.getInstance();
 		if (app != null) {
 			app.stopService(intentProxy.getIntent());
@@ -392,8 +405,12 @@ public class AndroidModule extends KrollModule
 	}
 
 	@Kroll.method
-	public boolean isServiceRunning(IntentProxy intentProxy)
-	{
+	public boolean isServiceRunning(Object intentValue)
+    {
+        IntentProxy intentProxy = IntentProxy.fromObject(intentValue);
+        if (intentProxy == null) { 
+            return false;
+        }
 		Intent intent = intentProxy.getIntent();
 		if (intent == null) {
 			Log.w(TAG, "isServiceRunning called with empty intent.  Will return false, but value is meaningless.");
@@ -453,8 +470,12 @@ public class AndroidModule extends KrollModule
 	 * A "bound" service instance. Returns the proxy so that .start and .stop can be called directly on the service.
 	 */
 	@Kroll.method
-	public ServiceProxy createService(IntentProxy intentProxy)
-	{
+	public ServiceProxy createService(Object intentValue)
+    {
+        IntentProxy intentProxy = IntentProxy.fromObject(intentValue);
+        if (intentProxy == null) { 
+            return null;
+        }
 		return new ServiceProxy(intentProxy);
 	}
 

@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2010-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -13,34 +13,6 @@
 #endif
 
 #endif
-
-#ifdef USE_TI_UIIOSATTRIBUTEDSTRING
-typedef enum {
-	AttributeNameFont,
-	AttributeNameParagraphStyle,
-	AttributeNameForegroundColor,
-	AttributeNameBackgroundColor,
-	AttributeNameLigature,
-	AttributeNameKern,
-	AttributeNameStrikethroughStyle,
-	AttributeNameUnderlineStyle,
-	AttributeNameStrokeColor,
-	AttributeNameStrokeWidth,
-	AttributeNameShadow,
-	AttributeNameVerticalGlyphForm,
-	AttributeNameWritingDirection,
-	AttributeNameTextEffect,
-	AttributeNameAttachment,
-	AttributeNameLink,
-	AttributeNameBaselineOffset,
-	AttributeNameUnderlineColor,
-	AttributeNameStrikethroughColor,
-	AttributeNameObliqueness,
-	AttributeNameExpansion
-} AttributeName;
-
-#endif
-
 @interface TiUIiOSProxy : TiProxy {
 @private
 
@@ -52,49 +24,11 @@ typedef enum {
 @property (nonatomic,readonly) NSNumber* CLIP_MODE_ENABLED;
 @property (nonatomic,readonly) NSNumber* CLIP_MODE_DISABLED;
 
-#ifdef USE_TI_UIIOSATTRIBUTEDSTRING
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_FONT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_PARAGRAPH_STYLE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_FOREGROUND_COLOR;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_BACKGROUND_COLOR;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_LIGATURE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_KERN;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_STRIKETHROUGH_STYLE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINES_STYLE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_STROKE_COLOR;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_STROKE_WIDTH;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_SHADOW;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_VERTICAL_GLYPH_FORM;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_WRITING_DIRECTION;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_TEXT_EFFECT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_ATTACHMENT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_LINK;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_BASELINE_OFFSET;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_COLOR;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_STRIKETHROUGH_COLOR;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_OBLIQUENESS;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_EXPANSION;
-
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_STYLE_NONE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_STYLE_SINGLE;
-// iOS 7 ----
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_STYLE_THICK;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_STYLE_DOUBLE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_PATTERN_SOLID;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_PATTERN_DOT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_PATTERN_DASH;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_PATTERN_DASH_DOT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_PATTERN_DASH_DOT_DOT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_UNDERLINE_BY_WORD;
-
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_WRITING_DIRECTION_EMBEDDING;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_WRITING_DIRECTION_OVERRIDE;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_WRITING_DIRECTION_NATURAL;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_WRITING_DIRECTION_LEFT_TO_RIGHT;
-@property (nonatomic,readonly) NSNumber* ATTRIBUTE_WRITING_DIRECTION_RIGHT_TO_LEFT;
-
-@property (nonatomic,readonly) NSString * ATTRIBUTE_LETTERPRESS_STYLE;
-
+#ifdef USE_TI_UIIOSPREVIEWCONTEXT
+@property (nonatomic,readonly) NSNumber* PREVIEW_ACTION_STYLE_DEFAULT;
+@property (nonatomic,readonly) NSNumber* PREVIEW_ACTION_STYLE_DESTRUCTIVE;
+@property (nonatomic,readonly) NSNumber* PREVIEW_ACTION_STYLE_SELECTED;
+#endif
 
 @property(nonatomic,readonly) NSNumber *ACTIVITY_CATEGORY_SHARE;
 @property(nonatomic,readonly) NSNumber *ACTIVITY_CATEGORY_ACTION;
@@ -113,8 +47,7 @@ typedef enum {
 @property(nonatomic,readonly) NSString *ACTIVITY_TYPE_VIMEO;
 @property(nonatomic,readonly) NSString *ACTIVITY_TYPE_TENCENT_WEIBO;
 @property(nonatomic,readonly) NSString *ACTIVITY_TYPE_AIRDROP;
-// -----
-#endif
+
 
 #ifdef USE_TI_UIIOSADVIEW
 -(id)createAdView:(id)args;
@@ -123,6 +56,12 @@ typedef enum {
 @property(nonatomic,readonly) NSString* AD_SIZE_LANDSCAPE;
 
 #endif
+
+/**
+    Checks the force touch capibility of the current device.
+ */
+-(NSNumber*)forceTouchSupported;
+
 #ifdef USE_TI_UIIOS3DMATRIX
 -(id)create3DMatrix:(id)args;
 #endif
@@ -143,6 +82,9 @@ typedef enum {
 #endif
 #ifdef USE_TI_UIIOSACTIVITY
 -(id)createActivity:(id)args;
+#endif
+#ifdef USE_TI_UIIOSSPLITWINDOW
+-(id)createSplitWindow:(id)args;
 #endif
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
 -(id)createAttributedString:(id)args;
@@ -172,6 +114,17 @@ typedef enum {
 #endif
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
 -(id)createTransitionAnimation:(id)args;
+#endif
+#ifdef USE_TI_UIIOSPREVIEWCONTEXT
+-(id)createPreviewAction:(id)args;
+-(id)createPreviewActionGroup:(id)args;
+-(id)createPreviewContext:(id)args;
+#endif
+#endif
+
+#if IS_XCODE_7
+#ifdef USE_TI_UIIOSAPPLICATIONSHORTCUTS
+-(id)createApplicationShortcuts:(id)args;
 #endif
 #endif
 @end

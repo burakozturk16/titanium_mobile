@@ -56,6 +56,42 @@
     _needsUpdate = YES;
 }
 
+inline static CGRect CGRectCenterRectForResizableImage(UIImage *image) {
+    return CGRectMake(image.capInsets.left/image.size.width, image.capInsets.top/image.size.height, (image.size.width-image.capInsets.right-image.capInsets.left)/image.size.width, (image.size.height-image.capInsets.bottom-image.capInsets.top)/image.size.height);
+}
+
+-(void)handleSetInLayer:(TiSelectableBackgroundLayer*)layer {
+    
+    if (color && !layer.shadowPath) {
+        layer.backgroundColor = color.CGColor;
+    }
+    else {
+        layer.backgroundColor =nil;
+    }
+    
+    if (_bufferImage == nil) {
+        if (layer.contents != nil) {
+            [layer setContents:nil];
+        }
+    } else {
+        if (image != nil) {
+            layer.contentsScale = image.scale;
+            layer.contentsCenter = CGRectCenterRectForResizableImage(image);
+            //            layer.contentsCenter = TiDimensionLayerContentCenterFromInsents(image.capInsets, [image size]);
+        }
+        else {
+            layer.contentsScale = [[UIScreen mainScreen] scale];
+            layer.contentsCenter = CGRectMake(0, 0, 1, 1);
+        }
+        //        if (!CGPointEqualToPoint(layer.contentsCenter.origin,CGPointZero)) {
+        //            layer.magnificationFilter = @"nearest";
+        //        } else {
+        //            layer.magnificationFilter = @"linear";
+        //        }
+        [layer setContents:(id)_bufferImage.CGImage];
+        
+    }
+}
 -(void)setInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate animated:(BOOL)animated
 {
     if ((_needsUpdate || _bufferImage == nil) && (gradient != nil ||
@@ -67,7 +103,7 @@
         if (gradient == nil && color == nil && _innerShadows == nil && image != nil) {
             _bufferImage = [image retain];
         }
-        else {
+        else if (gradient || _innerShadows || svg || (color && layer.shadowPath)) {
             if (CGRectEqualToRect(layer.frame, CGRectZero))
                 return;
             [self drawBufferFromLayer:layer];
@@ -75,34 +111,7 @@
         }
     }
     if (onlyCreate) return;
-    if (color && !layer.shadowPath) {
-        layer.backgroundColor = color.CGColor;
-    }
-    else {
-        layer.backgroundColor =nil;
-    }
-
-    if (_bufferImage == nil) {
-        if (layer.contents != nil) {
-            [layer setContents:nil];
-        }
-    } else {
-        if (image != nil) {
-            layer.contentsScale = image.scale;
-            layer.contentsCenter = TiDimensionLayerContentCenterFromInsents(image.capInsets, [image size]);
-        }
-        else {
-            layer.contentsScale = [[UIScreen mainScreen] scale];
-            layer.contentsCenter = CGRectMake(0, 0, 1, 1);
-        }
-        if (!CGPointEqualToPoint(layer.contentsCenter.origin,CGPointZero)) {
-            layer.magnificationFilter = @"nearest";
-        } else {
-            layer.magnificationFilter = @"linear";
-        }
-
-        [layer setContents:(id)_bufferImage.CGImage];
-    }
+    [self handleSetInLayer:layer];
 }
 -(void)drawBufferFromLayer:(TiSelectableBackgroundLayer*)layer
 {
@@ -196,6 +205,10 @@
     if (!force && !layer.shadowPath && _bufferImage && (color || image) && gradient == nil && _innerShadows == nil) return;
     RELEASE_TO_NIL(_bufferImage);
     [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
+}
+
+- (BOOL) willDraw {
+    return color || gradient || image || _innerShadows;
 }
 @end
 
@@ -353,6 +366,13 @@
     return drawable;
 }
 
+- (BOOL) willDrawForState:(UIControlState)state {
+    TiDrawable* drawable = [self getDrawableForState:state];
+    if (drawable) {
+        return [drawable willDraw];
+    }
+    return NO;
+}
 
 -(TiDrawable*) getDrawableForState:(UIControlState)state
 {
@@ -378,6 +398,12 @@
     else {
         _needsToSetDrawables = YES;
     }
+}
+
+- (UIColor*)getColorForState:(UIControlState)state
+{
+    TiDrawable* drawable = [self getDrawableForState:state];
+    return [drawable color];
 }
 
 
@@ -591,8 +617,8 @@
         }
         else return  nil;
     }
-
     return action;
+
 }
 
 @end

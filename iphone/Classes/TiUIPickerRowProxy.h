@@ -14,7 +14,7 @@
     UIImage* snapshot;
 }
 
--(UIView*)viewWithFrame:(CGRect)theFrame reusingView:(UIView*)theView;
+-(UIView*)viewWithFrame:(CGRect)theFrame reusingView:(UIView*)theView withFont:( WebFont *)pickerFont;
 
 @end
 

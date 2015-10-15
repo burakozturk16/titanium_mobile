@@ -21,6 +21,7 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 
 import ti.modules.titanium.ui.widget.TiUIScrollableView;
 import android.app.Activity;
@@ -48,7 +49,7 @@ public class ScrollableViewProxy extends TiViewProxy
 	public static final int MSG_ADD_VIEW = MSG_FIRST_ID + 106;
 	public static final int MSG_SET_CURRENT = MSG_FIRST_ID + 107;
 	public static final int MSG_REMOVE_VIEW = MSG_FIRST_ID + 108;
-	public static final int MSG_SET_ENABLED = MSG_FIRST_ID + 109;
+//	public static final int MSG_SET_ENABLED = MSG_FIRST_ID + 109;
 	public static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 	
 	private static final int DEFAULT_PAGING_CONTROL_TIMEOUT = 3000;
@@ -60,7 +61,8 @@ public class ScrollableViewProxy extends TiViewProxy
 		super();
 		inScroll = new AtomicBoolean(false);
 		defaultValues.put(TiC.PROPERTY_SHOW_PAGING_CONTROL, false);
-		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
+        defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
+        defaultValues.put(TiC.PROPERTY_CURRENT_PAGE, 0);
 	}
 
 	public ScrollableViewProxy(TiContext context)
@@ -71,7 +73,13 @@ public class ScrollableViewProxy extends TiViewProxy
 	@Override
 	public TiUIView createView(Activity activity)
 	{
-		return new TiUIScrollableView(this, (TiBaseActivity) activity);
+		TiUIView view = new TiUIScrollableView(this, (TiBaseActivity) activity);
+        LayoutParams params = view.getLayoutParams();
+        params.sizeOrFillWidthEnabled = true;
+        params.sizeOrFillHeightEnabled = true;
+        params.autoFillsHeight = true;
+        params.autoFillsWidth = true;
+        return view; 
 	}
 	
 	//only for tableview magic
@@ -90,47 +98,50 @@ public class ScrollableViewProxy extends TiViewProxy
 	public boolean handleMessage(Message msg)
 	{
 		boolean handled = false;
-
+		TiUIScrollableView view = getView();
+        if (view == null) {
+            return true;
+        }
 		switch(msg.what) {
 			case MSG_HIDE_PAGER:
-				getView().hidePager();
+			    view.hidePager();
 				handled = true;
 				break;
 			case MSG_MOVE_PREV:
 				inScroll.set(true);
-				getView().movePrevious(msg.arg1 == 1);
+				view.movePrevious(msg.arg1 == 1);
 				inScroll.set(false);
 				handled = true;
 				break;
 			case MSG_MOVE_NEXT:
 				inScroll.set(true);
-				getView().moveNext(msg.arg1 == 1);
+				view.moveNext(msg.arg1 == 1);
 				inScroll.set(false);
 				handled = true;
 				break;
 			case MSG_SCROLL_TO:
 				inScroll.set(true);
-				getView().scrollTo(msg.obj, msg.arg1 == 1);
+				view.scrollTo(msg.obj, msg.arg1 == 1);
 				inScroll.set(false);
 				handled = true;
 				break;
 			case MSG_SET_CURRENT:
-				getView().setCurrentPage(msg.obj);
+			    view.setCurrentPage(msg.obj);
 				handled = true;
 				break;
 			case MSG_SET_VIEWS: {
 				AsyncResult holder = (AsyncResult) msg.obj;
 				Object views = holder.getArg(); 
-				getView().setViews(views);
+				view.setViews(views);
 				holder.setResult(null);
 				handled = true;
 				break;
 			}
 			case MSG_ADD_VIEW: {
 				AsyncResult holder = (AsyncResult) msg.obj;
-				Object view = holder.getArg();
-				if (view instanceof TiViewProxy) {
-					getView().addView((TiViewProxy) view);
+				Object proxy = holder.getArg();
+				if (proxy instanceof TiViewProxy) {
+				    view.addView((TiViewProxy) proxy);
 					handled = true;
 				} else if (view != null) {
 					Log.w(TAG, "addView() ignored. Expected a Titanium view object, got " + view.getClass().getSimpleName());
@@ -140,12 +151,12 @@ public class ScrollableViewProxy extends TiViewProxy
 			}
 			case MSG_REMOVE_VIEW: {
 				AsyncResult holder = (AsyncResult) msg.obj;
-				Object view = holder.getArg(); 
-				if (view instanceof TiViewProxy) {
-					getView().removeView((TiViewProxy) view);
+				Object proxy = holder.getArg(); 
+				if (proxy instanceof TiViewProxy) {
+				    view.removeView((TiViewProxy) proxy);
 					handled = true;
-				} else if (view instanceof Integer) {
-					getView().removeView((Integer) view);
+				} else if (proxy instanceof Integer) {
+				    view.removeView((Integer) proxy);
 					handled = true;
 				} else if (view != null) {
 					Log.w(TAG, "removeView() ignored. Expected a Titanium view object, got " + view.getClass().getSimpleName());
@@ -153,11 +164,11 @@ public class ScrollableViewProxy extends TiViewProxy
 				holder.setResult(null);
 				break;
 			}
-			case MSG_SET_ENABLED: {
-				getView().setEnabled(msg.obj);
-				handled = true;
-				break;
-			}
+//			case MSG_SET_ENABLED: {
+//				getView().setEnabled(msg.obj);
+//				handled = true;
+//				break;
+//			}
 			default:
 				handled = super.handleMessage(msg);
 		}
@@ -251,8 +262,8 @@ public class ScrollableViewProxy extends TiViewProxy
 		setProperty(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 		if (hasListeners(TiC.EVENT_DRAGEND)) {
 			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
+            options.put(TiC.PROPERTY_VIEW, currentView);
+			options.put(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 			fireEvent(TiC.EVENT_DRAGEND, options, false, false);
 		}
 	}
@@ -262,8 +273,8 @@ public class ScrollableViewProxy extends TiViewProxy
 		setProperty(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 		if (hasListeners(TiC.EVENT_SCROLLEND)) {
 			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
+            options.put(TiC.PROPERTY_VIEW, currentView);
+			options.put(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 			fireEvent(TiC.EVENT_SCROLLEND, options, false, false);
 		}
 	}
@@ -272,8 +283,8 @@ public class ScrollableViewProxy extends TiViewProxy
 	{
 		if (hasListeners(TiC.EVENT_SCROLL)) {
 			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
+			options.put(TiC.PROPERTY_VIEW, currentView);
+			options.put(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 			options.put("currentPageAsFloat", currentPageAsFloat);
 			fireEvent(TiC.EVENT_SCROLL, options);
 		}
@@ -283,8 +294,8 @@ public class ScrollableViewProxy extends TiViewProxy
 	{
 		if (hasListeners(TiC.EVENT_SCROLLSTART)) {
 			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
+			options.put(TiC.PROPERTY_VIEW, currentView);
+			options.put(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 			fireEvent(TiC.EVENT_SCROLLSTART, options, false, false);
 		}
 	}
@@ -293,23 +304,23 @@ public class ScrollableViewProxy extends TiViewProxy
 	{
 		if (hasListeners(TiC.EVENT_CHANGE)) {
 			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
+            options.put(TiC.PROPERTY_VIEW, currentView);
+			options.put(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 			fireEvent(TiC.EVENT_CHANGE, options, false, false);
 		}
 	}
 	
-	@Kroll.setProperty @Kroll.method
-	public void setScrollingEnabled(Object enabled)
-	{
-		getMainHandler().obtainMessage(MSG_SET_ENABLED, enabled).sendToTarget();
-	}
+//	@Kroll.setProperty @Kroll.method
+//	public void setScrollingEnabled(Object enabled)
+//	{
+//		getMainHandler().obtainMessage(MSG_SET_ENABLED, enabled).sendToTarget();
+//	}
 
-	@Kroll.getProperty @Kroll.method
-	public boolean getScrollingEnabled()
-	{
-		return getView().getEnabled();
-	}
+//	@Kroll.getProperty @Kroll.method
+//	public boolean getScrollingEnabled()
+//	{
+//		return getView().getEnabled();
+//	}
 
 	@Kroll.getProperty @Kroll.method
 	public int getCurrentPage()
@@ -334,6 +345,7 @@ public class ScrollableViewProxy extends TiViewProxy
 	@Override
 	public void setActivity(Activity activity)
 	{
+	    super.setActivity(activity);
 		Object viewsObject = getProperty(TiC.PROPERTY_VIEWS);
 		if (viewsObject instanceof Object[]) {
 			Object[] views = (Object[])viewsObject;

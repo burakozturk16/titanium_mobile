@@ -6,28 +6,26 @@
  */
 #ifdef USE_TI_UILISTVIEW
 
-#import "TiUIView.h"
+#import "TiScrollingView.h"
 #import "TiUIListViewProxy.h"
-@class TiTableView;
-@interface TiUIListView : TiUIView <UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UISearchBarDelegate, UISearchDisplayDelegate, TiScrolling, TiProxyObserver >
-{
-    BOOL allowsSelection;
-}
+#import "MGSwipeTableCell.h"
+
+@interface TiUIListView : TiScrollingView <MGSwipeTableCellDelegate, UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate, UISearchBarDelegate, UISearchDisplayDelegate, TiScrolling, TiProxyObserver, TiUIListViewDelegateView >
+
 #pragma mark - Private APIs
 
 @property (nonatomic, readonly) TiTableView *tableView;
 @property (nonatomic, readonly) BOOL isSearchActive;
+@property (nonatomic, readonly) BOOL editing;
 
-- (void)updateSearchResults:(id)unused;
 - (void)setContentInsets_:(id)value withObject:(id)props;
 - (void)deselectAll:(BOOL)animated;
--(void)scrollToTop:(NSInteger)top animated:(BOOL)animated;
--(void)scrollToBottom:(NSInteger)bottom animated:(BOOL)animated;
 - (void)updateIndicesForVisibleRows;
 
 + (UITableViewRowAnimation)animationStyleForProperties:(NSDictionary*)properties;
 -(BOOL)shouldHighlightCurrentListItem;
 - (NSIndexPath *) nextIndexPath:(NSIndexPath *) indexPath;
+-(NSMutableArray*)visibleCellsProxies;
 
 @end
 

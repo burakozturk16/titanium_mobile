@@ -11,7 +11,7 @@
 //  this copyright and permission notice. Attribution in compiled projects is
 //  appreciated but not required.
 //
-#ifdef USE_TI_MEDIA
+#ifdef USE_TI_AUDIO
 
 #import "AudioStreamer.h"
 #import "AudioStreamerCUR.h"
@@ -69,6 +69,10 @@ static NSString * const AS_AUDIO_BUFFER_TOO_SMALL_STRING = @"Audio packets are l
 	[delegate playbackStateChanged:self];
 }
 
+-(void)errorReceived:(id)sender
+{
+	[delegate errorReceived:self];
+}
 //
 // stringForErrorCode:
 //
@@ -162,14 +166,14 @@ static NSString * const AS_AUDIO_BUFFER_TOO_SMALL_STRING = @"Audio packets are l
 // Properties
 RUN_ON_STREAMER_SET(setErrorCode,AudioStreamerErrorCode)
 RUN_ON_STREAMER_SET(setBitRate,UInt32)
-RUN_ON_STREAMER_SET(setBufferSize, NSUInteger)
+RUN_ON_STREAMER_SET(setBufferSize, UInt32)
 RUN_ON_STREAMER_SET(setVolume, double)
 
 RUN_ON_STREAMER_RETURN(errorCode, AudioStreamerErrorCode)
 RUN_ON_STREAMER_RETURN(bitRate, UInt32)
 RUN_ON_STREAMER_RETURN(state, AudioStreamerState)
 RUN_ON_STREAMER_RETURN(progress, double)
-RUN_ON_STREAMER_RETURN(bufferSize, NSUInteger)
+RUN_ON_STREAMER_RETURN(bufferSize, UInt32)
 RUN_ON_STREAMER_RETURN(volume, double)
 RUN_ON_STREAMER_RETURN(duration, NSTimeInterval);
 

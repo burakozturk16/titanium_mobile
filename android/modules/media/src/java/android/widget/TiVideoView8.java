@@ -27,13 +27,12 @@
 package android.widget;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Map;
 
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.util.TiPlatformHelper;
+import org.appcelerator.titanium.util.TiUIHelper;
 
 import ti.modules.titanium.media.MediaModule;
 import ti.modules.titanium.media.TiPlaybackListener;
@@ -46,7 +45,6 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -65,6 +63,7 @@ import android.widget.MediaController.MediaPlayerControl;
  * it can be used in any layout manager, and provides various display options
  * such as scaling and tinting.
  */
+@SuppressWarnings("deprecation")
 public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 {
 	private static final String TAG = "TiVideoView8";
@@ -75,6 +74,8 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 	@SuppressWarnings("unused")
 	private Map<String, String> mHeaders;
 	private int mDuration;
+	private boolean repeat = false;
+	private boolean ignoreListener = false;
 
 	// all possible internal states
 	private static final int STATE_ERROR = -1;
@@ -280,8 +281,9 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 	{
 		mVideoWidth = 0;
 		mVideoHeight = 0;
-		getHolder().addCallback(mSHCallback);
-		getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        final SurfaceHolder holder = getHolder();
+        holder.addCallback(mSHCallback);
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		setFocusable(true);
 		setFocusableInTouchMode(true);
 		requestFocus();
@@ -291,7 +293,11 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 
 	public void setVideoPath(String path)
 	{
-		setVideoURI(Uri.parse(path));
+	    if (path != null) {
+	        setVideoURI(null);
+	    } else {
+	        setVideoURI(Uri.parse(path));
+	    }
 	}
 
 	public void setVideoURI(Uri uri)
@@ -328,7 +334,7 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 		if (mMediaPlayer != null) {
 			mMediaPlayer.stop();
 			// TITANIUM
-			if (mPlaybackListener != null) {
+			if (!ignoreListener && mPlaybackListener != null) {
 				mPlaybackListener.onStopPlayback();
 			}
 			mMediaPlayer.release();
@@ -343,38 +349,8 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 	private void setDataSource()
 	{
 		try {
-			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB &&
-					("http".equals(mUri.getScheme()) || "https".equals(mUri.getScheme()))) {
-				// Media player doesn't handle redirects, try to follow them
-				// here. (Redirects work fine without this in ICS.)
-				while (true) {
-					// java.net.URL doesn't handle rtsp
-					if (mUri.getScheme() != null && mUri.getScheme().equals("rtsp"))
-						break;
-
-					URL url = new URL(mUri.toString());
-					HttpURLConnection cn = (HttpURLConnection) url.openConnection();
-					cn.setInstanceFollowRedirects(false);
-					String location = cn.getHeaderField("Location");
-					if (location != null) {
-						String host = mUri.getHost();
-						int port = mUri.getPort();
-						String scheme = mUri.getScheme();
-						mUri = Uri.parse(location);
-						if (mUri.getScheme() == null) {
-							// Absolute URL on existing host/port/scheme
-							if (scheme == null) {
-								scheme = "http";
-							}
-							String authority = port == -1 ? host : host + ":" + port;
-							mUri = mUri.buildUpon().scheme(scheme).encodedAuthority(authority).build();
-						}
-					} else {
-						break;
-					}
-				}
-			}
-			mMediaPlayer.setDataSource(getContext(), mUri);
+			mUri = TiUIHelper.getRedirectUri(mUri);
+			mMediaPlayer.setDataSource(TiApplication.getAppRootOrCurrentActivity(), mUri);
 		} catch (Exception e) {
 			Log.e(TAG, "Error setting video data source: " + e.getMessage(), e);
 		}
@@ -549,14 +525,22 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 	private MediaPlayer.OnCompletionListener mCompletionListener = new MediaPlayer.OnCompletionListener() {
 		public void onCompletion(MediaPlayer mp)
 		{
-			mCurrentState = STATE_PLAYBACK_COMPLETED;
-			mTargetState = STATE_PLAYBACK_COMPLETED;
-			if (mMediaController != null) {
-				mMediaController.hide();
-			}
-			if (mOnCompletionListener != null) {
-				mOnCompletionListener.onCompletion(mMediaPlayer);
-			}
+		    if (repeat) {
+		        ignoreListener = true;
+		        stopPlayback();
+		        openVideo();
+		        ignoreListener = true;
+		    } else {
+		        mCurrentState = STATE_PLAYBACK_COMPLETED;
+	            mTargetState = STATE_PLAYBACK_COMPLETED;
+	            if (mMediaController != null) {
+	                mMediaController.hide();
+	            }
+	            if (mOnCompletionListener != null) {
+	                mOnCompletionListener.onCompletion(mMediaPlayer);
+	            }
+		    }
+			
 		}
 	};
 
@@ -749,7 +733,7 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 			int oldState = mCurrentState;
 			mCurrentState = STATE_PLAYING;
 			// TITANIUM
-			if (mPlaybackListener != null) {
+			if (!ignoreListener && mPlaybackListener != null) {
 				mPlaybackListener.onStartPlayback();
 				// Fired after a stop or play is called after a after url change.
 				if (oldState == STATE_PREPARED || oldState == STATE_PREPARING) {
@@ -893,4 +877,15 @@ public class TiVideoView8 extends SurfaceView implements MediaPlayerControl
 	{
 		mScalingMode = scalingMode;
 	}
+
+	@Override
+	public int getAudioSessionId()
+	{
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+    public void setRepeatMode(int repeat) {
+        this.repeat = repeat == 1;
+    }
 }

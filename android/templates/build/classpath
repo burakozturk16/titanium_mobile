@@ -10,9 +10,9 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-dist"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/titanium-geolocation"/>
 	<classpathentry kind="lib" path="/titanium-dist/lib/titanium-filesystem.jar" sourcepath="/titanium-filesystem"/>
 	<classpathentry kind="lib" path="/titanium-dist/lib/titanium-media.jar"/>
 	<classpathentry kind="lib" path="/titanium-dist/lib/titanium-app.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/googleplayservices.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

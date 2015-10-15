@@ -6,13 +6,10 @@ import java.util.List;
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.ScaleProperty;
 import org.appcelerator.titanium.animation.TranslationRelativeProperty;
-import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
-import org.appcelerator.titanium.view.FreeLayout;
 
 import android.view.View;
 
-import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import com.nineoldandroids.view.ViewHelper;

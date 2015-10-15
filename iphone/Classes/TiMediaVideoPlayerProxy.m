@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -17,7 +17,7 @@
 #import "TiFile.h"
 #import "TiViewProxy.h"
 #import "TiBlob.h"
-#import "TiMediaAudioSession.h"
+#import "TiAudioSession.h"
 #import "TiApp.h"
 
 /** 
@@ -53,12 +53,14 @@ NSArray* moviePlayerKeys = nil;
 
 #pragma mark Internal
 
--(NSArray*)keySequence
+-(NSArray *)keySequence
 {
-	if (moviePlayerKeys == nil) {
-		moviePlayerKeys = [[NSArray alloc] initWithObjects:@"url",nil];
-	}
-	return moviePlayerKeys;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"url"]] retain];;
+    });
+    return keySequence;
 }
 
 -(void)_initWithProperties:(NSDictionary *)properties
@@ -369,7 +371,7 @@ NSArray* moviePlayerKeys = nil;
 {
 	if ([media_ isKindOfClass:[TiFile class]])
 	{
-		[self setUrl:[NSURL fileURLWithPath:[media_ path]]];
+		[self setUrl:[NSURL fileURLWithPath:[(TiFile*)media_ path]]];
 	}
 	else if ([media_ isKindOfClass:[TiBlob class]])
 	{
@@ -470,41 +472,32 @@ NSArray* moviePlayerKeys = nil;
 
 -(NSNumber*)useApplicationAudioSession
 {
-	if (movie != nil) {
-		return NUMBOOL([movie useApplicationAudioSession]);
-	}
-	else {
-		RETURN_FROM_LOAD_PROPERTIES(@"useApplicationAudioSession",NUMBOOL(YES));
-	}
+    DebugLog(@"[WARN] Deprecated property useApplicationAudioSession; Setting this property has no effect'");
+    return NUMBOOL(YES);
 }
 
 -(void)setUseApplicationAudioSession:(id)value
 {
-	if (movie != nil) {
-		[movie setUseApplicationAudioSession:[TiUtils boolValue:value]];
-	}
-	else {
-		[loadProperties setValue:value forKey:@"useApplicationAudioSession"];
-	}
+    DebugLog(@"[WARN] Deprecated property useApplicationAudioSession; Setting this property has no effect'");
 }
 
 -(NSNumber *)volume
 {
-	__block double volume = 1.0;
+	__block float volume = 1.0;
 	TiThreadPerformOnMainThread(^{
-		volume = (double)[[MPMusicPlayerController applicationMusicPlayer] volume];
+        volume = [TiUtils volumeFromObject:[MPMusicPlayerController applicationMusicPlayer] default:1.0];
 	}, YES);
 	
-	return NUMDOUBLE(volume);
+	return NUMFLOAT(volume);
 }
 
 -(void)setVolume:(NSNumber *)newVolume
 {
-	double volume = [TiUtils doubleValue:newVolume def:-1.0];
+	float volume = [TiUtils floatValue:newVolume def:-1.0];
     volume = MAX(0.0, MIN(volume, 1.0));
 	TiThreadPerformOnMainThread(^{
-		[[MPMusicPlayerController applicationMusicPlayer] setVolume:volume];
-	}, NO);
+        [TiUtils setVolume:volume onObject:[MPMusicPlayerController applicationMusicPlayer]];
+	}, YES);
 }
 
 -(void)cancelAllThumbnailImageRequests:(id)value
@@ -535,34 +528,36 @@ NSArray* moviePlayerKeys = nil;
 
 -(TiBlob*)thumbnailImageAtTime:(id)args
 {
-	NSNumber *time = [args objectAtIndex:0];
-	NSNumber *options = [args objectAtIndex:1];
-	TiBlob *blob = [[[TiBlob alloc] init] autorelease];
-	TiThreadPerformOnMainThread(^{
-		UIImage *image = [movie thumbnailImageAtTime:[time doubleValue] timeOption:[options intValue]];
-		[blob setImage:image];
-	}, YES);
-	return blob;
+    DEPRECATED_REPLACED_REMOVED(@"Media.VideoPlayer.thumbnailImageAtTime",@"3.4.2",@"3.6.0",@"Media.VideoPlayer.requestThumbnailImagesAtTimes")
+    return nil;
 }
 
 -(void)setBackgroundColor:(id)color
 {
-	[self replaceValue:color forKey:@"backgroundColor" notification:NO];
-	
-	RELEASE_TO_NIL(backgroundColor);
-	backgroundColor = [[TiUtils colorValue:color] retain];
-	
-	if (movie != nil) {
-		UIView *background = [movie backgroundView];
-		if (background!=nil)
-		{
-			TiThreadPerformOnMainThread(^{[background setBackgroundColor:[backgroundColor _color]];}, NO);
-			return;
-		}
-	}
-	else {
-		[loadProperties setValue:color forKey:@"backgroundColor"];
-	}
+    [self replaceValue:color forKey:@"backgroundColor" notification:NO];
+    
+    RELEASE_TO_NIL(backgroundColor);
+    backgroundColor = [[TiUtils colorValue:color] retain];
+    
+    if (movie != nil) {
+        UIView *background = [movie backgroundView];
+        if (background!=nil)
+        {
+            TiThreadPerformOnMainThread(^{
+                UIColor* color = [backgroundColor _color];
+                movie.view.backgroundColor = [UIColor clearColor];
+                for(UIView *aSubView in movie.view.subviews) {
+                    aSubView.backgroundColor = [UIColor clearColor];
+                }
+                [background setBackgroundColor:color];
+                
+            }, NO);
+            return;
+        }
+    }
+    else {
+        [loadProperties setValue:color forKey:@"backgroundColor"];
+    }
 }
 
 -(NSNumber*)playableDuration
@@ -1065,6 +1060,8 @@ NSArray* moviePlayerKeys = nil;
 		case MPMoviePlaybackStatePlaying:
 			playing = YES;
 			break;
+        default:
+            break;
 	}
 }
 

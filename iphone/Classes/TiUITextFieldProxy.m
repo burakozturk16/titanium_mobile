@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -14,17 +14,6 @@
     UIEdgeInsets _padding;
 }
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiUITextWidgetProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"paddingLeft",
-                                              @"paddingRight",@"leftButtonPadding",@"rightButtonPadding",
-                                              @"editable", @"enabled", @"hintText", @"minimumFontSize",
-                                              @"clearOnEdit", @"borderStyle", @"clearButtonMode",
-                                              @"leftButton", @"leftButtonMode", @"verticalAlign", 
-                                              @"rightButton", @"rightButtonMode",
-                                              @"backgroundDisabledImage", nil]];
-}
 
 #pragma mark Defaults
 
@@ -45,7 +34,7 @@ DEFINE_DEF_NULL_PROP(rightButton);
 DEFINE_DEF_NULL_PROP(keyboardToolbar);
 DEFINE_DEF_NULL_PROP(keyboardToolbarColor);
 DEFINE_DEF_INT_PROP(keyboardToolbarHeight,0);
-DEFINE_DEF_INT_PROP(textAlign,UITextAlignmentLeft);
+DEFINE_DEF_INT_PROP(textAlign,NSTextAlignmentLeft);
 DEFINE_DEF_INT_PROP(verticalAlign,UIControlContentVerticalAlignmentCenter);
 DEFINE_DEF_INT_PROP(returnKeyType,UIReturnKeyDefault);
 DEFINE_DEF_INT_PROP(keyboardType,UIKeyboardTypeDefault);
@@ -82,6 +71,11 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
     if (view != nil)
         [(TiUITextField*)view setPadding:_padding];
     [self contentsWillChange];
+    [self replaceValue:value forKey:@"padding" notification:NO];
+}
+
+-(id)padding {
+    return [self valueForUndefinedKey:@"padding"];
 }
 
 -(CGSize)contentSizeForSize:(CGSize)size
@@ -95,7 +89,7 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
         CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
         maxSize.width -= _padding.left + _padding.right;
         
-        UILineBreakMode breakMode = UILineBreakModeWordWrap;
+        NSLineBreakMode breakMode = NSLineBreakByWordWrapping;
         id fontValue = [self valueForKey:@"font"];
         UIFont * font;
         if (fontValue!=nil)

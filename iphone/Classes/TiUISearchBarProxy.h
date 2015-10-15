@@ -12,10 +12,10 @@
 
 #ifdef USE_TI_UISEARCHBAR
 
-#import "TiViewProxy.h"
+#import "TiUITextWidgetProxy.h"
 #import "TiUISearchBar.h"
 
-@interface TiUISearchBarProxy : TiViewProxy {
+@interface TiUISearchBarProxy : TiUITextWidgetProxy {
 	BOOL showsCancelButton;
 }
 @property BOOL canHaveSearchDisplayController;

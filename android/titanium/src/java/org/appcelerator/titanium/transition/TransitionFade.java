@@ -1,7 +1,6 @@
 package org.appcelerator.titanium.transition;
 
 import org.appcelerator.titanium.animation.AlphaProperty;
-import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.view.View;
 
@@ -30,21 +29,14 @@ public class TransitionFade extends Transition {
 	}
 	
     @Override
-    public void transformView(View view, float position, boolean adjustScroll) {
+    public void transformView(View view, float position) {
         boolean out = (position < 0);
-        float multiplier = -1;
         if (!TransitionHelper.isPushSubType(subType)) {
-            multiplier = 1;
             out = !out;
         }
         float alpha = 1 - Math.abs(position);
-        float dest = multiplier * position * (adjustScroll ? 1 : 0);
 
         ViewHelper.setAlpha(view, alpha);
-        if (TransitionHelper.isVerticalSubType(subType)) {
-            TiViewHelper.setTranslationRelativeY(view, dest);
-        } else {
-            TiViewHelper.setTranslationRelativeX(view, dest);
-        }
+        view.setVisibility((alpha == 0)?View.INVISIBLE:View.VISIBLE);
     }
 }

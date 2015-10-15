@@ -71,7 +71,7 @@ public class KrollAnnotationUtils {
 	@SuppressWarnings("unchecked")
 	public Object convertAnnotationValue(Object value) {
 		if (value instanceof DeclaredType) {
-			return ((DeclaredType)value).asElement().asType().toString();
+			return ((DeclaredType)value).asElement().toString();
 		} else if (value instanceof List) {
 			ArrayList newList = new ArrayList();
 			List list = (List)value;

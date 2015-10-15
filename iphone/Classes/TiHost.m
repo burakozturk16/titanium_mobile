@@ -27,19 +27,24 @@ extern NSString * const TI_APPLICATION_ID;
 
 +(NSString *)resourcePath
 {
-	NSString *resourcePath = [[NSBundle mainBundle] bundlePath];
+    static NSString* resourcePath = nil;
+    if (!resourcePath) {
+        resourcePath = [[NSBundle mainBundle] resourcePath];
 #if TARGET_IPHONE_SIMULATOR
-	if (TI_APPLICATION_RESOURCE_DIR!=nil && ![TI_APPLICATION_RESOURCE_DIR isEqualToString:@""])
-	{
-		// if the .local file exists and we're in the simulator, then force load from resources bundle
-		NSString * localFilePath = [resourcePath stringByAppendingPathComponent:@".local"];
-		if (![[NSFileManager defaultManager] fileExistsAtPath:localFilePath])
-		{
-			// we use our app resource directory
-			resourcePath = TI_APPLICATION_RESOURCE_DIR;
-		}
-	}
+        if (TI_APPLICATION_RESOURCE_DIR!=nil && ![TI_APPLICATION_RESOURCE_DIR isEqualToString:@""])
+        {
+            // if the .local file exists and we're in the simulator, then force load from resources bundle
+            NSString * localFilePath = [resourcePath stringByAppendingPathComponent:@".local"];
+            if (![[NSFileManager defaultManager] fileExistsAtPath:localFilePath])
+            {
+                // we use our app resource directory
+                resourcePath = TI_APPLICATION_RESOURCE_DIR;
+            }
+        }
 #endif
+        resourcePath = [resourcePath retain];
+    }
+
 	return resourcePath;
 }
 
@@ -131,6 +136,12 @@ extern NSString * const TI_APPLICATION_ID;
 -(void)unregisterContext:(id<TiEvaluator>)context forToken:(NSString*)token
 {
 	[contexts removeObjectForKey:token];
+}
+
+-(KrollBridge*)krollBridge
+{
+    //For subclasses
+    return nil;
 }
 
 -(id) moduleNamed:(NSString*)name context:(id<TiEvaluator>)context

@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +25,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.CurrentActivityListener;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.kroll.common.TiFastDev;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
@@ -31,24 +33,30 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
+import org.appcelerator.titanium.proxy.ParentingProxy;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy.PostOpenListener;
+import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
 import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiGradientDrawable;
 import org.appcelerator.titanium.view.TiUIView;
 
+import com.squareup.picasso.Cache;
 import com.trevorpage.tpsvg.SVGDrawable;
 import com.trevorpage.tpsvg.SVGFlyweightFactory;
+import com.udojava.evalex.Expression;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.support.v7.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
@@ -66,14 +74,20 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -86,7 +100,7 @@ import android.widget.TextView;
 /**
  * A set of utility methods focused on UI and View operations.
  */
-@SuppressLint("DefaultLocale")
+@SuppressWarnings("deprecation")
 public class TiUIHelper
 {
 	private static final String TAG = "TiUIHelper";
@@ -112,7 +126,7 @@ public class TiUIHelper
 		public Typeface typeface = null;
 		public int style = Typeface.NORMAL;
 		
-		public void setDefaults(Context context){
+		public void setDefaults(final Context context){
 			typeface = toTypeface(context, null);
 			float[] result = new float[2];
 			getSizeAndUnits(null, result);
@@ -174,7 +188,7 @@ public class TiUIHelper
 			.setCancelable(false).create().show();
 	}
 	
-	public static void linkifyIfEnabled(TextView tv, Object autoLink)
+	public static void linkifyIfEnabled(final TextView tv, final Object autoLink)
 	{ 
 		if (autoLink != null) {
 			//Default to Ti.UI.AUTOLINK_NONE
@@ -238,7 +252,7 @@ public class TiUIHelper
 		final OnClickListener fListener = listener;
 		waitForCurrentActivity(new CurrentActivityListener() {
 			// TODO @Override
-			public void onCurrentActivityReady(Activity activity)
+			public void onCurrentActivityReady(final Activity activity)
 			{
 				//add dialog to activity for cleaning up purposes
 				if (!activity.isFinishing()) {
@@ -264,7 +278,7 @@ public class TiUIHelper
 		});
 	}
 
-	public static int toTypefaceStyle(String fontWeight, String fontStyle)
+	public static int toTypefaceStyle(final String fontWeight, final String fontStyle)
 	{
 		int style = Typeface.NORMAL;
 
@@ -284,7 +298,7 @@ public class TiUIHelper
 		return style;
 	}
 
-	public static int getSizeUnits(String size) {
+	public static int getSizeUnits(final String size) {
 		int units = TypedValue.COMPLEX_UNIT_PX;
 		String unitString = null;
 
@@ -324,7 +338,7 @@ public class TiUIHelper
 		return units;
 	}
 	
-	public static void getSizeAndUnits(String size, float[] result) {
+	public static void getSizeAndUnits(final String size, final float[] result) {
 		int units = TypedValue.COMPLEX_UNIT_PX;
 		float value = 15.0f;
 		String unitString = null;
@@ -367,7 +381,7 @@ public class TiUIHelper
 		result[1] = value;
 	}
 
-	public static float getSize(String size) {
+	public static float getSize(final String size) {
 		float value = 15.0f;
 		if (size != null) {
 			Matcher m = SIZED_VALUE.matcher(size.trim());
@@ -379,7 +393,7 @@ public class TiUIHelper
 		return value;
 	}
 	
-	public static float getRawSize(int unit, float size, Context context) {
+	public static float getRawSize(final int unit, final float size, final Context context) {
 		Resources r;
 		if (context != null) {
 			r = context.getResources();
@@ -389,36 +403,36 @@ public class TiUIHelper
 		return TypedValue.applyDimension(unit, size, r.getDisplayMetrics());
 	}
 
-	public static float getRawSize(int unit, float size) {
+	public static float getRawSize(final int unit, final float size) {
 		return getRawSize(unit, size, null);
 	}
 	
-	public static float getRawDIPSize(float size, Context context) {
+	public static float getRawDIPSize(final float size, final Context context) {
 		return getRawSize(TypedValue.COMPLEX_UNIT_DIP, size, context);
 	}
 	
-	public static float getRawSize(String size, Context context) {
+	public static float getRawSize(final String size, final Context context) {
 		float[] result = new float[2];
 		getSizeAndUnits(size, result);
 		return getRawSize((int)result[0], result[1], context);
 	}
 	
-	public static float getRawSize(int size, Context context) {
+	public static float getRawSize(final int size, final Context context) {
 		float[] result = new float[2];
 		getSizeAndUnits(null, result);
 		return getRawSize((int)result[0], size, context);
 	}
 
-	public static float getInPixels(String size) {
+	public static float getInPixels(final String size) {
 		
 		return getRawSize(size, null);
 	}
 	
-	public static float getInPixels(String size, Context context) {
+	public static float getInPixels(final String size, final Context context) {
 		return getInPixels(size, 0.0f, context);
 	}
 	
-	public static float getInPixels(String size, float defaultValue, Context context) {
+	public static float getInPixels(final String size, final float defaultValue, final Context context) {
         if (size == null || size.length() == 0) {
             if (defaultValue > 0) {
                 return getRawSize(TypedValue.COMPLEX_UNIT_DIP, defaultValue, context);
@@ -428,8 +442,8 @@ public class TiUIHelper
         return getRawSize(size, context);
     }
 
-	public static float getInPixels(HashMap dict, String property,
-			float defaultValue, Context context) {
+	public static float getInPixels(final HashMap dict, final String property,
+	        final float defaultValue, final Context context) {
 		if (dict.containsKey(property)) {
 			return getRawSize(TiConvert.toString(dict.get(property)), context);
 		}
@@ -439,38 +453,38 @@ public class TiUIHelper
 		return 0;
 	}
 	
-	public static float getInPixels(HashMap dict, String property,
+	public static float getInPixels(final HashMap dict, final String property,
             Context context) {
         return getInPixels(dict, property, 0.0f, context);
     }
 
-	public static float getInPixels(HashMap dict, String property) {
+	public static float getInPixels(final HashMap dict, final String property) {
 		return getInPixels(dict, property, null);
 	}
 	
     @Deprecated
-	public static float getRawSizeOrZero(HashMap dict, String property) {
+	public static float getRawSizeOrZero(final HashMap dict, final String property) {
         return getInPixels(dict, property, null);
     }
 	
-	public static float getInPixels(HashMap dict, String property, float defaultValue) {
+	public static float getInPixels(final HashMap dict, final String property, final float defaultValue) {
         return getInPixels(dict, property, defaultValue, null);
     }
 
-	public static float getInPixels(Object value) {
+	public static float getInPixels(final Object value) {
 		return getInPixels(TiConvert.toString(value), null);
 	}
 	
 	@Deprecated
-	public static float getRawSizeOrZero(Object value) {
+	public static float getRawSizeOrZero(final Object value) {
         return getInPixels(TiConvert.toString(value), null);
     }
 	
-	public static float getInPixels(Object value, float defaultValue) {
+	public static float getInPixels(final Object value, final float defaultValue) {
         return getInPixels(TiConvert.toString(value), defaultValue, null);
     }
 	
-	public static FontDesc getFontStyle(Context context, HashMap<String, Object> d) {
+	public static FontDesc getFontStyle(final Context context, final HashMap<String, Object> d) {
 		FontDesc desc = new FontDesc();
 		if (d == null) {
 			desc.setDefaults(context);
@@ -485,12 +499,6 @@ public class TiUIHelper
 		desc.sizeUnit = (int)result[0]; 
 		desc.size = result[1]; 
 		
-		String fontFamily = null;
-		if (d.containsKey("family")) {
-			fontFamily = TiConvert.toString(d, "family");
-		}
-		desc.typeface = toTypeface(context, fontFamily);
-		
 		String fontWeight = null;
 		String fontStyle = null;
 		if (d.containsKey("weight")) {
@@ -500,40 +508,60 @@ public class TiUIHelper
 			fontStyle = TiConvert.toString(d, "style");
 		}
 		desc.style = toTypefaceStyle(fontWeight, fontStyle);
-
+		
+		String fontFamily = null;
+        if (d.containsKey("family")) {
+            fontFamily = TiConvert.toString(d, "family");
+        }
+        if (fontWeight != null && desc.style == Typeface.NORMAL && 
+                fontWeight != "normal") {
+            desc.typeface = toTypeface(context, fontFamily, fontWeight);
+        }
+        else {
+            desc.typeface = toTypeface(context, fontFamily, null);
+        }
 		return desc;
 	}
 	
-	public static void setPadding(View view, RectF padding) {
+	public static void setPadding(final View view, final RectF padding) {
 		view.setPadding((int)padding.left, (int)padding.top, (int)padding.right,
 				(int)padding.bottom);
 	}
 
-	public static void styleText(TextView tv, HashMap<String, Object> d) {
-		FontDesc desc = getFontStyle(tv.getContext(), d);
-		tv.setTypeface(desc.typeface, desc.style);
-		tv.setTextSize(desc.sizeUnit, desc.size);
+	public static void styleText(final TextView tv, final HashMap<String, Object> d) {
+	    styleText(tv, getFontStyle(tv.getContext(), d));
 	}
+	
+	public static void styleText(final TextView tv, final FontDesc desc) {
+        tv.setTypeface(desc.typeface, desc.style);
+        tv.setTextSize(desc.sizeUnit, desc.size);
+    }
+	
+	public static boolean isAndroidTypeface(String fontFamily)
+    {
+        if (fontFamily != null) {
+            if ("monospace".equals(fontFamily)) {
+                return true;
+            } else if ("serif".equals(fontFamily)) {
+                return true;
+            } else if ("sans-serif".equals(fontFamily)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	public static void styleText(TextView tv, String fontFamily, String fontSize, String fontWeight)
-	{
-		styleText(tv, fontFamily, fontSize, fontWeight, null);
-	}
-
-	public static void styleText(TextView tv, String fontFamily, String fontSize, String fontWeight, String fontStyle)
-	{
-		Typeface tf = tv.getTypeface();
-		tf = toTypeface(tv.getContext(), fontFamily);
-		tv.setTypeface(tf, toTypefaceStyle(fontWeight, fontStyle));
-		float[] result = new float[2];
-		getSizeAndUnits(fontSize, result);
-		tv.setTextSize((int)result[0], result[1]);
-	}
-
-	public static Typeface toTypeface(Context context, String fontFamily)
+	public static Typeface toTypeface(final Context context, String fontFamily, String weight)
 	{
 		Typeface tf = Typeface.SANS_SERIF; // default
-
+		if (weight != null) {
+		    if (fontFamily == null && weight != "regular") {
+	            fontFamily = "sans-serif-" + weight.toLowerCase();
+		    }
+		    else {
+                fontFamily += "-" + weight.toLowerCase();
+		    }
+        }
 		if (fontFamily != null) {
 			if ("monospace".equals(fontFamily)) {
 				tf = Typeface.MONOSPACE;
@@ -546,6 +574,7 @@ public class TiUIHelper
 				if (context != null) {
 					try {
 						loadedTf = loadTypeface(context, fontFamily);
+						
 					} catch (Exception e) {
 						loadedTf = null;
 				Log.e(TAG, "Unable to load font " + fontFamily + ": " + e.getMessage());
@@ -561,12 +590,17 @@ public class TiUIHelper
 		}
 		return tf;
 	}
-	public static Typeface toTypeface(String fontFamily) {
+	
+	public static Typeface toTypeface(final Context context, String fontFamily)
+    {
+	    return toTypeface(context, fontFamily, null);
+    }
+	public static Typeface toTypeface(final String fontFamily) {
 		return toTypeface(null, fontFamily);
 	}
 
 	@SuppressLint("DefaultLocale")
-	private static Typeface loadTypeface(Context context, String fontFamily)
+	private static Typeface loadTypeface(final Context context, final String fontFamily)
 	{
 		if (context == null) {
 			return null;
@@ -576,16 +610,24 @@ public class TiUIHelper
 		}
 		AssetManager mgr = context.getAssets();
 		try {
-			String[] fontFiles = mgr.list(customFontPath);
-			for (String f : fontFiles) {
-				if (f.toLowerCase() == fontFamily.toLowerCase() || f.toLowerCase().startsWith(fontFamily.toLowerCase() + ".")) {
-					Typeface tf = Typeface.createFromAsset(mgr, customFontPath + "/" + f);
-					synchronized(mCustomTypeFaces) {
-						mCustomTypeFaces.put(fontFamily, tf);
-					}
-					return tf;
-				}
-			}
+		    Typeface tf = null;
+		    String[] fontFiles = mgr.list(customFontPath);
+            for (String f : fontFiles) {
+                if (f.toLowerCase() == fontFamily.toLowerCase() || f.toLowerCase().startsWith(fontFamily.toLowerCase() + ".")) {
+                    tf = Typeface.createFromAsset(mgr, customFontPath + "/" + f);
+                    synchronized(mCustomTypeFaces) {
+                        mCustomTypeFaces.put(fontFamily, tf);
+                    }
+                    return tf;
+                }
+            }
+		    tf = Typeface.create(fontFamily, Typeface.NORMAL);
+		    if (tf != null) {
+		        synchronized(mCustomTypeFaces) {
+                    mCustomTypeFaces.put(fontFamily, tf);
+                }
+                return tf;
+		    }
 		} catch (IOException e) {
 			Log.e(TAG, "Unable to load 'fonts' assets. Perhaps doesn't exist? " + e.getMessage());
 		}
@@ -594,7 +636,7 @@ public class TiUIHelper
 		return null;
 	}
 
-	public static String getDefaultFontSize(Context context) {
+	public static String getDefaultFontSize(final Context context) {
 		String size = "15.0px";
 		TextView tv = new TextView(context);
 		if (tv != null) {
@@ -605,7 +647,7 @@ public class TiUIHelper
 		return size;
 	}
 
-	public static String getDefaultFontWeight(Context context) {
+	public static String getDefaultFontWeight(final Context context) {
 		String style = "normal";
 		TextView tv = new TextView(context);
 		if (tv != null) {
@@ -618,7 +660,7 @@ public class TiUIHelper
 		return style;
 	}
 
-	public static int getGravity(String align, boolean vertical) {
+	public static int getGravity(final String align, final boolean vertical) {
 		if (align != null) {
 			if ("left".equals(align)) {
 				 return Gravity.LEFT;
@@ -635,7 +677,7 @@ public class TiUIHelper
 		return Gravity.NO_GRAVITY;
 	}
 
-	public static void setAlignment(TextView tv, String textAlign, String verticalAlign) 
+	public static void setAlignment(final TextView tv, final String textAlign, final String verticalAlign) 
 	{
 		int gravity = Gravity.NO_GRAVITY;
 		
@@ -652,9 +694,9 @@ public class TiUIHelper
 		} else {
 			// Nothing has been set - let's set if something was set previously
 			// You can do this with shortcut syntax - but long term maint of code is easier if it's explicit
-			Log.w(TAG,
-				"No alignment set - old horizontal align was: " + (tv.getGravity() & Gravity.HORIZONTAL_GRAVITY_MASK),
-				Log.DEBUG_MODE);
+//			Log.w(TAG,
+//				"No alignment set - old horizontal align was: " + (tv.getGravity() & Gravity.HORIZONTAL_GRAVITY_MASK),
+//				Log.DEBUG_MODE);
 			
 			if ((tv.getGravity() & Gravity.HORIZONTAL_GRAVITY_MASK) != Gravity.NO_GRAVITY) {
 				// Something was set before - so let's use it
@@ -675,8 +717,8 @@ public class TiUIHelper
 		} else {
 			// Nothing has been set - let's set if something was set previously
 			// You can do this with shortcut syntax - but long term maint of code is easier if it's explicit
-			Log.w(TAG, "No alignment set - old vertical align was: " + (tv.getGravity() & Gravity.VERTICAL_GRAVITY_MASK),
-				Log.DEBUG_MODE);
+//			Log.w(TAG, "No alignment set - old vertical align was: " + (tv.getGravity() & Gravity.VERTICAL_GRAVITY_MASK),
+//				Log.DEBUG_MODE);
 			if ((tv.getGravity() & Gravity.VERTICAL_GRAVITY_MASK) != Gravity.NO_GRAVITY) {
 				// Something was set before - so let's use it
 				gravity |= tv.getGravity() & Gravity.VERTICAL_GRAVITY_MASK;
@@ -691,13 +733,13 @@ public class TiUIHelper
 	public static final int FONT_WEIGHT_POSITION = 2;
 	public static final int FONT_STYLE_POSITION = 3;
 	
-	public static String[] getFontProperties(KrollDict fontProps)
+	public static String[] getFontProperties(final KrollDict fontProps)
 	{
 		boolean bFontSet = false;
 		String[] fontProperties = new String[4];
 		if (fontProps.containsKey(TiC.PROPERTY_FONT) && fontProps.get(TiC.PROPERTY_FONT) instanceof HashMap) {
 			bFontSet = true;
-			KrollDict font = fontProps.getKrollDict(TiC.PROPERTY_FONT);
+			HashMap font = (HashMap)fontProps.get(TiC.PROPERTY_FONT);
 			if (font.containsKey(TiC.PROPERTY_FONTSIZE)) {
 				fontProperties[FONT_SIZE_POSITION] = TiConvert.toString(font, TiC.PROPERTY_FONTSIZE);
 			}
@@ -723,9 +765,9 @@ public class TiUIHelper
 				bFontSet = true;
 				fontProperties[FONT_WEIGHT_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONT_WEIGHT);
 			}
-			if (fontProps.containsKey(TiC.PROPERTY_FONTSTYLE)) {
+			if (fontProps.containsKey(TiC.PROPERTY_FONT_STYLE)) {
 				bFontSet = true;
-				fontProperties[FONT_STYLE_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONTSTYLE);
+				fontProperties[FONT_STYLE_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONT_STYLE);
 			}
 		}
 		if (!bFontSet) {
@@ -733,7 +775,7 @@ public class TiUIHelper
 		}
 		return fontProperties;
 	}
-	public static void setTextViewDIPPadding(TextView textView, int horizontalPadding, int verticalPadding) {
+	public static void setTextViewDIPPadding(final TextView textView, final int horizontalPadding, final int verticalPadding) {
 		int rawHPadding = (int)getRawDIPSize(horizontalPadding, textView.getContext());
 		int rawVPadding = (int)getRawDIPSize(verticalPadding, textView.getContext());
 		textView.setPadding(rawHPadding, rawVPadding, rawHPadding, rawVPadding);
@@ -766,57 +808,87 @@ public class TiUIHelper
 		-android.R.attr.state_enabled
 	};
 
-	public static ColorDrawable buildColorDrawable(int color) {	
-		return new ColorDrawable(color);
+	public static ColorDrawable buildColorDrawable(final Object color) {	
+	    if (color instanceof Integer) {
+	        return new ColorDrawable((Integer)color);
+	    } else if (color instanceof String) {
+	        ColorDrawable colorDrawable = null;
+	        if (color != null) {
+	            colorDrawable = buildColorDrawable(TiColorHelper.parseColor((String) color));
+	        }           
+	        return colorDrawable;
+	    }
+	    return null;
 	}
 	
-	public static ColorDrawable buildColorDrawable(String color) {
-		ColorDrawable colorDrawable = null;
-		if (color != null) {
-			colorDrawable = buildColorDrawable(TiColorHelper.parseColor(color));
-		}			
-		return colorDrawable;
-	}
-	
-	private static String resolveImageUrl(String path, KrollProxy proxy) {
+	private static String resolveImageUrl(final String path, final KrollProxy proxy) {
 		return path.length() > 0 ? proxy.resolveUrl(null, path) : null;
 	}
-	
-	public static Drawable buildImageDrawable(String image, boolean tileImage, KrollProxy proxy) {
-		if (image != null) {
-			image = resolveImageUrl(image, proxy);
-		}
-		Drawable imageDrawable = null;
-		if (image != null) {
-			TiFileHelper tfh = TiFileHelper.getInstance();
-			imageDrawable = tfh.loadDrawable(image, false, true);
 
-			if (tileImage) {
-				if (imageDrawable instanceof BitmapDrawable) {
-					BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
-					tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
-					tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
-				}
-			}
-		}
-		return imageDrawable;
-	}
+	public static Drawable buildImageDrawable(final Context context, final Object object, final boolean tileImage, final KrollProxy proxy) {
+        
+	    if (object instanceof TiBlob) {
+	        switch (((TiBlob) object).getType()) {
+            case TiBlob.TYPE_DRAWABLE:
+                return buildImageDrawable(context, ((TiBlob) object).getDrawable(), tileImage, proxy);
+            case TiBlob.TYPE_IMAGE:
+                return buildImageDrawable(context, ((TiBlob) object).getImage(), tileImage, proxy);
+            default:
+                return null;
+            }
+        } else if (object instanceof String) {
+            String url = (String) object;
+            if (url != null) {
+                url = resolveImageUrl(url, proxy);
+            }
+            Drawable imageDrawable = null;
+            if (url != null) {
+                Cache cache = TiApplication.getImageMemoryCache();
+                Bitmap bitmap = cache.get(url);
+                if (bitmap == null) {
+                    imageDrawable = TiFileHelper.loadDrawable(url);
+                    if (imageDrawable instanceof BitmapDrawable) {
+                        bitmap = ((BitmapDrawable)imageDrawable).getBitmap();
+                        cache.set(url, ((BitmapDrawable)imageDrawable).getBitmap());
+                    }
+                } else {
+                    imageDrawable = new BitmapDrawable(proxy.getActivity().getResources(), bitmap);
+                }
+                
+
+                if (tileImage) {
+                    if (imageDrawable instanceof BitmapDrawable) {
+                        BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
+                        tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
+                        tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
+                    }
+                }
+            }
+            return imageDrawable;
+        } else if (object instanceof Drawable) {
+            Drawable imageDrawable = (Drawable) object;
+            if (tileImage&& imageDrawable instanceof BitmapDrawable) {
+                BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
+                tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
+                tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
+            }
+            return imageDrawable;
+        } else if (object instanceof Bitmap) {
+	        BitmapDrawable imageDrawable = new BitmapDrawable(context.getResources(), (Bitmap) object);
+	        if (tileImage) {
+	            if (imageDrawable instanceof BitmapDrawable) {
+	                BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
+	                tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
+	                tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
+	                imageDrawable = tiledBackground;
+	            }
+	        }
+	        return imageDrawable;
+	    }
+        return null;
+    }
 	
-	public static Drawable buildImageDrawable(Context context, Bitmap image, boolean tileImage, KrollProxy proxy) {
-		BitmapDrawable imageDrawable = new BitmapDrawable(context.getResources(), image);
-		
-		if (tileImage) {
-			if (imageDrawable instanceof BitmapDrawable) {
-				BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
-				tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
-				tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
-				imageDrawable = tiledBackground;
-			}
-		}
-		return imageDrawable;
-	}
-	
-	public static TiGradientDrawable buildGradientDrawable(KrollDict gradientProperties) {
+	public static TiGradientDrawable buildGradientDrawable(final KrollDict gradientProperties) {
 		TiGradientDrawable gradientDrawable = null;
 		if (gradientProperties != null) {
 			try {
@@ -829,7 +901,7 @@ public class TiUIHelper
 		return gradientDrawable;
 	}
 
-	public static KrollDict createDictForImage(int width, int height, byte[] data)
+	public static KrollDict createDictForImage(final int width, final int height, final byte[] data)
 	{
 		KrollDict d = new KrollDict();
 		d.put(TiC.PROPERTY_X, 0);
@@ -844,12 +916,12 @@ public class TiUIHelper
 		cropRect.put(TiC.PROPERTY_WIDTH, width);
 		cropRect.put(TiC.PROPERTY_HEIGHT, height);
 		d.put(TiC.PROPERTY_CROP_RECT, cropRect);
-		d.put(TiC.PROPERTY_MEDIA, TiBlob.blobFromData(data, MIME_TYPE_PNG));
+		d.put(TiC.PROPERTY_MEDIA, TiBlob.blobFromObject(data, MIME_TYPE_PNG));
 
 		return d;
 	}
 
-	public static TiBlob getImageFromDict(KrollDict dict)
+	public static TiBlob getImageFromDict(final KrollDict dict)
 	{
 		if (dict != null) {
 			if (dict.containsKey(TiC.PROPERTY_MEDIA)) {
@@ -865,7 +937,7 @@ public class TiUIHelper
 	 /**
      * Draw the view into a bitmap.
      */
-    private static Bitmap getViewBitmap(View v) {
+    public static Bitmap getViewBitmap(final View v) {
         v.clearFocus();
         v.setPressed(false);
 
@@ -883,11 +955,15 @@ public class TiUIHelper
         v.buildDrawingCache();
         Bitmap cacheBitmap = v.getDrawingCache();
         if (cacheBitmap == null) {
-            Log.e(TAG, "failed getViewBitmap(" + v + ")", new RuntimeException());
+            Log.e(TAG, "failed getViewBitmap(" + v + ")");
             return null;
         }
-
-        Bitmap bitmap = Bitmap.createBitmap(cacheBitmap);
+        Bitmap bitmap = null;
+        try {
+            bitmap = Bitmap.createBitmap(cacheBitmap);
+        } catch (Exception e) {
+            bitmap = null;
+        }
 
         // Restore the view
         v.destroyDrawingCache();
@@ -897,7 +973,7 @@ public class TiUIHelper
         return bitmap;
     }
 	
-	public static Bitmap viewToBitmap(KrollDict proxyDict, View view)
+	public static Bitmap viewToBitmap(final KrollDict proxyDict, final View view)
 	{
 		Bitmap bitmap = null;
 
@@ -963,22 +1039,26 @@ public class TiUIHelper
 						bitmapConfig = Config.RGB_565;
 					}
 				}
-	
-				bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
-				Canvas canvas = new Canvas(bitmap);
-				view.draw(canvas);
-				canvas = null;
+				try {
+	                bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
+	                Canvas canvas = new Canvas(bitmap);
+	                view.draw(canvas);
+	                canvas = null;
+                } catch (Exception e) {
+                    bitmap = null;
+                }
+				
 			}
 		}
 
 		return bitmap;
 	}
 
-	public static TiBlob viewToImage(KrollDict proxyDict, View view)
+	public static TiBlob viewToImage(final KrollDict proxyDict, final View view)
 	{
 		Bitmap bitmap = viewToBitmap(proxyDict, view);
 		if (bitmap != null) {
-			return TiBlob.blobFromImage(bitmap);
+			return TiBlob.blobFromObject(bitmap);
 		}
 		return null;
 	}
@@ -990,7 +1070,7 @@ public class TiUIHelper
 	 * @return a new bitmap instance.
 	 * @module.api
 	 */
-	public static Bitmap createBitmap(InputStream stream, BitmapFactory.Options opts)
+	public static Bitmap createBitmap(final InputStream stream, BitmapFactory.Options opts)
 	{
 		Rect pad = new Rect();
 		if (opts == null) {
@@ -1013,28 +1093,70 @@ public class TiUIHelper
 	 * @return a new bitmap instance.
 	 * @module.api
 	 */
-	public static Bitmap createBitmap(InputStream stream)
+	public static Bitmap createBitmap(final InputStream stream)
 	{
 		return createBitmap(stream, null);
 	}
 	
-	private static String getResourceKeyForImage(String url)
+    private static final Pattern drawablePattern = Pattern.compile("/Resources/(.*)\\.png$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern imagePattern = Pattern.compile("^.*/Resources/images/(.*$)");
+	
+    
+    private static BitmapFactory.Options bmpOptions = null;
+    private static BitmapFactory.Options getBitmapOptions() {
+        if (bmpOptions == null) {
+            bmpOptions = new BitmapFactory.Options();
+            bmpOptions.inPurgeable = true;
+            bmpOptions.inInputShareable = true;
+            bmpOptions.inDensity = DisplayMetrics.DENSITY_DEFAULT;
+            bmpOptions.inTargetDensity = TiApplication.getAppDensityDpi();
+            bmpOptions.inScaled = true;
+        }
+        return bmpOptions;
+    }
+	/**
+	 * Creates and returns a density scaled Bitmap from an InputStream.
+	 * @param stream an InputStream to read bitmap data.
+	 * @return a new bitmap instance.
+	 */
+	public static Bitmap createDensityScaledBitmap(final InputStream stream)
+	{
+		Bitmap b = null;
+		try {
+			b = BitmapFactory.decodeResourceStream(null, null, stream, null, getBitmapOptions());
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage());
+		}
+		return b;
+	}
+	
+	private static String getResourceKeyForImage(final String url)
 	{
 		if (resourceImageKeys.containsKey(url)) {
 			return resourceImageKeys.get(url);
 		}
 		
-		Pattern pattern = Pattern.compile("^.*/Resources/images/(.*$)");
-		Matcher matcher = pattern.matcher(url);
+		Matcher matcher = imagePattern.matcher(url);
+		String chopped = null;
 		if (!matcher.matches()) {
-			return null;
+		    matcher = drawablePattern.matcher(url);
+		    if (matcher.find()) {
+	            chopped = matcher.group(1);
+		    }
+		    if (chopped != null) {
+		        if (chopped.endsWith(".9")) {
+	                chopped = chopped.substring(0, chopped.lastIndexOf(".9"));
+	            }
+	            resourceImageKeys.put(url, chopped);
+		    }
+            return chopped;
 		}
 		
-		String chopped = matcher.group(1);
+		chopped = matcher.group(1);
 		if (chopped == null) {
 			return null;
 		}
-		
+
 		chopped = chopped.toLowerCase();
 		String forHash = chopped;
 		if (forHash.endsWith(".9.png")) {
@@ -1060,9 +1182,9 @@ public class TiUIHelper
 		return sResult;
 	}
 	
-	public static int getResourceId(String url)
+	public static int getResourceId(final String url)
 	{
-		if (!url.contains("Resources/images/")) {
+		if (!url.contains("Resources/")) {
 			return 0;
 		}
 		
@@ -1078,13 +1200,27 @@ public class TiUIHelper
 		}
 	}
 	
+	public static int getResourceId(final Object value, final KrollProxy proxy)
+    {
+	    if (value instanceof Number) {
+	        return ((Number)value).intValue();
+        } else {
+            String iconUrl = TiConvert.toString(value);
+            if (iconUrl == null) {
+                return 0;
+            }
+            String iconFullUrl = proxy.resolveUrl(null, iconUrl);
+            return TiUIHelper.getResourceId(iconFullUrl);
+        }
+    }
+	
 	/**
 	 * Creates and returns a bitmap from its url.
 	 * @param url the bitmap url.
 	 * @return a new bitmap instance
 	 * @module.api
 	 */
-	public static Bitmap getResourceBitmap(String url)
+	public static Bitmap getResourceBitmap(final String url)
 	{
 		int id = getResourceId(url);
 		if (id == 0) {
@@ -1100,7 +1236,7 @@ public class TiUIHelper
 	 * @return a new bitmap instance.
 	 * @module.api
 	 */
-	public static Bitmap getResourceBitmap(int res_id)
+	public static Bitmap getResourceBitmap(final int res_id)
 	{
 		BitmapFactory.Options opts = new BitmapFactory.Options();
 		opts.inPurgeable = true;
@@ -1115,7 +1251,7 @@ public class TiUIHelper
 		return bitmap;
 	}
 
-	public static Drawable loadFastDevDrawable(String url)
+	public static Drawable loadFastDevDrawable(final String url)
 	{
 		try {
 			TiBaseFile tbf = TiFileFactory.createTitaniumFile(new String[] { url }, false);
@@ -1129,14 +1265,8 @@ public class TiUIHelper
 		return null;
 	}
 
-	public static Drawable getResourceDrawable(String url)
+	public static Drawable getResourceDrawable(final String url)
 	{
-		if (TiFastDev.isFastDevEnabled()) {
-			Drawable d = loadFastDevDrawable(url);
-			if (d != null) {
-				return d;
-			}
-		}
 		int id = getResourceId(url);
 		if (id == 0) {
 			return null;
@@ -1149,21 +1279,22 @@ public class TiUIHelper
 		}
 	}
 	
-	public static Drawable getResourceDrawable(int res_id)
+	public static Drawable getResourceDrawable(final int res_id)
 	{
 		return TiApplication.getInstance().getResources().getDrawable(res_id);
 	}
 
-	public static Drawable getResourceDrawable(Object path)
+	public static Drawable getResourceDrawable(final Object path)
 	{
 		Drawable d = null;
 		
 		try {
 	
-			if (path instanceof String) {
+		    if (path instanceof Number) {
+                return getResourceDrawable(((Number) path).intValue());
+            } else if (path instanceof String) {
 				TiUrl imageUrl = new TiUrl((String) path);
-				TiFileHelper tfh = new TiFileHelper(TiApplication.getInstance());
-				d = tfh.loadDrawable(imageUrl.resolve(), false);
+				d = TiFileHelper.loadDrawable(imageUrl.resolve());
 			} else {
 				d = TiDrawableReference.fromObject(TiApplication.getInstance().getCurrentActivity(), path).getDrawable();
 			}
@@ -1174,12 +1305,8 @@ public class TiUIHelper
 		return d;
 	}
 
-	public static void overridePendingTransition(Activity activity) 
+	public static void overridePendingTransition(final Activity activity) 
 	{
-		if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.DONUT) {
-			return;
-		}
-		
 		if (overridePendingTransition == null) {
 			try {
 				overridePendingTransition = Activity.class.getMethod("overridePendingTransition", Integer.TYPE, Integer.TYPE);
@@ -1200,7 +1327,7 @@ public class TiUIHelper
 		}
 	}
 	
-	public static ColorFilter createColorFilterForOpacity(float opacity) {
+	public static ColorFilter createColorFilterForOpacity(final float opacity) {
 		// 5x4 identity color matrix + fade the alpha to achieve opacity
 		float[] matrix = {
 			1, 0, 0, 0, 0,
@@ -1212,7 +1339,7 @@ public class TiUIHelper
 		return new ColorMatrixColorFilter(new ColorMatrix(matrix));
 	}
 	
-	public static void setDrawableOpacity(Drawable drawable, float opacity) {
+	public static void setDrawableOpacity(final Drawable drawable, final float opacity) {
 		if (drawable instanceof ColorDrawable || drawable instanceof TiBackgroundDrawable) {
 			drawable.setAlpha(Math.round(opacity * 255));
 		} else if (drawable != null) {
@@ -1220,11 +1347,11 @@ public class TiUIHelper
 		}
 	}
 	
-	public static void setPaintOpacity(Paint paint, float opacity) {
+	public static void setPaintOpacity(final Paint paint, final float opacity) {
 		paint.setColorFilter(createColorFilterForOpacity(opacity));
 	}
 
-	public static void requestSoftInputChange(TiUIView uiView, View view) 
+	public static void requestSoftInputChange(final TiUIView uiView, final View view) 
 	{
 		int focusState = uiView.getFocusState();
 		if (focusState > TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS) {
@@ -1242,7 +1369,7 @@ public class TiUIHelper
 	 * hides the soft keyboard.
 	 * @param view the current focused view.
 	 */
-	public static void hideSoftKeyboard(View view) 
+	public static void hideSoftKeyboard(final View view) 
 	{
 		showSoftKeyboard(view, false);
 	}
@@ -1252,7 +1379,7 @@ public class TiUIHelper
 	 * @param view the current focused view.
 	 * @param show whether to show soft keyboard.
 	 */
-	public static void showSoftKeyboard(View view, boolean show) 
+	public static void showSoftKeyboard(final View view, final boolean show) 
 	{
 		if (view == null) return;
 		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -1313,14 +1440,14 @@ public class TiUIHelper
 		}
 	}
 
-	public static void firePostLayoutEvent(TiUIView view)
+	public static void firePostLayoutEvent(final TiUIView view)
 	{
 		if (view != null && view.getProxy() != null) {
 			view.getProxy().fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
 		}
 	}
 
-	public static boolean isViewInsideViewOfClass(View view, Class<?>[] testClass) {
+	public static boolean isViewInsideViewOfClass(final View view, final Class<?>[] testClass) {
 		ViewParent parent = view.getParent();
 		if (parent != null) {
 			for (int i = 0; i < testClass.length; i++) {
@@ -1333,7 +1460,7 @@ public class TiUIHelper
 		return false;
 	}
 	
-	public static void removeViewFromSuperView(View view) {
+	public static void removeViewFromSuperView(final View view) {
 		if (view == null) return;
 		 ViewGroup parentViewGroup = (ViewGroup) view.getParent();
         if (parentViewGroup != null) {
@@ -1341,43 +1468,75 @@ public class TiUIHelper
         }
 	}
 	
-	public static void addView(ViewGroup parent, View view) {
+	public static void removeViewFromSuperView(final TiViewProxy viewProxy) {
+	    ParentingProxy parentProxy = viewProxy.getParent();
+        //Remove parent view if possible
+        if (parentProxy != null && parentProxy instanceof TiViewProxy) {
+            TiUIView tiView = viewProxy.peekView();
+            TiUIView parentView = ((TiViewProxy) parentProxy).peekView();
+            if (parentView != null && tiView != null) {
+                parentView.remove(tiView);
+            }
+            viewProxy.setParent(null);
+        }
+	}
+	
+    public static void safeAddView(final ViewGroup parent, final View view) {
+        if (parent == null || view == null)
+            return;
+        removeViewFromSuperView(view);
+        parent.addView(view);
+    }
+
+	public static void addView(final ViewGroup parent, final View view) {
 		removeViewFromSuperView(view);
 		parent.addView(view);
 	}
 	
-	public static void addView(ViewGroup parent, View view, int index) {
+	public static void addView(final ViewGroup parent, final TiViewProxy viewProxy) {
+	    TiUIView tiView = viewProxy.getOrCreateView();
+	    if (tiView == null) return;
+        View view = tiView.getOuterView();
+        if (view == null) return;
+        removeViewFromSuperView(view);
+        parent.addView(view, tiView.getLayoutParams());
+    }
+    
+	
+	public static void addView(final ViewGroup parent, final View view, final int index) {
 		removeViewFromSuperView(view);
 		parent.addView(view, index);
 	}
 	
-	public static void addView(ViewGroup parent, View view, ViewGroup.LayoutParams params) {
+	public static void addView(final ViewGroup parent, final View view, final ViewGroup.LayoutParams params) {
 		removeViewFromSuperView(view);
 		parent.addView(view, params);
 	}
 	
-	public static void addView(ViewGroup parent, View view, int index, ViewGroup.LayoutParams params) {
+	public static void addView(final ViewGroup parent, final View view, final int index, ViewGroup.LayoutParams params) {
 		removeViewFromSuperView(view);
 		parent.addView(view, index, params);
 	}
 	
-	public static KrollDict getViewRectDict(View view) {
+	public static KrollDict getViewRectDict(final View view) {
 		TiDimension nativeWidth = new TiDimension(view.getWidth(), TiDimension.TYPE_WIDTH);
 		TiDimension nativeHeight = new TiDimension(view.getHeight(), TiDimension.TYPE_HEIGHT);
 		TiDimension nativeLeft = new TiDimension(view.getLeft(), TiDimension.TYPE_LEFT);
 		TiDimension nativeTop = new TiDimension(view.getTop(), TiDimension.TYPE_TOP);
 
-		// TiDimension needs a view to grab the window manager, so we'll just use the decorview of the current window
-		View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
-		KrollDict d = new KrollDict();
-		d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault(decorView));
-		d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault(decorView));
-		d.put(TiC.PROPERTY_X, nativeLeft.getAsDefault(decorView));
-		d.put(TiC.PROPERTY_Y, nativeTop.getAsDefault(decorView));
+        KrollDict d = new KrollDict();
+		Activity activity  = TiApplication.getAppCurrentActivity();
+        if (activity != null) {
+            View decorView = activity.getWindow().getDecorView();
+            d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault(decorView));
+            d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault(decorView));
+            d.put(TiC.PROPERTY_X, nativeLeft.getAsDefault(decorView));
+            d.put(TiC.PROPERTY_Y, nativeTop.getAsDefault(decorView));
+        }
 		return d;
 	}
 	
-	public static RectF insetRect(RectF source, RectF inset) {
+	public static RectF insetRect(final RectF source, final RectF inset) {
 		if (inset == null) return source;
 		return new RectF(source.left + inset.left, 
 				source.top + inset.top, 
@@ -1385,7 +1544,7 @@ public class TiUIHelper
 				source.bottom - inset.bottom);
 	}
 	
-	public static RectF insetRect(RectF source, float inset) {
+	public static RectF insetRect(final RectF source, final float inset) {
 		if (inset == 0.0) return source;
 		return new RectF(source.left + inset, 
 				source.top + inset, 
@@ -1393,7 +1552,7 @@ public class TiUIHelper
 				source.bottom - inset);
 	}
 	
-	public static Shadow getShadow(KrollDict dict) {
+	public static Shadow getShadow(final KrollDict dict) {
 		Shadow result = new Shadow();
 		if (dict == null) return result;
 		if (dict.containsKey(TiC.PROPERTY_OFFSET)) 
@@ -1410,11 +1569,265 @@ public class TiUIHelper
 		return result;
 	}
 	
-	public static int adjustColorAlpha(int color, float factor) {
+	public static int adjustColorAlpha(final int color, final float factor) {
 	    int alpha = Math.round(Color.alpha(color) * factor);
 	    int red = Color.red(color);
 	    int green = Color.green(color);
 	    int blue = Color.blue(color);
 	    return Color.argb(alpha, red, green, blue);
+	}
+	
+	
+	private static Object getValueForKeyPath(final String key, final HashMap object) {
+	    Object current = object;
+	    Object result = null;
+	    String[] parts = TiUtils.fastSplit(key, '.');
+	    int length = parts.length;
+	    int canReturnIndex = length - 1;
+	    for (int i = 0; i < length; i++) {
+	        final String part = parts[i];
+	        if (current instanceof KrollProxy) {
+	            result = ((KrollProxy)current).getProperty(part);
+	            if (result == null) {
+	                final String getter = "get" + Character.toUpperCase(part.charAt(0)) + part.substring(1);
+	                Method method;
+	                try {
+	                    method = current.getClass().getMethod(getter, (Class<?>[]) null);
+	                    result = method.invoke(current, (Object[]) null);
+	                } catch (Exception e) {
+	                    result = null;
+	                }
+	            }
+	            
+	        } else if (current instanceof HashMap) {
+	            result = ((HashMap) current).get(parts[i]);
+	        } else {
+	            result = null;
+	        }
+            if (result != null){
+                current = result;
+            } else {
+                if (i != canReturnIndex) {
+                    return null;
+                }
+                break;
+            }
+        }
+	    return result;
+	}
+
+    private static final char VAR_PREFIX = '_';
+    public static void applyMathDict(final KrollDict mathDict, final KrollDict event, final KrollProxy source) {
+        if (event == null) return;
+        KrollDict expressions = new KrollDict();
+	    
+        HashMap<String, Object> vars = mathDict.getHashMap("variables");
+	    if (vars != null) {
+	        for (Map.Entry<String, Object> entry : vars.entrySet()) {
+	            expressions.put(VAR_PREFIX+entry.getKey(), getValueForKeyPath(TiConvert.toString(entry.getValue()), event));
+	        }
+	    }
+	    
+	    String condition  = mathDict.getString("condition");
+	    if (condition != null) {
+	        try {
+                Expression expression = new Expression(condition);
+                  for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+                      String value  = TiConvert.toString(entry2.getValue());
+                      if (value != null) {
+                          expression.with(entry2.getKey(), value);
+                      }
+                  }
+                if (expression.eval().intValue() == 0) {
+                    return;
+                }
+              } catch (Exception e) {
+              }
+	    }
+	    
+        HashMap<String, Object> exps = mathDict.getHashMap("expressions");
+	    if (exps != null) {
+	        for (Map.Entry<String, Object> entry : exps.entrySet()) {
+	            
+//	            Scope scope = Scope.create();
+//	            try {
+//                    for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+//                        Variable v = scope.getVariable("$"+entry2.getKey());
+//                        v.setValue(TiConvert.toFloat(entry2.getValue()));
+//                    }
+//                    parsii.eval.Expression expr = Parser.parse(TiConvert.toString(entry.getValue()), scope);
+//                    expressions.put(entry.getKey(), expr.evaluate());
+//                    
+//                } catch (ParseException e1) {
+//                } 
+	            
+	            try {
+                  Expression expression = new Expression(TiConvert.toString(entry.getValue()));
+	                for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+	                    String value  = TiConvert.toString(entry2.getValue());
+	                    if (value != null) {
+	                        expression.with(entry2.getKey(), value);
+	                    }
+                    }
+                  expressions.put(VAR_PREFIX+entry.getKey(), expression.eval().toPlainString());
+                } catch (Exception e) {
+                    
+                    return;
+                }
+            }
+	    }
+	    
+	    Object[] targets = mathDict.getArray("targets");
+	    
+	    if (targets != null) {
+	        for (Object obj : targets) {
+	            HashMap<String, Object> targetDict = TiConvert.toHashMap(obj);
+                if (targetDict != null) {
+                    Object target = targetDict.get("target");
+                    if (target == null) {
+                        target = source;
+                    } else if(target instanceof String) {
+                        target = source.getProperty((String) target);
+                    }
+                    if (target instanceof KrollProxy) {
+                        HashMap<String, Object> targetVariables = TiConvert.toHashMap(targetDict.get("targetVariables"));
+                        if (targetVariables != null) {
+                            for (Map.Entry<String, Object> entry : targetVariables.entrySet()) {
+                                final String key = entry.getKey();
+                                Object current = ((KrollProxy) target).getProperty(TiConvert.toString(entry.getValue()), true);
+                                if (current != null) {
+                                    expressions.put(VAR_PREFIX + key, current);
+                                }
+                                else {
+                                    expressions.put(VAR_PREFIX + key, 0);
+                                }
+                            }
+                        }
+                        
+                        
+                        HashMap<String, Object> props = TiConvert.toHashMap(targetDict.get("properties"));
+                        KrollDict realProps = new KrollDict();
+                        for (Map.Entry<String, Object> entry : props.entrySet()) {
+                            final String key = entry.getKey();
+                            final String value = TiConvert.toString(entry.getValue());
+                            Object current = ((KrollProxy) target).getProperty(key);
+                            if (current != null) {
+                                expressions.put(VAR_PREFIX+"current", current);
+                            }
+                            else {
+                                expressions.put(VAR_PREFIX+"current", 0);
+                            }
+                            
+//                            Scope scope = Scope.create();
+//                            try {
+//                                for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+//                                    Variable v = scope.getVariable("$"+entry2.getKey());
+//                                    v.setValue(TiConvert.toFloat(entry2.getValue(), 0));
+//                                }
+//                                parsii.eval.Expression expr = Parser.parse(value, scope);
+//                                realProps.put(entry.getKey(), expr.evaluate());
+//                                
+//                            } catch (ParseException e1) {
+//                                String result = new String(value);
+//                              for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+//                                  result = replace(result, "$"+entry2.getKey(), TiConvert.toString(entry2.getValue()));
+//                              }
+//                              realProps.put(key, result);
+//                            } 
+                            
+                            Expression expression = new Expression(value);
+                            for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+                                Object value2 = entry2.getValue();
+                                if (value2 != null) {
+                                    expression.with(entry2.getKey(), TiConvert.toString(value2));
+                                }
+                            }
+                            try {
+                                realProps.put(key, expression.eval().toPlainString());
+                            } catch (Exception e) {
+                                String result = new String(value);
+                                for (Map.Entry<String, Object> entry2 : expressions.entrySet()) {
+                                    result = TiUtils.fastReplace(result, entry2.getKey(), TiConvert.toString(entry2.getValue()));
+                                }
+                                realProps.put(key, result);
+                            }
+                        }
+                        ((KrollProxy) target).applyPropertiesInternal(realProps, false, false);
+                    }
+                }
+            }
+	    }
+	}
+
+
+	/**
+	 * To get the redirected Uri
+	 * @param Uri
+	 */
+	public static Uri getRedirectUri(Uri mUri) throws MalformedURLException, IOException
+	{
+		if (!TiC.HONEYCOMB_OR_GREATER &&
+				("http".equals(mUri.getScheme()) || "https".equals(mUri.getScheme()))) {
+			// Media player doesn't handle redirects, try to follow them
+			// here. (Redirects work fine without this in ICS.)
+			while (true) {
+				// java.net.URL doesn't handle rtsp
+				if (mUri.getScheme() != null && mUri.getScheme().equals("rtsp"))
+					break;
+
+				URL url = new URL(mUri.toString());
+				HttpURLConnection cn = (HttpURLConnection) url.openConnection();
+				cn.setInstanceFollowRedirects(false);
+				String location = cn.getHeaderField("Location");
+				if (location != null) {
+					String host = mUri.getHost();
+					int port = mUri.getPort();
+					String scheme = mUri.getScheme();
+					mUri = Uri.parse(location);
+					if (mUri.getScheme() == null) {
+						// Absolute URL on existing host/port/scheme
+						if (scheme == null) {
+							scheme = "http";
+						}
+						String authority = port == -1 ? host : host + ":" + port;
+						mUri = mUri.buildUpon().scheme(scheme).encodedAuthority(authority).build();
+					}
+				} else {
+					break;
+				}
+			}
+		}
+		return mUri;
+	}
+	
+	public static FragmentTransaction transactionFragment(final Fragment fragment, final View container, final FragmentActivity activity) {
+	    FragmentManager manager = activity.getSupportFragmentManager();
+        Fragment tabFragment = manager.findFragmentById(android.R.id.tabcontent);
+        // check if is opened inside an actionbar tab, which is
+        // another fragment
+        if (tabFragment != null) {
+            manager = tabFragment.getChildFragmentManager();
+        }
+        FragmentTransaction transaction = null;
+        transaction = manager.beginTransaction();
+        transaction.add(container.getId(), fragment);
+        transaction.commit();
+        return transaction;
+	}
+	
+	public static int getColorAccent(final Context context) {
+	    TypedArray values = null;
+        try {
+            int resourceId = TiRHelper.getResource("android.support.v7.appcompat.R$", "attr.colorAccent");
+            int[] attrs = {resourceId};
+            values = context.getTheme().obtainStyledAttributes(attrs);
+            return values.getColor(0, 0);
+        } catch (ResourceNotFoundException e) {
+            return 0;
+        } finally {
+            if (values != null) {
+                values.recycle();
+            }
+        }
 	}
 }

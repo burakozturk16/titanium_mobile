@@ -17,6 +17,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarFile;
@@ -133,9 +135,15 @@ public class KrollBindingGenerator
 
 		while (parentModuleClass != null) {
 			Map<String, Object> parent = jsonUtils.getStringMap(proxies, parentModuleClass);
-			String parentName = (String) jsonUtils.getStringMap(parent, "proxyAttrs").get("name");
-			fullApiName = parentName + "." + fullApiName;
+			if (parent != null) {
+			    Map<String, Object> proxyAttrs = jsonUtils.getStringMap(parent, "proxyAttrs");
+			    if (proxyAttrs != null && (!proxyAttrs.containsKey("creatable") || (boolean) proxyAttrs.get("creatable"))) {
+			        String parentName = (String) proxyAttrs.get("name");
+	                fullApiName = parentName + "." + fullApiName;
 
+			    }
+			}
+			
 			parentModuleClass = getParentModuleClass(parent);
 		}
 
@@ -258,6 +266,38 @@ public class KrollBindingGenerator
 		tiProxies.putAll(jsonUtils.getStringMap(properties, "proxies"));
 		tiModules.putAll(jsonUtils.getStringMap(properties, "modules"));
 	}
+	
+	@SuppressWarnings("unchecked")
+    protected void loadTitaniumModuleBindings(final String module)
+        throws ParseException, IOException, URISyntaxException
+    {
+        System.out.println("loadTitaniumModuleBindings " + module);
+        // Load the binding JSON data from the titanium.jar relative to the kroll-apt.jar
+        // where this class is defined in the MobileSDK
+
+        // According to JavaDoc, getCodeSource() is the only possible "null" part of this chain
+        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
+        if (codeSource == null) {
+            System.err.println("Error: No code source found on the ClassLoader's protection domain");
+            System.exit(1);
+        }
+
+        URL krollAptJarUrl = codeSource.getLocation();
+        String mobileAndroidDir = new File(krollAptJarUrl.toURI()).getParent();
+
+        JarFile moduleJar = new JarFile(new File(mobileAndroidDir,  "modules/titanium-" + module + ".jar"));
+        ZipEntry jsonEntry = moduleJar.getEntry("org/appcelerator/titanium/bindings/"+ module + ".json");
+        InputStream jsonStream = moduleJar.getInputStream(jsonEntry);
+
+        Map<String, Object> properties = (Map<String, Object>)
+            JSONValue.parseWithException(new InputStreamReader(jsonStream));
+        jsonStream.close();
+        moduleJar.close();
+
+        tiProxies.putAll(jsonUtils.getStringMap(properties, "proxies"));
+        tiModules.putAll(jsonUtils.getStringMap(properties, "modules"));
+    }
+
 
 	protected void generateApiTree()
 	{
@@ -301,17 +341,28 @@ public class KrollBindingGenerator
 
 		String outDir = args[0];
 		boolean isModule = "true".equalsIgnoreCase(args[1]);
-		String packageName = args[2];
+        String packageName = args[2];
+        String tiDeps = args[3];
 
 		KrollBindingGenerator generator = new KrollBindingGenerator( outDir, packageName);
-
+		
+		
+		
+		
 		// First pass to generate the entire API tree
-		for (int i = 3; i < args.length; i++) {
+		for (int i = 4; i < args.length; i++) {
 			generator.loadBindings(args[i]);
 		}
 
-		if (isModule) {
+		if (isModule ) {
 			generator.loadTitaniumBindings();
+			//look for ti dependencies
+            if (!"none".equals(tiDeps)) {
+                String[] array = tiDeps.split(",");
+                for (int i = 0; i < array.length; i++) {
+                    generator.loadTitaniumModuleBindings(array[i]);
+                }
+            }
 		}
 
 		generator.generateApiTree();

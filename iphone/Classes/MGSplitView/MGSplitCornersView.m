@@ -6,10 +6,9 @@
 //  Copyright 2010 Instinctive Code.
 //
 //	License and code at http://github.com/mattgemmell/MGSplitViewController/
-#import "TiBase.h"
 
 #ifdef USE_TI_UIIPADSPLITWINDOW
-
+#import "TiBase.h"
 #import "MGSplitCornersView.h"
 
 
@@ -69,10 +68,10 @@ double rad2Deg(double radians)
 {
 	// Draw two appropriate corners, with cornerBackgroundColor behind them.
 	if (cornerRadius > 0) {
-		if (NO) { // just for debugging.
-			[[UIColor redColor] set];
-			UIRectFill(self.bounds);
-		}
+//		if (NO) { // just for debugging.
+//			[[UIColor redColor] set];
+//			UIRectFill(self.bounds);
+//		}
 		
 		float maxX = CGRectGetMaxX(self.bounds);
 		float maxY = CGRectGetMaxY(self.bounds);

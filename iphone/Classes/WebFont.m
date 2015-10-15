@@ -25,7 +25,7 @@
 {
 	if (size < 4) 
 	{
-		size=14;
+		size=[UIFont labelFontSize];
 	}
 	return size;
 }
@@ -37,11 +37,39 @@
 
 -(BOOL)isValidTextStyle:(NSString*)theStyle
 {
-    if([TiUtils isIOS7OrGreater]){
-        return ([theStyle isEqualToString:UIFontTextStyleBody] || [theStyle isEqualToString:UIFontTextStyleCaption1] || [theStyle isEqualToString:UIFontTextStyleCaption2]
-                || [theStyle isEqualToString:UIFontTextStyleHeadline] || [theStyle isEqualToString:UIFontTextStyleSubheadline] || [theStyle isEqualToString:UIFontTextStyleFootnote]);
+    return ([theStyle isEqualToString:UIFontTextStyleBody] || [theStyle isEqualToString:UIFontTextStyleCaption1] || [theStyle isEqualToString:UIFontTextStyleCaption2]
+            || [theStyle isEqualToString:UIFontTextStyleHeadline] || [theStyle isEqualToString:UIFontTextStyleSubheadline] || [theStyle isEqualToString:UIFontTextStyleFootnote]);
+}
+
+- (NSCharacterSet *)camelcaseDelimiters {
+	return [NSCharacterSet characterSetWithCharactersInString:@"-_"];
+}
+
+
+- (NSString *)classifyString:(NSString*)string {
+	if (!string) return nil;
+    NSUInteger len = [string length];
+    
+    BOOL capitalizeNext = YES;
+	NSMutableString *underscored = [NSMutableString new];
+	NSCharacterSet *delimiters = [self camelcaseDelimiters];
+    
+    for(int i = 0; i < len; ++i) {
+        unichar current = [string characterAtIndex:i];
+		if([delimiters characterIsMember:current]) {
+			capitalizeNext = YES;
+		} else {
+            NSString *currChar = [NSString stringWithCharacters:&current length:1];
+			if(capitalizeNext) {
+				[underscored appendString:[currChar uppercaseString]];
+				capitalizeNext = NO;
+			} else {
+                [underscored appendString:currChar];
+			}
+		}
     }
-    return NO;
+	
+	return [underscored autorelease];
 }
 
 -(UIFont *) font
@@ -51,8 +79,20 @@
             font = [[UIFont preferredFontForTextStyle:textStyle] retain];
         } else {
             if (family != nil) {
-                if ([[UIFont familyNames] containsObject:family]) {
-                    NSArray* fontNames = [[UIFont fontNamesForFamilyName:family] sortedArrayUsingSelector:@selector(compare:)];
+                NSString* fontName = family;
+                
+                if (self.weight) {
+                    fontName = [NSString stringWithFormat:@"%@-%@", fontName, self.weight];
+                }
+                NSArray* fontNames = [[UIFont fontNamesForFamilyName:fontName] sortedArrayUsingSelector:@selector(compare:)];
+                if ([fontNames count] == 0 && ![fontName isEqualToString:family]) {
+                    //try ignoring the weight
+                    fontNames = [[UIFont fontNamesForFamilyName:family] sortedArrayUsingSelector:@selector(compare:)];
+                }
+                if ([fontNames count] == 1) {
+                    font = [[UIFont fontWithName:[fontNames objectAtIndex:0] size:self.size] retain];
+                }
+                else if ([fontNames count] > 0) {
                     NSString* foundFontName = nil;
                     if (isBoldWeight || isSemiboldWeight || isItalicStyle) {
                         NSMutableArray* primaryMatches = [[NSMutableArray alloc] init];
@@ -127,7 +167,8 @@
                             font = [[UIFont fontWithName:foundFontName size:self.size] retain];
                         }
                     }
-                } else {
+                }
+                else {
                     //family points to a fully qualified font name (so we hope)
                     font = [[UIFont fontWithName:family size:self.size] retain];
                 }
@@ -138,6 +179,9 @@
                     UIFont* theFont = [UIFont boldSystemFontOfSize:self.size];
                     if (self.isItalicStyle) {
                         NSString* fontFamily = [theFont familyName];
+                        if ([fontFamily isEqualToString:@".Helvetica Neue Interface"]) {
+                            fontFamily = @"Helvetica Neue";
+                        }
                         NSArray* fontNames = [UIFont fontNamesForFamilyName:fontFamily];
                         NSString* foundFontName = nil;
                         for (NSString* name in fontNames) {
@@ -233,16 +277,18 @@
 		didChange = YES;
 	}
 
-
 	NSString * fontWeightObject = [fontDict objectForKey:@"weight"];
 	if([fontWeightObject isKindOfClass:[NSString class]]){
 		fontWeightObject = [fontWeightObject lowercaseString];
+        NSString* newValue=nil;
 		if([fontWeightObject isEqualToString:@"semibold"]) {
+            newValue = @"semi_bold";
             didChange |= !(self.isSemiboldWeight)||(self.isBoldWeight)||(self.isNormalWeight);
             self.isSemiboldWeight = YES;
             self.isBoldWeight = NO;
             self.isNormalWeight = NO;
         } else if([fontWeightObject isEqualToString:@"bold"]){
+            newValue = fontWeightObject;
             didChange |= !(self.isBoldWeight)||(self.isSemiboldWeight)||(self.isNormalWeight);
             self.isBoldWeight = YES;
             self.isSemiboldWeight = NO;
@@ -253,6 +299,12 @@
             self.isSemiboldWeight = NO;
 			self.isNormalWeight = YES;
 		}
+        else {
+            newValue = fontWeightObject;
+        }
+        newValue = [self classifyString:newValue];
+        didChange |= ![newValue isEqualToString:self.weight];
+        self.weight = newValue;
 	} else if((inheritedFont != NULL) && (fontWeightObject == nil)) {
 		BOOL isBoldBool = inheritedFont.isBoldWeight;
 		if(self.isBoldWeight != isBoldBool){
@@ -305,7 +357,7 @@
 +(WebFont *)defaultBoldFont
 {
 	WebFont * result = [[self alloc] init];
-	result.size = 15;
+	result.size = [UIFont labelFontSize];
 	result.isBoldWeight = YES;
 	return [result autorelease];
 }
@@ -313,7 +365,7 @@
 +(WebFont *)defaultItalicFont
 {
     WebFont * result = [[self alloc] init];
-    result.size = 15;
+    result.size = [UIFont labelFontSize];
     result.isItalicStyle = YES;
     return [result autorelease];
 }
@@ -322,7 +374,7 @@
 +(WebFont *)defaultFont
 {
 	WebFont * result = [[self alloc] init];
-	result.size = 15;
+	result.size = [UIFont labelFontSize];
 	return [result autorelease];
 }
 
@@ -330,7 +382,7 @@
 {
 	WebFont * result = [[self alloc] init];
 	result.family = [[name copy] autorelease];
-	result.size = 15;
+	result.size = [UIFont labelFontSize];
 	return [result autorelease];
 }
 

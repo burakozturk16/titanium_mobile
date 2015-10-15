@@ -5,16 +5,10 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
-@interface TiErrorController : UIViewController {
-	
-	NSString *error;
-    UILabel *disclosureLabel;
-    UILabel *messageLabel;
-    UIButton *dismissButton;
-    UIView *centerView;
-    UILabel *titleLabel;
-}
+@class TiScriptError;
+@class KrollBridge;
+@interface TiErrorController : UIViewController
 
--(id)initWithError:(NSString*)error_;
+-(id)initWithError:(TiScriptError*)error_ template:(NSDictionary*)template inContext:(KrollBridge*)bridge;
 
 @end

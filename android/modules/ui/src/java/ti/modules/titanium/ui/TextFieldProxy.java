@@ -23,6 +23,8 @@ import android.app.Activity;
 import android.os.Message;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors = {
+	TiC.PROPERTY_ATTRIBUTED_STRING,
+	TiC.PROPERTY_ATTRIBUTED_HINT_TEXT,
 	TiC.PROPERTY_AUTOCAPITALIZATION,
 	TiC.PROPERTY_AUTOCORRECT,
 	TiC.PROPERTY_AUTO_LINK,
@@ -33,6 +35,7 @@ import android.os.Message;
 	TiC.PROPERTY_ENABLE_RETURN_KEY,
 	TiC.PROPERTY_FONT,
 	TiC.PROPERTY_HINT_TEXT,
+	TiC.PROPERTY_HINT_TEXT_COLOR,
 	TiC.PROPERTY_KEYBOARD_TYPE,
 	TiC.PROPERTY_MAX_LENGTH,
 	TiC.PROPERTY_PASSWORD_MASK,
@@ -153,7 +156,8 @@ public class TextFieldProxy extends ViewProxy
 		return "Ti.UI.TextField";
 	}
 	
-	@Override
+	@SuppressWarnings("null")
+    @Override
     public boolean shouldFireChange(Object oldValue, Object newValue)
     {
         boolean oldNullEmpty = oldValue == null || (oldValue instanceof String && TiConvert.toString(oldValue).length() == 0);

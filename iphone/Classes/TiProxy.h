@@ -4,12 +4,15 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#import "TiBase.h"
 #import "TiEvaluator.h"
 #import "KrollCallback.h"
 #import "KrollObject.h"
 #import "TiBindingRunLoop.h"
 #import <pthread.h>
+
+#ifndef TI_BASE_H
+#import "TiBase.h"
+#endif
 
 @class KrollBridge;
 @class KrollObject;
@@ -35,6 +38,7 @@ extern NSString * const TiExceptionMemoryFailure;
 
 @class TiHost;
 @class TiProxy;
+@class TiParentingProxy;
 
 typedef enum {
 	NativeBridge,
@@ -45,7 +49,7 @@ typedef enum {
 
 @protocol TiViewEventOverrideDelegate <NSObject>
 @required
-- (NSDictionary *)overrideEventObject:(NSDictionary *)eventObject forEvent:(NSString *)eventType fromViewProxy:(TiProxy *)viewProxy;
+- (void)overrideEventObject:(NSMutableDictionary *)eventObject forEvent:(NSString *)eventType fromViewProxy:(TiProxy *)viewProxy;
 
 @optional
 - (void)viewProxy:(TiProxy *)viewProxy updatedValue:(id)value forType:(NSString *)type;
@@ -81,14 +85,14 @@ typedef enum {
  @param type The listener type.
  @param count The current number of active listeners
  */
--(void)listenerAdded:(NSString*)type count:(int)count;
+-(void)listenerAdded:(NSString*)type count:(NSInteger)count;
 
 /**
  Tells the delegate that a listener has been removed to the proxy.
  @param type The listener type.
  @param count The current number of active listeners after the remove
  */
--(void)listenerRemoved:(NSString*)type count:(int)count;
+-(void)listenerRemoved:(NSString*)type count:(NSInteger)count;
 
 /**
  Tells the delegate to detach from proxy.
@@ -115,7 +119,9 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 	BOOL _bubbleParentDefined;
     
 @private
-	NSMutableDictionary *listeners;
+    NSMutableDictionary *listeners;
+    NSMutableDictionary *listenersOnce;
+    NSMutableDictionary *evaluators;
 	BOOL destroyed;
 	id<TiProxyDelegate> modelDelegate;
 	NSURL *baseURL;
@@ -124,7 +130,10 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 	BOOL reproxying;
 //    BOOL initPropertiesOnCreation;
 @protected
-	NSMutableDictionary *dynprops; 
+    NSMutableDictionary *_proxyBindings;
+    BOOL _fakeApplyProperties;
+    BOOL _shouldRetainModelDelegate;
+	NSMutableDictionary *dynprops;
 	pthread_rwlock_t dynpropsLock; // NOTE: You must respect the dynprops lock when accessing dynprops elsewhere!
 
 	int bridgeCount;
@@ -151,6 +160,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 @property(readonly,nonatomic)			int bindingRunLoopCount;
 @property(readonly,nonatomic)			TiBindingRunLoop primaryBindingRunLoop;
 @property(readonly,nonatomic)			NSArray * bindingRunLoopArray;
+@property(readonly,nonatomic)           BOOL createdFromDictionary;
+@property(readwrite,nonatomic)          BOOL fakeApplyProperties;
 
 /**
  Provides access to proxy delegate.
@@ -159,6 +170,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 
 +(BOOL)shouldRegisterOnInit;
 
+-(id<TiEvaluator>)getContext;
 #pragma mark Private 
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context;
@@ -298,6 +310,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 
 //SetCallback is done internally by setValue:forUndefinedKey:
 -(void)fireCallback:(NSString*)type withArg:(NSDictionary *)argDict withSource:(id)source;
+-(void)fireCallback:(NSString*)type withArg:(NSDictionary *)argDict withSource:(id)source withHandler:(void(^)(id result))handler;
 
 #pragma mark Public 
 
@@ -309,29 +322,29 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 
 +(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
 -(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
--(void)addEventListener:(NSArray*)args;
--(void)removeEventListener:(NSArray*)args;
+-(id)addEventListener:(NSArray*)args;
+-(id)removeEventListener:(NSArray*)args;
 
 
--(void)_listenerAdded:(NSString*)type count:(int)count;
--(void)_listenerRemoved:(NSString*)type count:(int)count;
+-(void)_listenerAdded:(NSString*)type count:(NSInteger)count;
+-(void)_listenerRemoved:(NSString*)type count:(NSInteger)count;
 
 -(void)fireEvent:(id)args;
--(void)fireEvent:(NSString*)type withObject:(id)obj;
--(void)fireEvent:(NSString*)type withObject:(id)obj checkForListener:(BOOL)checkForListener;
-
-//For UI events:
 -(void)fireEvent:(NSString*)type propagate:(BOOL)yn;
 -(void)fireEvent:(NSString*)type propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
+-(void)fireEvent:(NSString*)type withObject:(id)obj;
+-(void)fireEvent:(NSString*)type withObject:(id)obj checkForListener:(BOOL)checkForListener;
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn;
+-(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate;
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
-
-//For events that report an error or success
--(void)fireEvent:(NSString*)type withObject:(id)obj errorCode:(int)code message:(NSString*)message;
-
-//What classes should actually override:
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message checkForListener:(BOOL)checkForListener;
+-(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
+-(void)fireEvent:(NSString*)type withObject:(id)obj errorCode:(NSInteger)code message:(NSString*)message;
+//What classes should actually use.
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message checkForListener:(BOOL)checkForListener;
+//What classes should actually use.
+-(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message checkForListener:(BOOL)checkForListener;
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message;
 
 /**
  Returns a dictionary of all properties set on the proxy object.
@@ -345,6 +358,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
  @param value The initial value to set on the property.
  */
 -(void)initializeProperty:(NSString*)name defaultValue:(id)value;
+-(void)initializeProperties:(NSDictionary*)defaultValues;
 
 /**
  Sets or replaces the property on the proxy object.
@@ -365,19 +379,27 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 -(void)setExecutionContext:(id<TiEvaluator>)context;
 
 + (id)createProxy:(Class)proxyClass withProperties:(NSDictionary*)properties inContext:(id<TiEvaluator>)context;
-+ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context;
-+ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context defaultType:(NSString*)defaultType;
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiParentingProxy*)rootProxy inContext:(id<TiEvaluator>)context;
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiParentingProxy*)rootProxy inContext:(id<TiEvaluator>)context defaultType:(NSString*)defaultType;
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents rootProxy:(TiProxy*)rootProxy;
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
 
 -(void)applyProperties:(id)args;
 -(NSString*)apiName;
 -(id)objectOfClass:(Class)theClass fromArg:(id)arg;
 +(id)objectOfClass:(Class)theClass fromArg:(id)arg inContext:(id<TiEvaluator>)context_;
 +(CFMutableDictionaryRef)classNameLookup;
-- (void)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy;
-- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
+- (void)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiParentingProxy*)rootProxy;
 +(Class)proxyClassFromString:(NSString*)qualifiedName;
 
 @property (nonatomic,readwrite,assign) id<TiViewEventOverrideDelegate> eventOverrideDelegate;
 
 -(BOOL)canBeNextResponder;
+
+-(void)addBinding:(TiProxy*)proxy forKey:(NSString*)key;
+-(void)removeBindingForKey:(NSString*)key;
+-(void)removeBindingsForProxy:(TiProxy*)proxy;
+-(TiProxy*)bindingForKey:(NSString*)key;
+
+-(void)invokeBlockOnJSThread:(void (^)())block;
 @end

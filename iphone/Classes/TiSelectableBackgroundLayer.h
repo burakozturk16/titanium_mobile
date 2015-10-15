@@ -41,11 +41,13 @@
 - (void)setState:(UIControlState)state;
 - (void)setState:(UIControlState)state animated:(BOOL)animated;
 - (UIControlState)getState;
--(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state;
+- (BOOL) willDrawForState:(UIControlState)state;
+- (TiDrawable*) getOrCreateDrawableForState:(UIControlState)state;
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
+- (UIColor*)getColorForState:(UIControlState)state;
 - (void)setImage:(id)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
 - (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state;
--(void)setNonRetina:(BOOL)value;
--(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*) runningAnimation;
+- (void)setNonRetina:(BOOL)value;
+- (void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*) runningAnimation;
 @end

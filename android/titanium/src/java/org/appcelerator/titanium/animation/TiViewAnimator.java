@@ -6,9 +6,7 @@
  */
 package org.appcelerator.titanium.animation;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
@@ -42,20 +40,20 @@ public class TiViewAnimator extends TiAnimatorSet
 		super();
 	}
 	
-	static List<String> kAnimationResetProperties = Arrays.asList(
-			TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY,
-			TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT,
-			TiC.PROPERTY_RESTART_FROM_BEGINNING,
-			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
-			TiC.PROPERTY_WIDTH, TiC.PROPERTY_HEIGHT,
-			TiC.PROPERTY_LEFT, TiC.PROPERTY_RIGHT,
-			TiC.PROPERTY_TOP,
-			TiC.PROPERTY_BOTTOM);
-	
-	@Override
-	protected List<String> animationResetProperties() {
-		return kAnimationResetProperties;
-	}
+//	static List<String> kAnimationResetProperties = Arrays.asList(
+//			TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY,
+//			TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT,
+//			TiC.PROPERTY_RESTART_FROM_BEGINNING,
+//			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
+//			TiC.PROPERTY_WIDTH, TiC.PROPERTY_HEIGHT,
+//			TiC.PROPERTY_LEFT, TiC.PROPERTY_RIGHT,
+//			TiC.PROPERTY_TOP,
+//			TiC.PROPERTY_BOTTOM);
+//	
+//	@Override
+//	protected List<String> animationResetProperties() {
+//		return kAnimationResetProperties;
+//	}
 	
 	
 	public void cleanupView() {
@@ -110,10 +108,10 @@ public class TiViewAnimator extends TiAnimatorSet
 	}
 
 	@Override
-	public void applyOptions()
+	protected void applyOptions()
 	{
 		super.applyOptions();
-		HashMap options = getOptions();
+//		HashMap options = getOptions();
 		
 		if (options == null) {
 			return;
@@ -128,8 +126,9 @@ public class TiViewAnimator extends TiAnimatorSet
 			} else {
 				Log.e(TAG, "Invalid argument type for anchorPoint property. Ignoring");
 			}
+			options.remove(TiC.PROPERTY_ANCHOR_POINT);
 		}
-		this.options = options;
+//		this.options = options;
 	}
 	
 	public void simulateFinish(TiViewProxy proxy)

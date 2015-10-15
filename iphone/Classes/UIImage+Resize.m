@@ -39,14 +39,16 @@
 	} else {
 		CGRect transposedRect = CGRectMake(0, 0, newRect.size.height, newRect.size.width);
 		
-		// Build a context that's the same dimensions as the new size
-		CGContextRef bitmap = CGBitmapContextCreate(NULL,
-													newRect.size.width,
-													newRect.size.height,
-													8,
-													0,
-													colorSpace,
-													kCGImageAlphaPremultipliedLast);
+        CGImageAlphaInfo alphaInfo = [UIImageAlpha hasAlpha:image] ? kCGImageAlphaPremultipliedLast : kCGImageAlphaNoneSkipLast;
+        // Build a context that's the same dimensions as the new size
+        CGContextRef bitmap = CGBitmapContextCreate(NULL,
+                                                    newRect.size.width,
+                                                    newRect.size.height,
+                                                    8,
+                                                    0,
+                                                    colorSpace,
+                                                    kCGBitmapAlphaInfoMask & alphaInfo);
+        
 		
 		// Rotate and/or flip the image if required by its orientation
 		CGContextConcatCTM(bitmap, transform);
@@ -64,9 +66,9 @@
 		// Clean up
 		CGContextRelease(bitmap);
 		CGImageRelease(newImageRef);
+
 	}
-    CGColorSpaceRelease(colorSpace);
-    
+	CGColorSpaceRelease(colorSpace);    
     return newImage;
 }
 
@@ -123,14 +125,23 @@
 // This method ignores the image's imageOrientation setting.
 + (UIImage *)croppedImage:(CGRect)bounds image:(UIImage*)image
 {
-	if(image == nil)
-	{
-		return nil;
-	}
-    CGImageRef imageRef = CGImageCreateWithImageInRect(image.CGImage, bounds);
-    UIImage *croppedImage = [UIImage imageWithCGImage:imageRef];
-    CGImageRelease(imageRef);
-    return croppedImage;
+    if(image != nil)
+    {
+        bounds = CGRectMake(bounds.origin.x * image.scale,
+                            bounds.origin.y * image.scale,
+                            bounds.size.width * image.scale,
+                            bounds.size.height * image.scale);
+        
+        CGImageRef imageRef = CGImageCreateWithImageInRect([image CGImage], bounds);
+        
+        UIImage *croppedImage = [UIImage imageWithCGImage:imageRef scale:image.scale orientation:image.imageOrientation];
+        
+        CGImageRelease(imageRef);
+        
+        return croppedImage;
+    }
+    
+    return image;
 }
 
 // Returns a copy of this image that is squared to the thumbnail size.
@@ -208,7 +219,7 @@
             break;
             
         default:
-            [NSException raise:NSInvalidArgumentException format:@"Unsupported content mode: %d", contentMode];
+            [NSException raise:NSInvalidArgumentException format:@"Unsupported content mode: %ld", (long)contentMode];
     }
     
     CGSize newSize = CGSizeMake(image.size.width * ratio, image.size.height * ratio);

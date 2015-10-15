@@ -4,19 +4,45 @@
 		<item name="android:windowFullscreen">true</item>
 	</style>
 
-    <style name="BaseTheme" parent="@style/Theme.AppCompat">
-        <item name="android:windowBackground">@android:color/transparent</item>
-//        <item name="actionBarStyle">@style/Widget.AppCompat.ActionBar</item>
+    <style name="BaseTheme" parent="Theme.AppCompat">
+
+            <item name="colorPrimary">#31B7ED</item>
+            <item name="colorPrimary">#31B7ED</item>
+            		
+		    <!-- colorPrimaryDark is used for the status bar -->
+		    <item name="colorPrimaryDark">#3E7B8D</item>
+		    		
+		    <!-- colorAccent is used as the default value for colorControlActivated
+		         which is used to tint widgets -->
+		    <item name="colorAccent">#31B7ED</item>
+		    <item name="colorControlNormal">#ffffff</item>
+            <item name="colorControlActivated">#31B7ED</item>
+            <item name="colorControlHighlight">#31B7ED</item>
+    </style>
+    
+    <!-- ACTION BAR STYLES -->
+    <style name="TransparentActionBar" parent="@style/Widget.AppCompat.ActionBar">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:backgroundStacked">@android:color/transparent</item>
     </style>
 
 	
-	<style name="Theme.Titanium" parent="BaseTheme">
-	</style>
+ 	<style name="myEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textCursorDrawable">@null</item>
+    </style>
+    <style name="Theme.Titanium" parent="BaseTheme">
+    </style>
+    
 
-    <style name="Theme" parent="Theme.Titanium">
+    <style name="Theme.Titanium.Overlay" parent="Theme.Titanium">
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+    <style name="Theme.Titanium.TranslucentActionBar.Overlay" parent="Theme.Titanium.Overlay">
+        <item name="android:actionBarStyle">@style/TransparentActionBar</item>
     </style>
 	<style name="Theme.Titanium.NoActionBar" parent="Theme.Titanium">
-		<item name="android:windowNoTitle">true</item>
+		<item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
 	</style>
 	<style name="Theme.Titanium.NoActionBar.Fullscreen" parent="Theme.Titanium.NoActionBar">
 		<item name="android:windowFullscreen">true</item>
@@ -31,4 +57,16 @@
 		<item name="android:windowIsTranslucent">true</item>
 		<item name="android:background">#00000000</item>
 	</style>
+	
+	<style name="Theme.Titanium.Translucent.NoActionBar" parent="Theme.Titanium.Translucent">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+	
+	 <style name="Theme.Titanium.Translucent.Overlay" parent="Theme.Titanium.Translucent">
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+    <style name="Theme.Titanium.Translucent.TranslucentActionBar.Overlay" parent="Theme.Titanium.Translucent.Overlay">
+        <item name="android:actionBarStyle">@style/TransparentActionBar</item>
+    </style>
 </resources>

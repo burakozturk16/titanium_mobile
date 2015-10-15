@@ -6,11 +6,13 @@
  */
 package ti.modules.titanium.ui.widget;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.transition.Transition;
@@ -26,16 +28,18 @@ import org.appcelerator.titanium.view.TiUINonViewGroupView;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
-import com.nineoldandroids.animation.Animator.AnimatorListener;
-
+import com.nineoldandroids.animation.ArgbEvaluator;
+import com.nineoldandroids.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import ti.modules.titanium.ui.AttributedStringProxy;
 import android.graphics.Color;
 import android.graphics.RectF;
+import android.os.Build;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -47,6 +51,7 @@ import android.text.Layout.Alignment;
 import android.text.Selection;
 import android.text.Spannable;
 import android.text.Spannable.Factory;
+import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.SpannedString;
@@ -77,18 +82,28 @@ import android.util.TypedValue;
 public class TiUILabel extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUILabel";
+    private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
 	private static final float DEFAULT_SHADOW_RADIUS = 0.5f;
+	
+	protected static final int TIFLAG_NEEDS_COLORS               = 0x00000001;
+    protected static final int TIFLAG_NEEDS_TEXT                 = 0x00000002;
+    protected static final int TIFLAG_NEEDS_TEXT_HTML            = 0x00000004;
+    protected static final int TIFLAG_NEEDS_SHADOW               = 0x00000008;
+    protected static final int TIFLAG_NEEDS_LINKIFY              = 0x00000010;
 
-	private int selectedColor, color, disabledColor, widgetDefaultColor;
+	private int selectedColor, color, disabledColor;
 	private boolean wordWrap = true;
 	private float shadowRadius = DEFAULT_SHADOW_RADIUS;
 	private float shadowX = 0f;
 	private float shadowY = -1f; // to have the same value as ios
+	private boolean shadowEnabled = false;
 	private int shadowColor = Color.TRANSPARENT;
-	private boolean disableLinkStyle = false;
-	
+    private boolean disableLinkStyle = false;
+    private boolean autoLink = false;
+    private CharSequence text = null;
 
-	private RectF textPadding;
+
+	private RectF textPadding = null;
 	private String ELLIPSIZE_CHAR = "...";
 
 	private TiLabelView tv;
@@ -111,52 +126,21 @@ public class TiUILabel extends TiUINonViewGroupView
 	            child.setPressed(pressed);
 	        }
 		}
-		
-		@Override
-		protected void drawableStateChanged() {
-		
-		}
-		
-		@Override
-		public void childDrawableStateChanged(View child) {
-			if (child == textView) {
-				propagateChildDrawableState(child);
-			}
-		}
-		
 		public TiLabelView(Context context) {
 			super(context);
+			this.setAddStatesFromChildren(true);
 			textView = new EllipsizingTextView(context);
 			textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
  			textView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 			textView.setKeyListener(null);
 			textView.setSingleLine(false);
-			TiUIHelper.styleText(textView, null);
+			if (HONEYCOMB_OR_GREATER) {
+	            textView.setTextIsSelectable(false);
+			}
+            textView.setSelectAllOnFocus(false);
+			TiUIHelper.styleText(textView, (HashMap)null);
 			addView(textView, getTextLayoutParams());
 		}
-		
-//		@SuppressLint("NewApi")
-//		private EllipsizingTextView cloneTextView(EllipsizingTextView original, CharSequence text){
-//			EllipsizingTextView newView = new EllipsizingTextView(getContext());
-//			newView.setInputType(original.getInputType());
-//			newView.setGravity(original.getGravity());
-//			newView.setKeyListener(original.getKeyListener());
-////			TiUIHelper.styleText(newView, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
-//			newView.setEllipsize(original.ellipsize);
-//			newView.setSingleLine(original.singleline); //the order is important as setSingleLine also set Maxlines
-//			newView.setMaxLines(original.maxLines);
-//			newView.setMaxTextSize(original.getMaxTextSize());
-//			newView.setMinTextSize(original.getMinTextSize());
-//			newView.lineAdditionalVerticalPadding = original.lineAdditionalVerticalPadding;
-//			newView.lineSpacingMultiplier = original.lineSpacingMultiplier;
-//			newView.setMultiLineEllipsize(original.getMultiLineEllipsize());
-//			newView.setTextColor(original.getTextColors());
-//			newView.setPadding(original.getPaddingLeft(), original.getPaddingTop(), original.getPaddingRight(), original.getPaddingBottom());
-//			newView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
-//			setText(newView, text);
-//			newView.SetReadyToEllipsize(true);
-//			return newView;
-//		}
 		
 		private ViewGroup.LayoutParams getTextLayoutParams() {
 			ViewGroup.LayoutParams params  = new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -186,7 +170,7 @@ public class TiUILabel extends TiUINonViewGroupView
                 maxWidth = Math.max(maxWidth,
                 		textView.getMeasuredWidth() + lp.leftMargin + lp.rightMargin);
                 maxHeight = Math.max(maxHeight,
-                		textView.getMeasuredHeight() + lp.topMargin + lp.bottomMargin);                
+                		textView.getMeasuredHeight() + lp.topMargin + lp.bottomMargin);
             }
 	        // Account for padding too
 	        maxWidth += getPaddingLeft() + getPaddingRight();
@@ -209,8 +193,8 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		public void setText(CharSequence sequence)
 		{
-			if(textView != null && textView.fullText.equals(sequence)) return;
-			Transition transition = (transitionDict != null)?TransitionHelper.transitionFromObject(transitionDict, null, null):null;
+			if(textView != null && textView.fullText != null && textView.fullText.equals(sequence)) return;
+			Transition transition = (transitionDict != null && proxy.viewInitialised())?TransitionHelper.transitionFromObject(transitionDict, null, null):null;
 			if (transition != null) 
 			{
 				setTextWithTransition(sequence, transition);
@@ -252,35 +236,21 @@ public class TiUILabel extends TiUINonViewGroupView
 		public void transitionToTextView(EllipsizingTextView newTextView, Transition transition) {
 			oldTextView = textView;
 			textView = newTextView;
-			newTextView.setVisibility(View.GONE);
-			TiUIHelper.addView(this, newTextView, getTextLayoutParams());
 			registerForTouch();
 			registerForKeyPress();
-			
-			transition.setTargets(this, newTextView, oldTextView);
-
-			currentTransitionSet = transition.getSet(new AnimatorListener() {
-				public void onAnimationEnd(Animator arg0) {	
-						onTransitionEnd();
-				}
-
-				public void onAnimationCancel(Animator arg0) {
-						onTransitionEnd();
-				}
-
-				public void onAnimationRepeat(Animator arg0) {
-				}
-
-				public void onAnimationStart(Animator arg0) {
-				}
-			});
-			currentTransitionSet.start();
-			newTextView.setVisibility(View.VISIBLE);
-			requestLayout();
+			TransitionHelper.CompletionBlock onDone = new TransitionHelper.CompletionBlock() {
+	            
+	            @Override
+	            public void transitionDidFinish(boolean success) {
+	                onTransitionEnd();
+	            }
+	        };
+	        
+	        currentTransitionSet = TransitionHelper.transitionViews(this, textView, oldTextView, onDone, transition, getTextLayoutParams());
 		}
 	}
 
-	public class EllipsizingTextView extends TextView {
+	public class EllipsizingTextView extends AppCompatTextView {
 
 		private TruncateAt ellipsize = null;
 		private TruncateAt multiLineEllipsize = null;
@@ -295,7 +265,6 @@ public class TiUILabel extends TiUINonViewGroupView
 		private float lineAdditionalVerticalPadding = 0.0f;
 		private float minTextSize;
 		private float maxTextSize;
-//		private String textStr;
 		
 		float lastEllipsizeWidth = -1;
 		float lastEllipsizeHeight = -1;
@@ -304,7 +273,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
 		{
 			int w = MeasureSpec.getSize(widthMeasureSpec);
-			int wm = MeasureSpec.getMode(widthMeasureSpec);
+//			int wm = MeasureSpec.getMode(widthMeasureSpec);
 			int h = MeasureSpec.getSize(heightMeasureSpec);
 			int hm = MeasureSpec.getMode(heightMeasureSpec);
 			if (hm == 0) h = 100000;
@@ -325,15 +294,17 @@ public class TiUILabel extends TiUINonViewGroupView
 						MeasureSpec.UNSPECIFIED);
 				}
 			}
+			if (hm == MeasureSpec.AT_MOST && (fullText == null || fullText.length() == 0)) {
+			    heightMeasureSpec = MeasureSpec.makeMeasureSpec(0,
+                        MeasureSpec.EXACTLY);
+			}
 			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-			int height =getMeasuredHeight();
-			int width =getMeasuredWidth();
 		}
 
         @Override
         public void dispatchSetPressed(boolean pressed) {
-            if (childrenHolder != null && dispatchPressed) {
-                childrenHolder.setPressed(pressed);
+            if (propagateSetPressed(this, pressed)) {
+                super.dispatchSetPressed(pressed);
             }
         }
 		
@@ -342,8 +313,9 @@ public class TiUILabel extends TiUINonViewGroupView
             TextView textView = (TextView) this;
             Object text = textView.getText();
             // For html texts, we will manually detect url clicks.
-            if (text instanceof SpannedString) {
-                SpannedString spanned = (SpannedString) text;
+            if (text instanceof SpannedString || 
+                    text instanceof SpannableString) {
+                CharSequence spanned = (CharSequence) text;
                 Spannable buffer = Factory.getInstance().newSpannable(
                         spanned.subSequence(0, spanned.length()));
 
@@ -370,7 +342,13 @@ public class TiUILabel extends TiUINonViewGroupView
                     if (link.length != 0) {
                         ClickableSpan cSpan = link[0];
                         if (action == MotionEvent.ACTION_UP) {
-                            cSpan.onClick(textView);
+							if(proxy.hasListeners("link") && (cSpan instanceof URLSpan)) {
+								KrollDict evnt = new KrollDict();
+								evnt.put("url", ((URLSpan)cSpan).getURL());
+								proxy.fireEvent("link", evnt, false);
+							//} else {
+//								cSpan.onClick(textView);
+							}
                         } else if (action == MotionEvent.ACTION_DOWN) {
                             Selection.setSelection(buffer,
                                     buffer.getSpanStart(cSpan),
@@ -386,9 +364,7 @@ public class TiUILabel extends TiUINonViewGroupView
 
 		@Override
 		public boolean dispatchTouchEvent(MotionEvent event) {
-			if (touchPassThrough(childrenHolder, event)) return false;
-			if (touchPassThrough == true)
-				return false;
+			if (touchPassThrough(getParentViewForChild(), event)) return false;
 			return super.dispatchTouchEvent(event);
 		}
 		
@@ -405,12 +381,13 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		public EllipsizingTextView clone(CharSequence text) {
 			EllipsizingTextView newView = new EllipsizingTextView(getContext());
-			newView.setInputType(getInputType());
+//			newView.setInputType(getInputType());
 			newView.setGravity(getGravity());
-			newView.setKeyListener(getKeyListener());
+			newView.setKeyListener(null);
 			TiUIHelper.styleText(newView, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
 			newView.setEllipsize(ellipsize);
 			newView.singleline = this.singleline;
+//			newView.setSingleLine(this.singleline);
 			newView.maxLines = this.maxLines;
 			newView.maxTextSize = this.maxTextSize;
 			newView.minTextSize = this.minTextSize;
@@ -419,7 +396,9 @@ public class TiUILabel extends TiUINonViewGroupView
 			newView.multiLineEllipsize = this.multiLineEllipsize;
 			newView.setTextColor(getTextColors());
 			newView.setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
-			newView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+			if (shadowEnabled) {
+	            newView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+			}
 			if (text instanceof Spannable)
 			{
 				newView.setText(text, TextView.BufferType.SPANNABLE);
@@ -472,27 +451,25 @@ public class TiUILabel extends TiUINonViewGroupView
 		public void updateEllipsize(int width, int height){
 			if (needsEllipsize())  {
 				needsEllipsing = true;
-				if (readyToEllipsize == true) ellipseText(width, height);
+				if (readyToEllipsize == true) {
+				    ellipseText(width, height);
+				}
 			}
 		}
 		
 		public void updateEllipsize(){
-			updateEllipsize(getMeasuredWidth(), getMeasuredHeight());
+		    if (needsEllipsize())  {
+                needsEllipsing = true;
+                if (readyToEllipsize == true) {
+                    ellipseText(getMeasuredWidth(), getMeasuredHeight());
+                }
+            }
 		}
 
 		public int getMaxLines() {
 			return maxLines;
 		}
 		
-//		private void resetText(){
-//			if (isEllipsized){
-//				isEllipsized = false;
-//				try {
-//					setText(fullText);
-//				} finally {
-//				}
-//			}
-//		}
 
 		@Override
 		public void setLineSpacing(float add, float mult) {
@@ -521,18 +498,6 @@ public class TiUILabel extends TiUINonViewGroupView
 			super.setText(text, type);
 			updateEllipsize();
 		}
-
-//		@Override
-//		protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-//			super.onSizeChanged(w, h, oldw, oldh);
-//			// updateEllipsize();
-//		}
-		
-		@Override
-		public void setPadding(int left, int top, int right, int bottom) {
-			super.setPadding(left + (int)Math.max(0, -shadowX), top + (int)Math.max(0, -shadowY), right + (int)Math.max(0, shadowX), bottom + (int)Math.max(0, shadowY));
-		}
-		
 		
 		@Override
 		public void setSingleLine (boolean singleLine) {
@@ -549,7 +514,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 
 		@Override
-		public void setEllipsize(TruncateAt where) {			
+		public void setEllipsize(TruncateAt where) {
 			super.setEllipsize(where);
 			ellipsize = where;
 			updateEllipsize();
@@ -592,61 +557,6 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 	}
 	
-//		private CharSequence ellipsisWithStyle(CharSequence text, TruncateAt where)
-//		{
-//			int length = ELLIPSIZE_CHAR.length();
-//			if (text instanceof Spanned){
-//				SpannableStringBuilder builder = new SpannableStringBuilder(text);
-//				SpannableStringBuilder htmlText = (SpannableStringBuilder) text;
-//				if (where == TruncateAt.END){
-//					Object[] spans = htmlText.getSpans(text.length() - 1, text.length(), Object.class);
-//					builder.append(ELLIPSIZE_CHAR);
-//					for (int i = 0; i < spans.length; i++) {
-//						int flags = htmlText.getSpanFlags(spans[i]);
-//						int start = htmlText.getSpanStart(spans[i]);
-//						int end = htmlText.getSpanEnd(spans[i]);
-//						builder.setSpan(spans[i], start, end + length, flags);
-//					}
-//				}
-//				else if (where == TruncateAt.START){
-//					Object[] spans = htmlText.getSpans(0, 1, Object.class);
-//					builder.insert(0, ELLIPSIZE_CHAR);
-//					for (int i = 0; i < spans.length; i++) {
-//						int flags = htmlText.getSpanFlags(spans[i]);
-//						int start = htmlText.getSpanStart(spans[i]);
-//						int end = htmlText.getSpanEnd(spans[i]);
-//						builder.setSpan(spans[i], start, end + length, flags);
-//					}
-//				}
-//				else if (where == TruncateAt.MIDDLE){
-//					int middle = (int) Math.floor(htmlText.length() / 2);
-//					Object[] spans = htmlText.getSpans(middle-1, middle, Object.class);
-//					builder.insert(middle, ELLIPSIZE_CHAR);
-//					for (int i = 0; i < spans.length; i++) {
-//						int flags = htmlText.getSpanFlags(spans[i]);
-//						int start = htmlText.getSpanStart(spans[i]);
-//						int end = htmlText.getSpanEnd(spans[i]);
-//						builder.setSpan(spans[i], start, end + length, flags);
-//					}
-//				}
-//				return builder;
-//			}
-//			else {
-//				if (where == TruncateAt.END){
-//					return TextUtils.concat(text, ELLIPSIZE_CHAR);
-//				}
-//				else if (where == TruncateAt.START){
-//					return TextUtils.concat(ELLIPSIZE_CHAR , text);
-//
-//				}
-//				else if (where == TruncateAt.MIDDLE){
-//					int middle = (int) Math.floor(text.length() / 2);
-//					return TextUtils.concat(text.subSequence(0, middle), ELLIPSIZE_CHAR, text.subSequence(middle, text.length()));
-//				}
-//			}
-//			return text;
-//		}
-		
 		private CharSequence strimText(CharSequence text)
 		{
 			int strimEnd = text.toString().trim().length();
@@ -947,12 +857,12 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		public int getOffsetForPosition(float x, float y) {
 	        if (getLayout() == null) return -1;
-	        final int line = getLineAtCoordinate(y);
+	        final int line = getLineNumberAtCoordinate(y);
 	        final int offset = getOffsetAtCoordinate(line, x);
 	        return offset;
 	    }
 
-	    float convertToLocalHorizontalCoordinate(float x) {
+	    float convertToHorizontalCoordinate(float x) {
 	        x -= getTotalPaddingLeft();
 	        // Clamp the position to inside of the view.
 	        x = Math.max(0.0f, x);
@@ -961,7 +871,7 @@ public class TiUILabel extends TiUINonViewGroupView
 	        return x;
 	    }
 
-	    int getLineAtCoordinate(float y) {
+	    int getLineNumberAtCoordinate(float y) {
 	        y -= getTotalPaddingTop();
 	        // Clamp the position to inside of the view.
 	        y = Math.max(0.0f, y);
@@ -971,12 +881,21 @@ public class TiUILabel extends TiUINonViewGroupView
 	    }
 	    
 	    private int getOffsetAtCoordinate(int line, float x) {
-	        x = convertToLocalHorizontalCoordinate(x);
+	        x = convertToHorizontalCoordinate(x);
 	        return getLayout().getOffsetForHorizontal(line, x);
 	    }
 	}
 
-
+	protected static final ArrayList<String> KEY_SEQUENCE;
+    static{
+      ArrayList<String> tmp = new ArrayList<String>();
+      tmp.add(TiC.PROPERTY_COLOR);
+      KEY_SEQUENCE = tmp;
+    }
+    @Override
+    protected ArrayList<String> keySequence() {
+        return KEY_SEQUENCE;
+    }
 	public TiUILabel(final TiViewProxy proxy)
 	{
 		super(proxy);
@@ -990,14 +909,15 @@ public class TiUILabel extends TiUINonViewGroupView
 			}
 		};
 		textPadding = new RectF();
-		
 		tv.setFocusable(false);
-		widgetDefaultColor = color = disabledColor = selectedColor = tv.textView.getCurrentTextColor();
+		tv.setFocusableInTouchMode(true);
+		color = disabledColor = selectedColor = getTextView().getCurrentTextColor();
+        updatePadding();
 		setNativeView(tv);
 
 	}
 
-	private Spanned fromHtml(String str)
+	private Spanned fromHtml(CharSequence str)
 	{
 		SpannableStringBuilder htmlText = new SpannableStringBuilder(TiHtml.fromHtml(str, disableLinkStyle));
 		return htmlText;
@@ -1022,8 +942,8 @@ public class TiUILabel extends TiUINonViewGroupView
 		tv.textView.setTextColor(colorStateList);
 	}
 	
-	protected void makeLinkClickable(SpannableStringBuilder strBuilder, URLSpan span)
-	{
+//	protected void makeLinkClickable(SpannableStringBuilder strBuilder, URLSpan span)
+//	{
 //	    int start = strBuilder.getSpanStart(span);
 //	    int end = strBuilder.getSpanEnd(span);
 //	    int flags = strBuilder.getSpanFlags(span);
@@ -1038,9 +958,9 @@ public class TiUILabel extends TiUINonViewGroupView
 //	    };
 //	    strBuilder.setSpan(clickable, start, end, flags);
 //	    strBuilder.removeSpan(span);
-	}
+//	}
 	
-	protected Spanned prepareHtml(String html)
+	protected Spanned prepareHtml(CharSequence html)
 	{
 //	    CharSequence sequence = fromHtml(html);
 //	        SpannableStringBuilder strBuilder = new SpannableStringBuilder(sequence);
@@ -1052,250 +972,210 @@ public class TiUILabel extends TiUINonViewGroupView
 	}
 
 	@Override
-	public void processProperties(KrollDict d)
-	{
-
-		super.processProperties(d);
-		if (tv == null) return;
-		EllipsizingTextView textView = tv.textView;
-		textView.SetReadyToEllipsize(false);
-
-		// Clear any text style left over here if view is recycled
-//		TiUIHelper.styleText(tv, null, null, null);
-		
-		boolean needShadow = false;
-
-		boolean needsColors = false;
-		if(d.containsKey(TiC.PROPERTY_COLOR)) {
-			needsColors = true;
-			color = selectedColor = disabledColor = d.optColor(TiC.PROPERTY_COLOR, widgetDefaultColor);
-		}
-		if(d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
-			needsColors = true;
-			selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, widgetDefaultColor);
-		}
-		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
-			needsColors = true;
-			disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, widgetDefaultColor);
-		}
-		if (needsColors) {
-			updateTextColors();
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
-			textView.setHighlightColor(TiConvert.toColor(d, TiC.PROPERTY_HIGHLIGHTED_COLOR));
-		}
-		if (d.containsKey(TiC.PROPERTY_INCLUDE_FONT_PADDING)) {
-			textView.setIncludeFontPadding(TiConvert.toBoolean(d, TiC.PROPERTY_INCLUDE_FONT_PADDING, true));
-		}
-		if (d.containsKey(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(textView, d.getKrollDict(TiC.PROPERTY_FONT));
-		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			String textAlign = d.optString(TiC.PROPERTY_TEXT_ALIGN, "left");
-			String verticalAlign = d.optString(TiC.PROPERTY_VERTICAL_ALIGN, "middle");
-			TiUIHelper.setAlignment(textView, textAlign, verticalAlign);
-		}
-		if (d.containsKey(TiC.PROPERTY_ELLIPSIZE)) {
-			Object value = d.get(TiC.PROPERTY_ELLIPSIZE);
-			if (value instanceof Boolean) {
-				textView.setEllipsize(((Boolean)value)?TruncateAt.END:null);
-			}
-			else {
-				String str = TiConvert.toString(value);
-				if (str != null && !str.equals("none")) //none represents TEXT_ELLIPSIS_NONE
-					textView.setEllipsize(TruncateAt.valueOf(str));
-				else
-					textView.setEllipsize(null);
-			}
-		}
-		if (d.containsKey(TiC.PROPERTY_MULTILINE_ELLIPSIZE)) {
-			Object value = d.get(TiC.PROPERTY_MULTILINE_ELLIPSIZE);
-			if (value instanceof Boolean) {
-				textView.setMultiLineEllipsize(((Boolean)value)?TruncateAt.END:null);
-			}
-			else {
-				String str = TiConvert.toString(value);
-				if (str != null && !str.equals("none")) //none represents TEXT_ELLIPSIS_NONE
-					textView.setMultiLineEllipsize(TruncateAt.valueOf(str));
-				else
-					textView.setMultiLineEllipsize(null);
-			}
-		}
-		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
-			wordWrap = TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP, true);
-			textView.setSingleLine(!wordWrap);
-		}
-		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
-			textView.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
-			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
-			if (value instanceof HashMap) {
-				needShadow = true;
-				HashMap dict = (HashMap) value;
-				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
-				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
-			}
-		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
-			needShadow = true;
-			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), DEFAULT_SHADOW_RADIUS);
-		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
-			needShadow = true;
-			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
-		}
-		if (needShadow) {
-			textView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
-		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
-			textPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TEXT_PADDING);
-		}
-		if(d.containsKey(TiC.PROPERTY_TRANSITION)) {
-			Object value = d.get(TiC.PROPERTY_TRANSITION);
-			if (value instanceof HashMap) {
-				transitionDict = (HashMap) value;
-			}
-			else {
-				transitionDict = null;
-			}
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_DISABLE_LINK_STYLE)) {
-            disableLinkStyle = TiConvert.toBoolean(d, TiC.PROPERTY_DISABLE_LINK_STYLE);
-        }
-		//always set padding as shadowlayer is also using it
-		TiUIHelper.setPadding(textView, textPadding);
-
-		// Only accept one, prefer text to title.
-		String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
-		String text = TiConvert.toString(d, TiC.PROPERTY_TEXT);
-		String title = TiConvert.toString(d, TiC.PROPERTY_TITLE);
-
-		if (html != null) {
-			tv.setText(prepareHtml(html));
-		} else if (title != null) {
-			tv.setText(title);
-		} else if (text != null) {
-			tv.setText(text);
-		}
-		TiUIHelper.linkifyIfEnabled(textView, d.get(TiC.PROPERTY_AUTO_LINK));
-//		textView.setMovementMethod(LinkMovementMethod.getInstance());
-		textView.SetReadyToEllipsize(true);
-		// This needs to be the last operation.
-		textView.requestLayout();
-	}
+    protected void aboutToProcessProperties(KrollDict d) {
+        super.aboutToProcessProperties(d);
+        getTextView().SetReadyToEllipsize(false);
+    }
 	
-	private void setTextValue(String value, final boolean html) {
-        EllipsizingTextView textView = tv.textView;
-	    String text = TiConvert.toString(value);
-        if (text == null) {
-            text = "";
-        }
-        tv.setText(html?prepareHtml(text):text);
-        TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
-        textView.requestLayout();
+	private void updatePadding() {
+      if (shadowEnabled) {
+          getTextView().setPadding(
+                  (int)textPadding.left + (int)Math.max(0, -shadowX), 
+                  (int)textPadding.top + (int)Math.max(0, -shadowY), 
+                  (int)textPadding.right + (int)Math.max(0, shadowX),
+                  (int)textPadding.bottom + (int)Math.max(0, shadowY));
+      } else {
+          getTextView().setPadding(
+                  (int)textPadding.left, 
+                  (int)textPadding.top, 
+                  (int)textPadding.right,
+                  (int)textPadding.bottom);
+      }
+	    
 	}
-	
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		EllipsizingTextView textView = tv.textView;
-		if (key.equals(TiC.PROPERTY_HTML)) {
-		    setTextValue(TiConvert.toString(newValue), true);
-		} else if (key.equals(TiC.PROPERTY_TEXT) || key.equals(TiC.PROPERTY_TITLE)) {
-            setTextValue(TiConvert.toString(newValue), false);
-		} else if (key.equals(TiC.PROPERTY_DISABLE_LINK_STYLE)) {
-			this.disableLinkStyle = TiConvert.toBoolean(newValue);
-			if (proxy.hasProperty(TiC.PROPERTY_HTML)) {
-	            setTextValue(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_HTML)), true);
-			}
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-            this.color = TiConvert.toColor(newValue);
+    
+    @Override
+    protected void didProcessProperties() {
+        boolean needsLayout = false;
+        if ((mProcessUpdateFlags & TIFLAG_NEEDS_COLORS) != 0) {
             updateTextColors();
-		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
-			this.selectedColor = TiConvert.toColor(newValue);
-			updateTextColors();
-		} else if (key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
-			this.disabledColor = TiConvert.toColor(newValue);
-			updateTextColors();
-		} else if (key.equals(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
-			textView.setHighlightColor(TiConvert.toColor((String) newValue));
-		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
-			TiUIHelper.setAlignment(textView, TiConvert.toString(newValue), null);
-			textView.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			TiUIHelper.setAlignment(textView, null, TiConvert.toString(newValue));
-			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_INCLUDE_FONT_PADDING)) {
-			textView.setIncludeFontPadding(TiConvert.toBoolean(newValue, true));
-		} else if (key.equals(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(textView, (HashMap) newValue);
-			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_ELLIPSIZE)) {
-			if (newValue instanceof Boolean) {
-				textView.setEllipsize(((Boolean)newValue)?TruncateAt.END:null);
-			}
-			else {
-				String str = TiConvert.toString(newValue);
-				if (str != null && !str.equals("none")) //none represents TEXT_ELLIPSIS_NONE
-					textView.setEllipsize(TruncateAt.valueOf(str));
-				else
-					textView.setEllipsize(null);
-			}
-		} else if (key.equals(TiC.PROPERTY_MULTILINE_ELLIPSIZE)) {
-			if (newValue instanceof Boolean) {
-				textView.setMultiLineEllipsize(((Boolean)newValue)?TruncateAt.END:null);
-			}
-			else {
-				String str = TiConvert.toString(newValue);
-				if (str != null && !str.equals("none")) //none represents TEXT_ELLIPSIS_NONE
-					textView.setMultiLineEllipsize(TruncateAt.valueOf(str));
-				else
-					textView.setMultiLineEllipsize(null);
-			}
-		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
-			textView.setSingleLine(!TiConvert.toBoolean(newValue, true));
-		} else if (key.equals(TiC.PROPERTY_MAX_LINES)) {
-			textView.setMaxLines(TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {
-			Linkify.addLinks(textView, TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
-			textPadding = TiConvert.toPaddingRect(newValue);
-			TiUIHelper.setPadding(textView, textPadding);
-			textView.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
-			if (newValue instanceof HashMap) {
-				HashMap dict = (HashMap) newValue;
-				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
-				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
-				textView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
-				TiUIHelper.setPadding(textView, textPadding);
-			}
-		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(newValue, DEFAULT_SHADOW_RADIUS);
-			textView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
-		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
-			shadowColor = TiConvert.toColor(TiConvert.toString(newValue));
-			textView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
-		} else if (key.equals(TiC.PROPERTY_TRANSITION)) {
-			if (newValue instanceof HashMap) {
-				transitionDict = (HashMap) newValue;
-			}
-			else {
-				transitionDict = null;
-			}
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
-	}
+            mProcessUpdateFlags &= ~TIFLAG_NEEDS_COLORS;
+        }
+        if ((mProcessUpdateFlags & TIFLAG_NEEDS_SHADOW) != 0) {
+            shadowEnabled = shadowRadius != 0 && shadowColor != Color.TRANSPARENT;
+            getTextView().setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+            mProcessUpdateFlags &= ~TIFLAG_NEEDS_SHADOW;
+            //reset padding after shadow is necessary
+            updatePadding();
+        }
 
-	public void setClickable(boolean clickable) {
-		tv.setClickable(clickable);
-	}
-	
+        if ((mProcessUpdateFlags & TIFLAG_NEEDS_TEXT) != 0) {
+            if ((mProcessUpdateFlags & TIFLAG_NEEDS_TEXT_HTML) != 0) {
+                tv.setText(prepareHtml(text));
+            } else {
+                tv.setText(text);
+            }
+            mProcessUpdateFlags &= ~TIFLAG_NEEDS_TEXT;
+            mProcessUpdateFlags &= ~TIFLAG_NEEDS_TEXT_HTML;
+            needsLayout = true;
+        }
+        if ((mProcessUpdateFlags & TIFLAG_NEEDS_LINKIFY) != 0) {
+            TiUIHelper.linkifyIfEnabled(getTextView(), autoLink);
+            mProcessUpdateFlags &= ~TIFLAG_NEEDS_LINKIFY;
+        }
+        //call after so that a layout computes ellipsize
+        getTextView().SetReadyToEllipsize(true);
+        if (needsLayout) {
+            getTextView().requestLayout();
+        }
+        super.didProcessProperties();
+    }
+ 
+    private EllipsizingTextView getTextView() {
+        return (EllipsizingTextView) tv.textView;
+    }
+    
+    @Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_COLOR:
+            color = selectedColor = disabledColor = color = TiConvert.toColor(newValue, this.color);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_COLORS;
+            break;
+        case TiC.PROPERTY_SELECTED_COLOR:
+            selectedColor = TiConvert.toColor(newValue, this.selectedColor);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_COLORS;
+            break;
+        case TiC.PROPERTY_DISABLED_COLOR:
+            disabledColor = TiConvert.toColor(newValue, this.disabledColor);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_COLORS;
+            break;
+        case TiC.PROPERTY_HIGHLIGHTED_COLOR:
+            getTextView().setHighlightColor(TiConvert.toColor(newValue));
+            break;
+        case TiC.PROPERTY_INCLUDE_FONT_PADDING:
+            getTextView().setIncludeFontPadding(TiConvert.toBoolean(newValue, true));
+            break;
+        case TiC.PROPERTY_FONT:
+            TiUIHelper.styleText(getTextView(), TiConvert.toKrollDict(newValue));
+            setNeedsLayout();
+            break;
+        case TiC.PROPERTY_TEXT_ALIGN:
+            TiUIHelper.setAlignment(getTextView(), TiConvert.toString(newValue), null);
+            setNeedsLayout();
+            break;
+        case TiC.PROPERTY_VERTICAL_ALIGN:
+            TiUIHelper.setAlignment(getTextView(), null, TiConvert.toString(newValue));
+            setNeedsLayout();
+            break;
+        case "textIsSelectable":
+            if (TiC.HONEYCOMB_OR_GREATER) {
+                getTextView().setTextIsSelectable(TiConvert.toBoolean(newValue, false));
+            }
+            break;
+        case TiC.PROPERTY_TEXT_PADDING:
+            textPadding = TiConvert.toPaddingRect(newValue, textPadding);
+            updatePadding();
+            setNeedsLayout();
+            break;
+        case TiC.PROPERTY_ELLIPSIZE:
+            if (newValue instanceof Boolean) {
+                getTextView().setEllipsize(((Boolean)newValue)?TruncateAt.END:null);
+            }
+            else {
+                String str = TiConvert.toString(newValue);
+                if (str != null && !str.equals("none")) //none represents TEXT_ELLIPSIS_NONE
+                    getTextView().setEllipsize(TruncateAt.valueOf(str));
+                else
+                    getTextView().setEllipsize(null);
+            }
+            break;
+        case TiC.PROPERTY_MULTILINE_ELLIPSIZE:
+            if (newValue instanceof Boolean) {
+                getTextView().setMultiLineEllipsize(((Boolean)newValue)?TruncateAt.END:null);
+            }
+            else {
+                String str = TiConvert.toString(newValue);
+                if (str != null && !str.equals("none")) //none represents TEXT_ELLIPSIS_NONE
+                    getTextView().setMultiLineEllipsize(TruncateAt.valueOf(str));
+                else
+                    getTextView().setMultiLineEllipsize(null);
+            }
+            break;
+        case TiC.PROPERTY_WORD_WRAP:
+            getTextView().setSingleLine(!TiConvert.toBoolean(newValue));
+            setNeedsLayout();
+            break;
+        case TiC.PROPERTY_MAX_LINES:
+            getTextView().setMaxLines(TiConvert.toInt(newValue, 0));
+            break;
+        case TiC.PROPERTY_LINES:
+            getTextView().setLines(TiConvert.toInt(newValue, 0));
+            break;
+        case TiC.PROPERTY_SELECTED:
+            getTextView().setPressed(TiConvert.toBoolean(newValue));
+            break;
+        case TiC.PROPERTY_SHADOW_OFFSET:
+            if (newValue instanceof HashMap) {
+                HashMap dict = (HashMap) newValue;
+                shadowX = TiUIHelper.getInPixels(dict.get(TiC.PROPERTY_X));
+                shadowY = TiUIHelper.getInPixels(dict.get(TiC.PROPERTY_Y));
+            }
+            else {
+                shadowX = 0f;
+                shadowY = 0f;
+            }
+            mProcessUpdateFlags |= TIFLAG_NEEDS_SHADOW;
+            break;
+        case TiC.PROPERTY_SHADOW_RADIUS:
+            shadowRadius = TiConvert.toFloat(newValue, DEFAULT_SHADOW_RADIUS);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_SHADOW;
+            break;
+        case TiC.PROPERTY_SHADOW_COLOR:
+            shadowColor = TiConvert.toColor(newValue);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_SHADOW;
+            break;
+        case TiC.PROPERTY_AUTO_LINK:
+            autoLink = TiConvert.toBoolean(newValue);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_LINKIFY;
+            break;
+        case TiC.PROPERTY_HTML:
+            text = TiConvert.toString(newValue);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_TEXT | TIFLAG_NEEDS_TEXT_HTML;
+            break;
+        case TiC.PROPERTY_TEXT:
+        case TiC.PROPERTY_TITLE:
+            if ((mProcessUpdateFlags & TIFLAG_NEEDS_TEXT) == 0) {
+                text = TiConvert.toString(newValue);
+                mProcessUpdateFlags |= TIFLAG_NEEDS_TEXT;
+            }
+            break;
+        case TiC.PROPERTY_ATTRIBUTED_STRING:
+			if (newValue instanceof AttributedStringProxy) {
+				Spannable spannableText = AttributedStringProxy.toSpannable(((AttributedStringProxy)newValue), TiApplication.getAppCurrentActivity());
+				text = spannableText;
+                mProcessUpdateFlags |= TIFLAG_NEEDS_TEXT;
+			}
+            break;
+        case TiC.PROPERTY_TRANSITION:
+            if (newValue instanceof HashMap) {
+                transitionDict = (HashMap) newValue;
+            }
+            else {
+                transitionDict = null;
+            }
+            break;
+        case TiC.PROPERTY_DISABLE_LINK_STYLE:
+            disableLinkStyle = TiConvert.toBoolean(newValue);
+            mProcessUpdateFlags |= TIFLAG_NEEDS_TEXT;
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
+
 	@SuppressLint("NewApi")
 	@Override
 	protected KrollDict dictFromEvent(MotionEvent e)
@@ -1323,6 +1203,34 @@ public class TiUILabel extends TiUINonViewGroupView
 	}
 	
 	@Override
+	protected void prepareAnimateProperty(final String key,
+            final Object toValue, final HashMap properties,
+            final View view, final View parentView,
+            List<Animator> list, final boolean needsReverse,
+            List<Animator> listReverse) {
+        switch (key) {
+
+        case TiC.PROPERTY_COLOR: {
+            ObjectAnimator anim = ObjectAnimator.ofInt(this, key,
+                    TiConvert.toColor(toValue));
+            anim.setEvaluator(new ArgbEvaluator());
+            list.add(anim);
+            if (needsReverse) {
+                anim = ObjectAnimator.ofInt(this, key,
+                        TiConvert.toColor(properties, key));
+                anim.setEvaluator(new ArgbEvaluator());
+                listReverse.add(anim);
+            }
+            break;
+        }
+        default: {
+             super.prepareAnimateProperty(key, toValue, properties, view, parentView, list, needsReverse, listReverse);
+             break;
+        }
+        }
+    }
+	
+	@Override
 	protected View getTouchView()
 	{
 		if (tv != null) {
@@ -1343,4 +1251,15 @@ public class TiUILabel extends TiUINonViewGroupView
 			}
 		}
 	}
+	
+	public void setColor(int color) {
+        int currentColor = getColor();
+        if (currentColor != color) {
+            tv.textView.setTextColor(color);
+        }
+    }
+
+    public int getColor() {
+        return color;
+    }
 }

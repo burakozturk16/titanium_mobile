@@ -76,15 +76,15 @@ private boolean isIdentityOrTranslation()
     return m_transform[0] == 1 && m_transform[1] == 0 && m_transform[2] == 0 && m_transform[3] == 1;
 }
 
-private boolean isIdentityOrTranslationOrFlipped()
-{
-    return m_transform[0] == 1 && m_transform[1] == 0 && m_transform[2] == 0 && (m_transform[3] == 1 || m_transform[3] == -1);
-}
-
-private boolean preservesAxisAlignment()
-{
-    return (m_transform[1] == 0 && m_transform[2] == 0) || (m_transform[0] == 0 && m_transform[3] == 0);
-}
+//private boolean isIdentityOrTranslationOrFlipped()
+//{
+//    return m_transform[0] == 1 && m_transform[1] == 0 && m_transform[2] == 0 && (m_transform[3] == 1 || m_transform[3] == -1);
+//}
+//
+//private boolean preservesAxisAlignment()
+//{
+//    return (m_transform[1] == 0 && m_transform[2] == 0) || (m_transform[0] == 0 && m_transform[3] == 0);
+//}
 
 public boolean equals( AffineTransform m2)
 {

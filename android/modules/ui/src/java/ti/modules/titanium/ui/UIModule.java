@@ -6,10 +6,10 @@
  */
 package ti.modules.titanium.ui;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
@@ -17,16 +17,18 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiRootActivity;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
+import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
+import ti.modules.titanium.ui.widget.TiUIActivityIndicator;
+import ti.modules.titanium.ui.widget.TiUITableView;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.graphics.PorterDuff.Mode;
 import android.os.Handler;
 import android.os.Message;
 import android.text.util.Linkify;
@@ -137,9 +139,15 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int TEXT_AUTOCAPITALIZATION_SENTENCES = 1;
 	@Kroll.constant public static final int TEXT_AUTOCAPITALIZATION_WORDS = 2;
 	@Kroll.constant public static final int TEXT_AUTOCAPITALIZATION_ALL = 3;
+	
+//	@Kroll.constant public static final int TEXT_ELLIPSIZE_TRUNCATE_START = 0;
+//	@Kroll.constant public static final int TEXT_ELLIPSIZE_TRUNCATE_MIDDLE = 1;
+//	@Kroll.constant public static final int TEXT_ELLIPSIZE_TRUNCATE_END = 2;
+//	@Kroll.constant public static final int TEXT_ELLIPSIZE_TRUNCATE_MARQUEE = 3;
 
 	@Kroll.constant public static final String SIZE = TiC.LAYOUT_SIZE;
-	@Kroll.constant public static final String FILL = TiC.LAYOUT_FILL;
+    @Kroll.constant public static final String FILL = TiC.LAYOUT_FILL;
+    @Kroll.constant public static final String MATCH = TiC.LAYOUT_MATCH;
 	@Kroll.constant public static final String UNIT_PX = TiDimension.UNIT_PX;
 	@Kroll.constant public static final String UNIT_MM = TiDimension.UNIT_MM;
 	@Kroll.constant public static final String UNIT_CM = TiDimension.UNIT_CM;
@@ -159,17 +167,116 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int URL_ERROR_UNKNOWN = WebViewClient.ERROR_UNKNOWN;
 	@Kroll.constant public static final int URL_ERROR_UNSUPPORTED_SCHEME = WebViewClient.ERROR_UNSUPPORTED_SCHEME;
 	
-	@Kroll.constant public static final int LEFT_VIEW = 0;
-	@Kroll.constant public static final int RIGHT_VIEW = 1;
+	@Kroll.constant public static final int ATTRIBUTE_FONT = 0;
+	@Kroll.constant public static final int ATTRIBUTE_FOREGROUND_COLOR = 1;
+	@Kroll.constant public static final int ATTRIBUTE_BACKGROUND_COLOR = 2;
+	@Kroll.constant public static final int ATTRIBUTE_STRIKETHROUGH_STYLE = 3;
+	@Kroll.constant public static final int ATTRIBUTE_UNDERLINES_STYLE = 4;
+	@Kroll.constant public static final int ATTRIBUTE_LINK = 5;
+	@Kroll.constant public static final int ATTRIBUTE_UNDERLINE_COLOR = 6;
 	
+	@Kroll.constant public static final int LEFT_VIEW = 0;
+    @Kroll.constant public static final int RIGHT_VIEW = 1;
+    
+    private static KrollDict BlendMode = null;
+    @Kroll.getProperty
+    public KrollDict BlendMode() {
+        if (BlendMode == null) {
+            BlendMode = new KrollDict();
+            BlendMode.put("DARKEN", Mode.DARKEN.ordinal());
+            BlendMode.put("LIGHTEN", Mode.LIGHTEN.ordinal());
+            BlendMode.put("MULTIPLY", Mode.MULTIPLY.ordinal());
+            BlendMode.put("ADD", (TiC.HONEYCOMB_OR_GREATER?Mode.ADD.ordinal():Mode.SRC_OVER.ordinal()));
+            BlendMode.put("SCREEN", Mode.SCREEN.ordinal());
+            BlendMode.put("CLEAR", Mode.CLEAR.ordinal());
+            BlendMode.put("DST", Mode.DST.ordinal());
+            BlendMode.put("DST_ATOP", Mode.DST_ATOP.ordinal());
+            BlendMode.put("DST_IN", Mode.DST_IN.ordinal());
+            BlendMode.put("DST_OUT", Mode.DST_OUT.ordinal());
+            BlendMode.put("DST_OVER", Mode.DST_OVER.ordinal());
+            BlendMode.put("SRC_ATOP", Mode.SRC_ATOP.ordinal());
+            BlendMode.put("SRC_IN", Mode.SRC_IN.ordinal());
+            BlendMode.put("SRC_OUT", Mode.SRC_OUT.ordinal());
+            BlendMode.put("SRC_OVER", Mode.SRC_OVER.ordinal());
+            BlendMode.put("OVERLAY", TiC.HONEYCOMB_OR_GREATER?Mode.OVERLAY.ordinal():Mode.MULTIPLY.ordinal());
+            BlendMode.put("XOR", Mode.XOR.ordinal());
+        }
+        return BlendMode;
+    }
+    
+    private static KrollDict TableViewSeparatorStyle= null;
+    @Kroll.getProperty
+    public KrollDict TableViewSeparatorStyle() {
+        if (TableViewSeparatorStyle == null) {
+            TableViewSeparatorStyle = new KrollDict();
+            TableViewSeparatorStyle.put("NONE", TiUITableView.SEPARATOR_NONE);
+            TableViewSeparatorStyle.put("SINGLE_LINE", TiUITableView.SEPARATOR_SINGLE_LINE);
+        }
+        return TableViewSeparatorStyle;
+    }
+    
+    @Kroll.getProperty
+    public KrollDict ListViewSeparatorStyle() {
+        return TableViewSeparatorStyle();
+    }
+    
+    private static KrollDict  TransitionStyle = null;
+    @Kroll.getProperty
+    public KrollDict  TransitionStyle() {
+        if ( TransitionStyle == null) {
+            TransitionStyle = new KrollDict();
+            TransitionStyle.put("CUBE", TransitionHelper.Types.kTransitionCube.ordinal());
+            TransitionStyle.put("CAROUSEL", TransitionHelper.Types.kTransitionCarousel.ordinal());
+            TransitionStyle.put("SWIPE", TransitionHelper.Types.kTransitionSwipe.ordinal());
+            TransitionStyle.put("SWIPE_FADE", TransitionHelper.Types.kTransitionSwipeFade.ordinal());
+            TransitionStyle.put("FLIP",TransitionHelper.Types.kTransitionFlip.ordinal());
+            TransitionStyle.put("FADE",TransitionHelper.Types.kTransitionFade.ordinal());
+            TransitionStyle.put("BACK_FADE", TransitionHelper.Types.kTransitionBackFade.ordinal());
+            TransitionStyle.put("FOLD", TransitionHelper.Types.kTransitionFold.ordinal());
+            TransitionStyle.put("PUSH_ROTATE", TransitionHelper.Types.kTransitionPushRotate.ordinal());
+            TransitionStyle.put("SCALE", TransitionHelper.Types.kTransitionScale.ordinal());
+            TransitionStyle.put("SLIDE", TransitionHelper.Types.kTransitionSlide.ordinal());
+            TransitionStyle.put("SWIPE_DUAL_FADE", TransitionHelper.Types.kTransitionSwipeDualFade.ordinal());
+            TransitionStyle.put("MODERN_PUSH", TransitionHelper.Types.kTransitionModernPush.ordinal());
+        }
+        return  TransitionStyle;
+    }
+    
+    private static KrollDict  TransitionSubStyle = null;
+    @Kroll.getProperty
+    public KrollDict  TransitionSubStyle() {
+        if ( TransitionSubStyle == null) {
+            TransitionSubStyle = new KrollDict();
+            TransitionSubStyle.put("LEFT_TO_RIGHT", TransitionHelper.SubTypes.kLeftToRight.ordinal());
+            TransitionSubStyle.put("RIGHT_TO_LEFT", TransitionHelper.SubTypes.kRightToLeft.ordinal());
+            TransitionSubStyle.put("TOP_TO_BOTTOM", TransitionHelper.SubTypes.kTopToBottom.ordinal());
+            TransitionSubStyle.put("BOTTOM_TO_TOP", TransitionHelper.SubTypes.kBottomToTop.ordinal());
+
+        }
+        return  TransitionSubStyle;
+    }
+    private static KrollDict  ActivityIndicatorStyle = null;
+    @Kroll.getProperty
+    public KrollDict  ActivityIndicatorStyle() {
+        if ( ActivityIndicatorStyle == null) {
+            ActivityIndicatorStyle = new KrollDict();
+            ActivityIndicatorStyle.put("PLAIN", TiUIActivityIndicator.PLAIN);
+            ActivityIndicatorStyle.put("BIG", TiUIActivityIndicator.BIG);
+            ActivityIndicatorStyle.put("BIG_DARK", TiUIActivityIndicator.BIG_DARK);
+            ActivityIndicatorStyle.put("DARK", TiUIActivityIndicator.DARK);
+
+        }
+        return  ActivityIndicatorStyle;
+    }
+    
+	    
 	@SuppressLint("InlinedApi")
 	@Kroll.constant public static final int INFINITE = ValueAnimator.INFINITE;
 
 	protected static final int MSG_SET_BACKGROUND_COLOR = KrollProxy.MSG_LAST_ID + 100;
 	protected static final int MSG_SET_BACKGROUND_IMAGE = KrollProxy.MSG_LAST_ID + 101;
 	protected static final int MSG_LAST_ID = MSG_SET_BACKGROUND_IMAGE;
-
-
+	
 	public UIModule()
 	{
 		super();
@@ -216,19 +323,7 @@ public class UIModule extends KrollModule implements Handler.Callback
 	{
 		TiRootActivity root = TiApplication.getInstance().getRootActivity();
 		if (root != null) {
-			Drawable imageDrawable = null;
-
-			if (image instanceof Number) {
-				try {
-					imageDrawable = TiUIHelper.getResourceDrawable((Integer)image);
-				} catch (Resources.NotFoundException e) {
-					Log.w(TAG , "Unable to set background drawable for root window.  An integer id was provided but no such drawable resource exists.");
-				}
-			} else {
-				imageDrawable = TiUIHelper.getResourceDrawable(image);
-			}
-
-			root.setBackgroundImage(imageDrawable);
+			root.setBackgroundImage(TiUIHelper.getResourceDrawable(image));
 		}
 	}
 
@@ -279,21 +374,7 @@ public class UIModule extends KrollModule implements Handler.Callback
 			TiBaseActivity tiBaseActivity = (TiBaseActivity)activity;
 			TiWindowProxy windowProxy = tiBaseActivity.getWindowProxy();
 
-			if (windowProxy == null)
-			{
-				if (tiBaseActivity.lwWindow != null)
-				{
-					tiBaseActivity.lwWindow.setOrientationModes(orientationModes);
-				}
-				else
-				{
-					Log.e(TAG, "No window has been associated with activity, unable to set orientation");
-				}
-			}
-			else
-			{
-				windowProxy.setOrientationModes(orientationModes);
-			}
+			windowProxy.setOrientationModes(orientationModes);
 		}	
 	}
 

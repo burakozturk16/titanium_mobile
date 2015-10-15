@@ -144,5 +144,7 @@ typedef enum {
 
 #pragma mark Image specific blob manipulations
 
-
+-(void)setInfo:(NSDictionary*)info;
+-(void)addInfo:(NSDictionary*)info;
+-(NSDictionary*)info;
 @end

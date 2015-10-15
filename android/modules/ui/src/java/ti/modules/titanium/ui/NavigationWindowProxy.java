@@ -9,44 +9,36 @@ package ti.modules.titanium.ui;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
-import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
-import org.appcelerator.titanium.TiActivityWindow;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
-import org.appcelerator.titanium.proxy.ActivityProxy;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.KrollProxyReusableListener;
 import org.appcelerator.titanium.view.TiUIView;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.AnimatorSet;
 
-import ti.modules.titanium.ui.transitionstyle.TransitionStyleModule;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Message;
-import android.support.v7.app.ActionBar;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,7 +52,7 @@ import android.view.ViewGroup;
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
-public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent, KrollProxyReusableListener
+public class NavigationWindowProxy extends WindowProxy implements interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent
 {
 	private static final String TAG = "NavigationWindowProxy";
 
@@ -80,7 +72,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public NavigationWindowProxy()
 	{
 		super();
-		setModelListener(this, false);
 	}
 	
 	@Kroll.method @Kroll.setProperty
@@ -105,6 +96,16 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
         Object window = options.get(TiC.PROPERTY_WINDOW);
         if (window instanceof TiWindowProxy) {
             setWindow((TiWindowProxy) window);
+        }
+        
+        if (options.containsKey(TiC.PROPERTY_TRANSITION)) {
+            Object value = options.get(TiC.PROPERTY_TRANSITION);
+            if (value instanceof HashMap) {
+                defaultTransition = (HashMap) value;
+            }
+            else {
+                defaultTransition = kDefaultTransition;
+            }
         }
     }
 
@@ -132,49 +133,53 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Override
 	public boolean interceptOnHomePressed() {
 		if (pushing || poping) return true;
-		ActivityProxy activityProxy = getCurrentWindowInternal().getActivityProxy();
-		if (activityProxy != null) {
-			ActionBarProxy actionBarProxy = activityProxy.getActionBar();
-			if (actionBarProxy != null) {
-				KrollFunction onHomeIconItemSelected = (KrollFunction) actionBarProxy
+		TiWindowProxy windowProxy = getCurrentWindowInternal();
+//		ActivityProxy activityProxy = getCurrentWindowInternal().getActivityProxy();
+		if (windowProxy != null) {
+//			ActionBarProxy actionBarProxy = activityProxy.getActionBar();
+//			if (actionBarProxy != null) {
+				KrollFunction onHomeIconItemSelected = (KrollFunction) windowProxy
 					.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
 				if (onHomeIconItemSelected != null) {
 					KrollDict event = new KrollDict();
-					event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
+					event.put(TiC.EVENT_PROPERTY_SOURCE, windowProxy);
 					event.put(TiC.EVENT_PROPERTY_WINDOW, ((TiBaseActivity) getActivity()).getWindowProxy());
-					onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
+					onHomeIconItemSelected.call(windowProxy.getKrollObject(), new Object[] { event });
 					return true;
-				}
+//				}
 			}
 		}
-		popCurrentWindow(null);
-		return true;
+		if (windows.size() > 1) {
+		    popCurrentWindow(null);
+	        return true;
+		}
+		return false;
 	}
+	
+	static KrollDict sActionBarDict = null;
 	
 	private void updateHomeButton(TiWindowProxy proxy){
 		boolean canGoBack = (windows.size() > 1);
-    	ActionBarProxy actionBarProxy = proxy.getActivityProxy().getActionBar();
-    	ActionBar actionBar = ((TiBaseActivity)getActivity()).getSupportActionBar();
-    	if (actionBar == null) return;
-    	if (proxy == null) {
-    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
-    		actionBar.setHomeButtonEnabled(canGoBack);
-    	}
-    	else {
-    		KrollDict props = actionBarProxy.getProperties();
-    		if (props == null) props = new KrollDict();
-    		actionBar.setDisplayHomeAsUpEnabled(props.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack));
-    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
-    		
-    	}
+		ActionBarProxy actionBar = getActionBar();
+		if (actionBar != null) {
+		    if (sActionBarDict == null) {
+		        sActionBarDict = new KrollDict();
+		    }
+		    synchronized(sActionBarDict) {
+		        sActionBarDict.put(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack);
+	            sActionBarDict.put(TiC.PROPERTY_DISPLAY_SHOW_HOME_ENABLED, canGoBack);
+	            sActionBarDict.put(TiC.PROPERTY_HOME_AS_UP_INDICATOR, null);
+	            actionBar.applyProperties(sActionBarDict);
+		    }
+		}
 	}
 	
-	private void removeWindow(TiWindowProxy proxy) {
+	private void removeWindow(final TiWindowProxy proxy) {
 		proxy.setWindowManager(null);
 		windows.remove(proxy);
 		animations.remove(proxy);
 	}
-	private void addWindow(TiWindowProxy proxy, Transition transition) {
+	private void addWindow(final TiWindowProxy proxy, final Transition transition) {
 		if (!windows.contains(proxy)) {
 			windows.add(proxy);
 		}
@@ -233,17 +238,16 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		}
 		TiWindowProxy toRemove = popWindow();
 		size = windows.size();
-		ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());   
+        
 		for (int i = index + 1; i < size; i++) {
 			TiWindowProxy window = windows.get(i);
-			View viewToRemove = window.getOuterView();
-			if (viewToRemove != null) {
-				viewToRemoveFrom.removeView(window.getOuterView());
-			}
 			window.setWindowManager(null);
-			window.closeFromActivity(false);
-			window.setActivity(null);
+			window.closeFromActivity(true);
 			animations.remove(window);
+			if (activity != null) {
+	            activity.removeWindowFromStack(window);
+	        }
 		}
 		windows.subList(index + 1, size).clear();
 		return transitionFromWindowToWindow(toRemove, winToFocus, arg);
@@ -272,15 +276,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	{
 		poping = false;
 		if (toRemove == this) return;
-		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
-		if (activity != null) {
-			activity.removeWindowFromStack(toRemove);
-		}
-		else {
-			Log.e(TAG, "handleWindowClosed called with not activity, shouldn't be possible");
-		}
-		toRemove.setActivity(null);
 		toRemove.closeFromActivity(true);
+		KrollRuntime.suggestGC();
 	}
 	
 	public boolean popCurrentWindow(Object arg)
@@ -327,6 +324,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 					
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		
+        toRemove.onWindowFocusChange(false);
 		final boolean viewWasOpened = winToFocus.isOpenedOrOpening();
 		if (viewToRemoveFrom != null) {
 			final View viewToRemove = toRemove.getOuterView();
@@ -367,6 +365,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		
         toRemove.blur();
         prepareCurrentWindow(winToFocus);
+        winToFocus.onWindowFocusChange(true);
 
 		return true;
 	}
@@ -446,7 +445,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		else {
 			opened = true; //because handlePush needs this
 			opening = false;
-            prepareCurrentWindow(getCurrentWindowInternal());
+//            prepareCurrentWindow(getCurrentWindow());
 			super.onWindowActivityCreated();
 			getParentViewForChild().setId(viewId++);
 			handlePushFirst();
@@ -454,17 +453,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	}
 	
 	protected int getContainerId(){
-		int id = getParentViewForChild().getId();
-		return id;
+		return getParentViewForChild().getId();
 	}
-	
-	
-	@Override
-	public void windowCreated(TiBaseActivity activity) {
-		super.windowCreated(activity);
-
-	}
-	
 	
 	private boolean handlePop(final TiWindowProxy proxy, Object arg) 
 	{
@@ -483,8 +473,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	
 	static HashMap kDefaultTransition = new HashMap<String, Object>(){{
-	       put(TiC.PROPERTY_STYLE, Integer.valueOf(TransitionStyleModule.SWIPE));
-	       put(TiC.PROPERTY_SUBSTYLE,  Integer.valueOf(TransitionStyleModule.RIGHT_TO_LEFT));}};
+	       put(TiC.PROPERTY_STYLE, Integer.valueOf(TransitionHelper.Types.kTransitionSwipe.ordinal()));
+	       put(TiC.PROPERTY_SUBSTYLE,  Integer.valueOf(TransitionHelper.SubTypes.kRightToLeft.ordinal()));}};
 	       
 	private KrollDict getDictFromTransition(Transition transition)
 	{
@@ -532,6 +522,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			viewToAdd.setVisibility(View.GONE);
 			TiUIHelper.addView(viewToAddTo, viewToAdd, proxy.peekView().getLayoutParams());
 			TiWindowProxy winToBlur = getCurrentWindowInternal();
+			winToBlur.onWindowFocusChange(false);
 			final View viewToHide = winToBlur.getOuterView();
 			if (transition != null) {
 				proxy.customHandleOpenEvent(true);
@@ -565,6 +556,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				pushing = false; 
 			}
    			handleSetViewVisible(viewToAdd, View.VISIBLE);
+   			proxy.onWindowFocusChange(true);
 		}
 		addWindow(proxy, transition);
         prepareCurrentWindow(proxy);
@@ -573,9 +565,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private void prepareCurrentWindow(TiWindowProxy proxy) {
         TiBaseActivity activity = ((TiBaseActivity) getActivity()); 
-	    if (!proxy.isOpenedOrOpening()) proxy.onWindowActivityCreated();
+	    if (!proxy.isOpenedOrOpening()) {
+	        proxy.setActivity(activity);
+	        proxy.onWindowActivityCreated();
+	    }
         updateHomeButton(proxy);
-        if (activity != null) activity.setWindowProxy(proxy);
+        if (activity != null) {
+            activity.setWindowProxy(proxy);
+        }
         proxy.focus();
 	}
 	
@@ -717,14 +714,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public boolean interceptOnBackPressed() {
 	if (pushing || poping) return true;
 		if (windows.size() >= 1) {
-			TiWindowProxy currentWindow = getCurrentWindowInternal();
-			if (currentWindow.hasListeners(TiC.EVENT_ANDROID_BACK, false)) {
-				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null, false, false);
-				return true;
-			} else if (hasListeners(TiC.EVENT_ANDROID_BACK, false)) {
-				fireEvent(TiC.EVENT_ANDROID_BACK, null, false, false);
-				return true;
-			}
+//		    TiWindowProxy topWindow = ((TiBaseActivity) getActivity()).topWindowOnStack();
+//            if (topWindow == this) {
+                TiWindowProxy currentWindow = getCurrentWindowInternal();
+                if (currentWindow.hasListeners(TiC.EVENT_ANDROID_BACK, false)) {
+                    currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null, false, false);
+                    return true;
+                }
+//            }
 			if (windows.size() >= 2) {
 				poping = true;
 				return popCurrentWindow(null);
@@ -751,7 +748,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Override
 	public KrollProxy getParentForBubbling(TiWindowProxy winProxy) {
 		return this;
-//		return (TiViewProxy.winProxy).getParentForBubbling();
 	}
 
 
@@ -760,15 +756,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		return false;
 	}
 
-	public void onStart(Activity activity) {
-	}
-
-	public void onResume(Activity activity) {
-	}
-
-	public void onPause(Activity activity) {		
-	}
-	
     public void clearWindowsStack(){
         clearWindowsStack(false);
     }
@@ -790,12 +777,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		windows.clear();
 	}
 
-	public void onStop(Activity activity) {
-	}
-
 	public void onDestroy(Activity activity) {
-		clearWindowsStack();
+		clearWindowsStack(true);
 	}
+	
 	@Override
 	public boolean realUpdateOrientationModes()
 	{
@@ -810,62 +795,26 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 
 	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue,
-			KrollProxy proxy) {
-		if (key.equals(TiC.PROPERTY_TRANSITION)) {
-			if (newValue instanceof HashMap) {
-				defaultTransition = (HashMap) newValue;
-			}
-			else {
-				defaultTransition = kDefaultTransition;
-			}
-		} else if (key.equals(TiC.PROPERTY_WINDOW)) {
-		    setWindow((TiWindowProxy) newValue);
+	public void onPropertyChanged(String name, Object value, Object oldValue) {
+	    if (name.equals(TiC.PROPERTY_TRANSITION)) {
+            if (value instanceof HashMap) {
+                defaultTransition = (HashMap) value;
+            }
+            else {
+                defaultTransition = kDefaultTransition;
+            }
+        } else if (name.equals(TiC.PROPERTY_WINDOW)) {
+            setWindow((TiWindowProxy) value);
         }
-	}
-
-
-	@Override
-	public void processProperties(KrollDict properties) {
-		if (properties.containsKey(TiC.PROPERTY_TRANSITION)) {
-			Object value = properties.get(TiC.PROPERTY_TRANSITION);
-			if (value instanceof HashMap) {
-				defaultTransition = (HashMap) value;
-			}
-			else {
-				defaultTransition = kDefaultTransition;
-			}
-		}
-	}
-
-
-	@Override
-	public void propertiesChanged(List<KrollPropertyChange> changes,
-			KrollProxy proxy) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void listenerAdded(String type, int count, KrollProxy proxy) {}
-
-
-	@Override
-	public void listenerRemoved(String type, int count, KrollProxy proxy) {}
-
+    }
 	
-	////ONLY USED FOR LISTVIEW AND SUCH
+	@Override
+	public void onWindowFocusChange(boolean focused) {
+	    getCurrentWindow().onWindowFocusChange(focused);
+    }
     @Override
-    public void setReusing(boolean value) {
+    public TiWindowProxy getTopWindow() {
+        return getCurrentWindow();
     }
 
-    @Override
-    public void setAdditionalEventData(KrollDict dict) {
-    }
-
-    @Override
-    public KrollDict getAdditionalEventData() {
-        return null;
-    }
 }

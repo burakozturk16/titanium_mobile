@@ -7,7 +7,7 @@
 # Entry point Makefile for ndk-build
 
 APP_BUILD_SCRIPT = src/native/Android.mk
-TARGET_PLATFORM = android-15
+TARGET_PLATFORM = android-21
 APP_STL := stlport_shared
 ifeq ($(BUILD_X86), 1)
 	APP_ABI := armeabi armeabi-v7a x86

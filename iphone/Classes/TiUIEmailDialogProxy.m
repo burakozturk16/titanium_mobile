@@ -55,6 +55,12 @@
 
 - (id)isSupported:(id)args
 {
+#if TARGET_IPHONE_SIMULATOR
+	if([TiUtils isIOS8OrGreater]) {
+		DebugLog(@"[INFO] iOS 8 Simulator does not support sending emails. Use a device instead.");
+		return NUMBOOL(NO);
+	}
+#endif
 	return NUMBOOL([MFMailComposeViewController canSendMail]);
 }
 
@@ -70,12 +76,21 @@
 	ENSURE_CLASS_OR_NIL(bccArray,arrayClass);
 	NSArray * ccArray = [self valueForUndefinedKey:@"ccRecipients"];
 	ENSURE_CLASS_OR_NIL(ccArray,arrayClass);
-
-	ENSURE_UI_THREAD(open,args);
 		
+	ENSURE_UI_THREAD(open,args);
+
 	NSString * subject = [TiUtils stringValue:[self valueForUndefinedKey:@"subject"]];
 	NSString * message = [TiUtils stringValue:[self valueForUndefinedKey:@"messageBody"]];
 
+#if TARGET_IPHONE_SIMULATOR
+	if([TiUtils isIOS8OrGreater]) {
+		DebugLog(@"[INFO] iOS 8 Simulator does not support sending emails. Use a device instead.");
+		NSDictionary *event = [NSDictionary dictionaryWithObject:NUMINT(MFMailComposeResultFailed) forKey:@"result"];
+		[self fireEvent:@"complete" withObject:event errorCode:MFMailComposeResultFailed message:@"iOS 8 Simulator does not support sending emails. Use a device instead."];
+		return;
+	}
+#endif
+    
 	if (![MFMailComposeViewController canSendMail])
 	{
 		NSDictionary *event = [NSDictionary dictionaryWithObject:NUMINT(MFMailComposeResultFailed) forKey:@"result"];
@@ -89,11 +104,7 @@
 	[composer setMailComposeDelegate:self];
 	if (barColor != nil)
 	{
-		if([TiUtils isIOS7OrGreater]) {
-			[[composer navigationBar] performSelector:@selector(setBarTintColor:) withObject:barColor];
-		} else {
-			[[composer navigationBar] setTintColor:barColor];
-		}
+        [[composer navigationBar] setBarTintColor:barColor];
 	}
 
 	[composer setSubject:subject];
@@ -108,7 +119,7 @@
 		{
 			if ([attachment isKindOfClass:[TiBlob class]])
 			{
-				NSString *path = [attachment path];
+				NSString *path = [(TiBlob*)attachment path];
 				if (path==nil)
 				{
 					path = @"attachment";
@@ -150,23 +161,31 @@ MAKE_SYSTEM_PROP(FAILED,MFMailComposeResultFailed);
 
 - (void)mailComposeController:(MFMailComposeViewController *)composer didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
 {
-	if(error!=nil)
-	{
-		NSLog(@"[ERROR] Unexpected composing error: %@",error);
-	}
-	
-	BOOL animated = YES;
-
-	[[TiApp app] hideModalController:composer animated:animated];
-	[composer autorelease];
-	composer = nil;
-	if ([self _hasListeners:@"complete"])
-	{
-		NSDictionary *event = [NSDictionary dictionaryWithObject:NUMINT(result) forKey:@"result"];
-		[self fireEvent:@"complete" withObject:event errorCode:[error code] message:[TiUtils messageFromError:error]];
-	}
-	[self forgetSelf];
-	[self autorelease];
+    if(error!=nil)
+    {
+        NSLog(@"[ERROR] Unexpected composing error: %@",error);
+    }
+    
+    BOOL animated = YES;
+    
+    [[TiApp app] hideModalController:composer animated:animated];
+    [composer autorelease];
+    composer = nil;
+    if ([self _hasListeners:@"complete"])
+    {
+        if (error) {
+            [self fireEvent:@"complete" withObject:[TiUtils dictionaryWithCode:[error code] message:[TiUtils messageFromError:error]] checkForListener:NO];
+        } else {
+            [self fireEvent:@"complete" withObject:@{
+                                                     @"result":@(result),
+                                                     @"success":@(result == MFMailComposeResultSent || result == MFMailComposeResultSaved),
+                                                     
+                                                     } checkForListener:NO];
+        }
+        
+    }
+    [self forgetSelf];
+    [self autorelease];
 }
 
 @end

@@ -21,8 +21,6 @@
     BOOL closing;
     BOOL focussed;
     BOOL isModal;
-    BOOL hidesStatusBar;
-    UIStatusBarStyle statusBarStyle;
     TiViewProxy<TiTab> *tab;
     TiAnimation * openAnimation;
     TiAnimation * closeAnimation;
@@ -35,6 +33,9 @@
 
 @property (nonatomic, readwrite, assign) TiViewProxy<TiTab> *tab;
 @property (nonatomic, readonly) TiProxy* tabGroup;
+@property (nonatomic, readonly) BOOL focussed;
+@property (nonatomic, readwrite) NSInteger internalStatusBarStyle;
+@property (nonatomic, readwrite) BOOL hidesStatusBar;
 -(void)updateOrientationModes;
 
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION

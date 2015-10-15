@@ -343,7 +343,7 @@ public class BufferProxy extends KrollProxy
 	@Kroll.method
 	public TiBlob toBlob()
 	{
-		return TiBlob.blobFromData(buffer);
+		return TiBlob.blobFromObject(buffer);
 	}
 
 	/**

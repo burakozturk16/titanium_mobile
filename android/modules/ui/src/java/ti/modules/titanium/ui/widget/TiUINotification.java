@@ -6,90 +6,81 @@
  */
 package ti.modules.titanium.ui.widget;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
-
 import android.widget.Toast;
 
 public class TiUINotification extends TiUIView
 {
 	private static final String TAG = "TiUINotifier";
 
-	private Toast toast;
+    private Toast toast;
+    private String message = null;
+    private float horizontalMargin;
+    private float verticalMargin;
+    private int offsetX;
+    private int offsetY;
+    private int gravity;
 
 	public TiUINotification(TiViewProxy proxy) {
 		super(proxy);
 		Log.d(TAG, "Creating a notifier", Log.DEBUG_MODE);
 		toast = Toast.makeText(proxy.getActivity(), "", Toast.LENGTH_SHORT);
+		horizontalMargin = toast.getHorizontalMargin();
+	    verticalMargin = toast.getVerticalMargin();
+	    offsetX = toast.getXOffset();
+	    offsetY = toast.getYOffset();       
+	    gravity = toast.getGravity();
 	}
 
-	@Override
-	public void processProperties(KrollDict d)
-	{
-		
-		float horizontalMargin = toast.getHorizontalMargin();
-		float verticalMargin = toast.getVerticalMargin();
-		int offsetX = toast.getXOffset();
-		int offsetY = toast.getYOffset();		
-		int gravity = toast.getGravity();		
-		
-		if (proxy.hasProperty("duration")) {
-			// Technically this should check if the duration is one of the 2 possible options
-			int duration = TiConvert.toInt(proxy.getProperty("duration"));
-			toast.setDuration(duration);
-		}
-		
-		//float horizontalMargin, float verticalMargin
-		if (proxy.hasProperty("horizontalMargin")) {
-			horizontalMargin = TiConvert.toFloat(proxy.getProperty("horizontalMargin"));
-		}
-		
-		if (proxy.hasProperty("verticalMargin")) {
-			verticalMargin = TiConvert.toFloat(proxy.getProperty("verticalMargin"));
-		}
-		
-		toast.setMargin(horizontalMargin, verticalMargin);		
-		
-		if (proxy.hasProperty("offsetX")) {
-			offsetX = TiConvert.toInt(proxy.getProperty("offsetX"));
-		}
+    @Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_MESSAGE:
+            message = TiConvert.toString(newValue);
+            break;
 
-		if (proxy.hasProperty("offsetY")) {
-			offsetY = TiConvert.toInt(proxy.getProperty("offsetY"));
-		}
+        case TiC.PROPERTY_DURATION:
+            toast.setDuration(TiConvert.toInt(newValue));
+            break;
 
-		// Left gravity off from the docco - not sure what your general opinion is about specifying the gravity
-		// So for now this is a hidden property
-		if (proxy.hasProperty("gravity")) {
-			gravity = TiConvert.toInt(proxy.getProperty("gravity"));
-		}
-		
-		toast.setGravity(gravity, offsetX, offsetY);
-				
-		super.processProperties(d);
-	}
+        case "verticalMargin":
+            verticalMargin = TiConvert.toFloat(newValue, verticalMargin);
+            toast.setMargin(horizontalMargin, verticalMargin);
+            break;
 
-
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		// Not super efficient but better code reuse
-		KrollDict d = new KrollDict();
-		d.put(key, newValue);
-		processProperties(d);
-
-		Log.d(TAG, "PropertyChanged - Property '" + key + "' changed to '" + newValue + "' from '" + oldValue + "'",
-			Log.DEBUG_MODE);
-
-	}
+        case "horizontalMargin":
+            horizontalMargin = TiConvert.toFloat(newValue, horizontalMargin);
+            toast.setMargin(horizontalMargin, verticalMargin);
+            break;
+        case "offsetX":
+            offsetX = TiConvert.toInt(newValue, offsetX);
+            toast.setGravity(gravity, offsetX, offsetY);
+            break;
+        case "offsetY":
+            offsetY = TiConvert.toInt(newValue, offsetY);
+            toast.setGravity(gravity, offsetX, offsetY);
+            break;
+        case "gravity":
+            gravity = TiConvert.toInt(newValue, gravity);
+            toast.setGravity(gravity, offsetX, offsetY);
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
 
 	public void show(KrollDict options) {
 
-		toast.setText((String) proxy.getProperty("message"));
+		toast.setText(message);
 		toast.show();
 	}
 

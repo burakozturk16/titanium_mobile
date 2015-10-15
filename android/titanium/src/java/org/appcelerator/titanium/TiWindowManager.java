@@ -9,5 +9,6 @@ public interface TiWindowManager {
 	public boolean shouldExitOnClose();
 	public void updateOrientationModes();
 	public void onWindowActivityCreated();
+	public TiWindowProxy getTopWindow();
 	public KrollProxy getParentForBubbling(TiWindowProxy proxy);
 }

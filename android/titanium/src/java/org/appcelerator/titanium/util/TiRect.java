@@ -5,7 +5,6 @@ import java.util.HashMap;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 
-import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.RectF;
 
@@ -120,12 +119,12 @@ public class TiRect {
 		return height;
 	}
 	
-	public RectF getAsPixels(Context context, int w, int h) {
+	public RectF getAsPixels(int w, int h) {
 		if (internalRect != null) return internalRect;
-		int rectX = x.getAsPixels(context, w, h);
-		int rectY = y.getAsPixels(context, w, h);
-		int rectW = width.getAsPixels(context, w, h);
-		int rectH = height.getAsPixels(context, w, h);
+		int rectX = x.getAsPixels( w, h);
+		int rectY = y.getAsPixels(w, h);
+		int rectW = width.getAsPixels(w, h);
+		int rectH = height.getAsPixels(w, h);
 		return new RectF(rectX, rectY, rectX + rectW, rectY + rectH);
 	}
 }

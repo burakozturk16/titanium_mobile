@@ -3,6 +3,16 @@ name: Titanium.UI.Button
 summary: |
     A button widget that has four states: normal, disabled, focused and selected.
 description: |
+    <table id="platformComparison">
+      <tr>
+        <td><img src="images/button/button_android.png" height="50" /></td>
+        <td><img src="images/button/button_ios.png" height="50" /></td>
+        <td><img src="images/button/button_mobileweb.png" height="50" /></td>
+        <td><img src="images/button/button_wp.png" height="50" /></td>
+      </tr>
+      <tr><th>Android</th><th>iOS</th><th>Mobile Web</th><th>Windows Phone</th></tr>
+    </table>
+
     A button displays its  selected state while it is being pressed. The focused state is
     only used on Android devices that have navigation keys or a keyboard, to indicate
     which button has input focus.
@@ -28,21 +38,59 @@ description: |
     iOS buttons have two special properties, `style` and `systemButton`.
 
     The `style` property specifies the type of button decoration, and can be set to one 
-    of the values described in <Titanium.UI.iPhone.SystemButtonStyle>. 
-    
-    Unlike Android and Mobile Web, iOS doesn't supply any default background images for buttons--
-    system button styles serve this purpose.
+    of the values described in <Titanium.UI.iPhone.SystemButtonStyle>. On iOS 6 and earlier, the 
+    default `SystemButtonStyle` is [BORDERED](Titanium.UI.iPhone.SystemButtonStyle.BORDERED), which
+    decorates the button with a rounded rectangle. On iOS 7, the rounded rectangle button has been deprecated.
 
-    Button style decorations are drawn above the background gradient and background color, 
-    and below any background images. 
+    <div style="text-align: center; margin-bottom: 10px">
+    <div style="display: table-cell; width: 240px">
+        <img src="images/button/rounded_rect_button_2x.png"/>        
+        <p style="font-weight: bold;">iOS 6 rounded rectangle button</p>
+    </div>
+    <div style="display: table-cell;">
+        <img src="images/button/system_button_2x.png"/>        
+        <p style="font-weight: bold;">iOS 7 system button</p>
+    </div>
+    </div>
 
-    To use a custom button style, for example using a background gradient,
-    you may need to explicitly set `style` to `PLAIN`, to prevent the button style from  
-    overriding any background color or gradient. In addition, the `backgroundImage` must be 
+    On iOS 6, button style decorations are drawn above the background gradient and background color, 
+    and below any background images. This means, for example, that setting the <Titanium.UI.Button.backgroundColor>
+    only affects the areas outside the rounded border; on iOS 7, however, setting the background color 
+    affects the button's entire bounding box area. This difference can produce unexpected results on 
+    iOS 6 if the button's label color is white, as shown below:
+
+    <div style="text-align: center; margin-bottom: 10px">
+    <div style="display: table-cell; width: 240px">
+        <img src="images/button/ios6_invisible.png"/>        
+        <p style="font-weight: bold;">iOS 6 rounded rectangle button</p>
+    </div>
+    <div style="display: table-cell;">
+        <img src="images/button/ios7_good.png"/>        
+        <p style="font-weight: bold;">iOS 7 system button</p>
+    </div>
+    </div>
+
+    Depending on the design requirements, there are a couple of solutions to this:
+
+    * To make the button on iOS 6 match the iOS 7 style, set the button's <Titanium.UI.iPhone.SystemButtonStyle>
+     property to [PLAIN](Titanium.UI.iPhone.SystemButtonStyle.PLAIN). This removes all decoration from 
+     the button so that it looks the same on both types of devices.
+    * To make the button on iOS 7 match the rounded rectangle style of iOS 6, set 
+    <Titanium.UI.iPhone.SystemButtonStyle> to [PLAIN](Titanium.UI.iPhone.SystemButtonStyle.PLAIN) and
+    and assign a custom image to <Titanium.UI.Button.backgroundImage>. 
+
+    To use a custom button style, such as a background gradient, you may need to explicitly set 
+    the button's `style` property to `PLAIN`, to prevent the button style from overriding any background color or gradient. 
+
+    Also note:
+
+    * When assigning a custom image to the `backgroundImage` property, the image must be 
     partially or wholly transparent for the background color or background gradient to be visible.
-
-    In order for a background gradient to show through, the `backgroundColor` may need to be
+    * Similarly, for an assigned background gradient to show through, the `backgroundColor` may need to be
     set to 'transparent'.
+
+    Unlike Android and Mobile Web, iOS doesn't supply any default background images for buttons--
+    system button styles serve this purpose. 
 
     The `systemButton` property lets you create a predefined system-defined button, 
     such as the **Camera** or **Add** buttons, for use in toolbars and nav bars.
@@ -98,12 +146,12 @@ methods:
         to appear on top of it.
 
         See also: <Titanium.UI.View.add>.
-    platforms: [iphone, ipad, mobileweb, tizen]
+    platforms: [iphone, ipad, mobileweb]
 
   - name: remove
     description: |
         See also: [add](Titanium.UI.Button.add), <Titanium.UI.View.add>.
-    platforms: [iphone, ipad, mobileweb, tizen]
+    platforms: [iphone, ipad, mobileweb]
 
 properties:
   - name: backgroundImage
@@ -115,7 +163,7 @@ properties:
         image will appear faded to indicate being disabled. Also on iOS, if backgroundSelectedImage
         is unset, the image will be darkened to indicate being selected.
     type: String
-    exclude-platforms: [blackberry]
+
 
   - name: backgroundDisabledImage
     summary: |
@@ -125,7 +173,7 @@ properties:
         Also sets the background image for the other button states (normal, focused, selected), 
         unless they've been specified explicitly, except for iOS, which requires a backgroundImage.
     type: String
-    platforms: [android, iphone, ipad, mobileweb, tizen]
+    platforms: [android, iphone, ipad, mobileweb]
 
   - name: backgroundFocusedImage
     summary: |
@@ -135,7 +183,7 @@ properties:
         Focusable must be true for normal views. Sets the background image for the focused 
         state only. For iOS, since there is not a trackball, this does nothing.
     type: String
-    platforms: [android, iphone, ipad, mobileweb, tizen]
+    platforms: [android, iphone, ipad, mobileweb]
 
   - name: backgroundSelectedImage
     summary: |
@@ -145,14 +193,14 @@ properties:
         On Android, Focusable must be true in order to be selected. Sets the background image for the selected 
         state only.
     type: String
-    platforms: [android, iphone, ipad, mobileweb, tizen]
+    platforms: [android, iphone, ipad, mobileweb]
 
   - name: color
     summary: Default button text color, as a color name or hex triplet.
     description: |
         For information about color values, see the "Colors" section of <Titanium.UI>. 
     type: String
-    exclude-platforms: [blackberry]
+
 
   - name: disabledColor
     summary: Text color of the button in its disabled state, as a color name or hex triplet.
@@ -164,12 +212,12 @@ properties:
     summary: Set to `true` to enable the button, `false` to disable the button.
     type: Boolean
     default: true
-    platforms: [android, ipad, iphone, mobileweb, tizen, blackberry]
+    platforms: [ipad, iphone, mobileweb]
 
   - name: font
     summary: Font to use for the button text.
     type: Font
-    exclude-platforms: [blackberry]
+
 
   - name: image
     summary: Image to display on the button, specified as a local
@@ -185,7 +233,7 @@ properties:
     description: |
         For information about color values, see the "Colors" section of <Titanium.UI>. 
     type: String
-    platforms: [iphone,ipad,mobileweb, tizen]
+    platforms: [iphone,ipad,mobileweb]
 
   - name: shadowColor
     summary: Shadow color of the [title](Titanium.UI.Button.title), as a color name or hex triplet.
@@ -242,7 +290,7 @@ properties:
     type: [String,Number]
     constants: Titanium.UI.TEXT_ALIGNMENT_*
     default: <Titanium.UI.TEXT_ALIGNMENT_CENTER>
-    exclude-platforms: [blackberry]
+
 
   - name: title
     summary: Button title.
@@ -253,7 +301,7 @@ properties:
     description: Only one of `title` or `titleid` should be specified.
     type: String
     since: "1.5"
-    exclude-platforms: [blackberry]
+
 
   - name: verticalAlign
     summary: |
@@ -262,7 +310,7 @@ properties:
     type: [Number,String]
     constants: Titanium.UI.TEXT_VERTICAL_ALIGNMENT_*
     default: Titanium.UI.TEXT_VERTICAL_ALIGNMENT_CENTER
-    platforms: [android, mobileweb, tizen]
+    platforms: [android, mobileweb]
 
 examples:
   - title: Simple Button Example

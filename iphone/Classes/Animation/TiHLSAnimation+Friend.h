@@ -12,5 +12,7 @@
 @property (nonatomic, retain) TiAnimatableProxy* animatedProxy;
 @property (nonatomic, assign) BOOL isReversed;
 - (id)reverseObjectAnimation;
--(NSDictionary*)animationProperties;
+//-(NSDictionary*)animationProperties;
+-(NSDictionary*)fromProperties;
+-(NSDictionary*)toProperties;
 @end

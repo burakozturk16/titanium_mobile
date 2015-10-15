@@ -230,6 +230,7 @@ public class TiFile extends TiBaseFile
 		return file.length();
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public double spaceAvailable()
 	{
@@ -347,7 +348,7 @@ public class TiFile extends TiBaseFile
 	@Override
 	public TiBlob read() throws IOException
 	{
-		return TiBlob.blobFromFile(this);
+		return TiBlob.blobFromObject(this);
 	}
 
 	@Override

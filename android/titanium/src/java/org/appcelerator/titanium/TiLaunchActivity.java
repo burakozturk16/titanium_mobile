@@ -12,7 +12,6 @@ import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.titanium.util.TiColorHelper;
-import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
@@ -145,9 +144,9 @@ public abstract class TiLaunchActivity extends TiBaseActivity
 	}
 
 	@Override
-	protected void windowCreated()
+	protected void windowCreated(Bundle savedInstanceState)
 	{
-		super.windowCreated();
+		super.windowCreated(savedInstanceState);
 		loadActivityScript();
 		scriptLoaded();
 	}
@@ -182,7 +181,7 @@ public abstract class TiLaunchActivity extends TiBaseActivity
 				// (addendum re timob-9285) Launching from history (FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY)
 				// also appears to be okay, so if that flag is there then don't consider this an invalid
 				// launch. VALID_LAUNCH_FLAGS contains both of these valid flags.
-				if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB && intent.getFlags() != 0x4) {
+				if (TiC.HONEYCOMB_OR_GREATER && intent.getFlags() != 0x4) {
 					invalidLaunchDetected = (intent.getFlags() & VALID_LAUNCH_FLAGS) == 0;
 				}
 			}

@@ -1,12 +1,11 @@
 
+#ifdef USE_TI_IMAGE
 #import "TiBase.h"
 
 #import "ImageModule.h"
 #import "GPUImage/GPUImage.h"
 #import "TiViewProxy.h"
 #import "TiImageHelper.h"
-
-#define USE_TI_MEDIA
 
 #import "MediaModule.h"
 
@@ -55,7 +54,7 @@ typedef UIImage* (^ProcessImageBlock) ();
         id callback = [options objectForKey:@"callback"];
         ENSURE_TYPE(callback, KrollCallback)
         if (callback != nil) {
-            TiThreadPerformOnMainThread(^{
+            TiThreadPerformBlockOnMainThread(^{
                 UIImage* result = [[TiImageHelper imageFiltered:block() withOptions:options] retain];
                 TiBlob* blob = [[TiBlob alloc] initWithImage:result];
                 NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
@@ -97,7 +96,7 @@ typedef UIImage* (^ProcessImageBlock) ();
     
     if (image == nil) {
         NSLog(@"[ERROR] getFilteredImage: could not load image from object of type: %@",[imageArg class]);
-		return;
+		return nil;
     }
     return [self processImage:^UIImage *{
         return image;
@@ -113,30 +112,27 @@ typedef UIImage* (^ProcessImageBlock) ();
 	ENSURE_ARG_AT_INDEX(viewProxy, args, 0, TiViewProxy);
     ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 1, NSDictionary);
     
-    if ([options objectForKey:@"scale"]) {
-        scale = [[options objectForKey:@"scale"] floatValue];
-    }
     return [self processImage:^UIImage *{
-        return [viewProxy toImageWithScale:scale];
+        return [viewProxy toImageWithScale:0.0f];
     } withOptions:options];
 }
 
 -(id)getFilteredScreenshot:(id)args
 {
+//    ENSURE_UI_THREAD_WAIT_1_ARG(args)
     ENSURE_TYPE(args, NSArray)
-    TiViewProxy *viewProxy = nil;
-    float scale = 1.0f;
+//    float scale = 1.0f;
     NSDictionary *options = nil;
-	ENSURE_ARG_AT_INDEX(viewProxy, args, 0, TiViewProxy);
-    ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 1, NSDictionary);
+    ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 0, NSDictionary);
     
-    if ([options objectForKey:@"scale"]) {
-        scale = [[options objectForKey:@"scale"] floatValue];
-    }
+//    if ([options objectForKey:@"scale"]) {
+//        scale = [[options objectForKey:@"scale"] floatValue];
+//    }
     return [self processImage:^UIImage *{
-        return [MediaModule takeScreenshotWithScale:scale];
+        return [MediaModule takeScreenshotWithScale:0.0f];
     } withOptions:options];
 }
 
 #pragma mark Public Constants
 @end
+#endif

@@ -7,10 +7,7 @@
 #import "TiUIView.h"
 
 
-@interface TiUISwitch : TiUIView<LayoutAutosizing> {
-@private
-	UISwitch *switchView;
-}
+@interface TiUISwitch : TiUIView<LayoutAutosizing> 
 
 - (IBAction)switchChanged:(id)sender;
 

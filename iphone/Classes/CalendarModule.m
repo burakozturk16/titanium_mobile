@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -66,7 +66,7 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
         return nil;
         
     }
-    return [ourStore calendars];
+    return [ourStore calendarsForEntityType:EKEntityTypeEvent];
 }
 
 -(NSString*)apiName
@@ -78,9 +78,6 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
 {
     [super startup];
     store = NULL;
-    if ([EKEventStore respondsToSelector:@selector(authorizationStatusForEntityType:)]) {
-         iOS6API = YES;
-    }
 }
 
 -(void) eventStoreChanged:(NSNotification*)notification
@@ -162,7 +159,21 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
         DebugLog(@"Could not instantiate an event of the event store.");
         return nil;
     }
-    EKCalendar* calendar_ = [ourStore calendarWithIdentifier:arg];
+    EKCalendar* calendar_ = NULL;
+    if ([TiUtils isIOS8OrGreater]) {
+        //Instead of getting calendar by identifier, have to get all and check for match
+        //not optimal but best way to fix non existing shared calendar error
+        NSArray *allCalendars = [ourStore calendarsForEntityType:EKEntityTypeEvent];
+        for (EKCalendar *cal in allCalendars) {
+            if ([cal.calendarIdentifier isEqualToString:arg]) {
+                calendar_ = cal;
+                break;
+            }
+        }
+    }
+    else {
+        calendar_ = [ourStore calendarWithIdentifier:arg];
+    }
     if (calendar_ == NULL) {
         return NULL;
     }
@@ -195,41 +206,38 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
 -(void) requestAuthorization:(id)args forEntityType:(EKEntityType)entityType
 {
     ENSURE_SINGLE_ARG(args, KrollCallback);
-	KrollCallback * callback = args;
-	NSString * errorStr = nil;
-	int code = 0;
-	bool doPrompt = NO;
+    KrollCallback * callback = args;
+    NSString * errorStr = nil;
+    int code = 0;
+    BOOL doPrompt = NO;
     
-    
-    if (iOS6API) {
+    long int permissions = [EKEventStore authorizationStatusForEntityType:entityType];
+    switch (permissions) {
+        case EKAuthorizationStatusNotDetermined:
+            doPrompt = YES;
+            break;
+        case EKAuthorizationStatusAuthorized:
+            break;
+        case EKAuthorizationStatusDenied:
+            code = EKAuthorizationStatusDenied;
+            errorStr = @"The user has denied access to events in Calendar.";
+			break;
+        case EKAuthorizationStatusRestricted:
+            code = EKAuthorizationStatusRestricted;
+            errorStr = @"The user is unable to allow access to events in Calendar.";
+        default:
+            break;
+    }
+	
+    if (!doPrompt) {
+        NSDictionary * propertiesDict = [TiUtils dictionaryWithCode:code message:errorStr];
+        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
         
-        long int permissions = [EKEventStore authorizationStatusForEntityType:entityType];
-		switch (permissions) {
-			case EKAuthorizationStatusNotDetermined:
-				doPrompt = YES;
-				break;
-			case EKAuthorizationStatusAuthorized:
-				break;
-			case EKAuthorizationStatusDenied:
-				code = EKAuthorizationStatusDenied;
-				errorStr = @"The user has denied access to events in Calendar.";
-			case EKAuthorizationStatusRestricted:
-				code = EKAuthorizationStatusRestricted;
-				errorStr = @"The user is unable to allow access to events in Calendar.";
-			default:
-				break;
-		}
-	}
-    
-	if (!doPrompt) {
-		NSDictionary * propertiesDict = [TiUtils dictionaryWithCode:code message:errorStr];
-		NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
-        
-		[callback call:invocationArray thisObject:self];
-		[invocationArray release];
-		return;
-	}
-	TiThreadPerformOnMainThread(^(){
+        [callback call:invocationArray thisObject:self];
+        [invocationArray release];
+        return;
+    }
+    TiThreadPerformOnMainThread(^(){
 		
         EKEventStore* ourstore = [self store];
         [ourstore requestAccessToEntityType:EKEntityTypeEvent
@@ -242,20 +250,33 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
                                                                               message:[TiUtils messageFromError:error]];
                                      }
                                      KrollEvent * invocationEvent = [[KrollEvent alloc] initWithCallback:callback eventObject:propertiesDict thisObject:self];
-                                     [[callback context] enqueue:[invocationEvent autorelease]];
+                                     [[callback context] enqueue:invocationEvent];
+									 RELEASE_TO_NIL(invocationEvent);
                                  }];
-	}, NO);
+    }, NO);
 }
 
 #pragma mark - Public API
 
+-(NSNumber*) hasCalendarPermissions:(id)unused
+{
+    return NUMBOOL([EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent] == EKAuthorizationStatusAuthorized);
+}
+
 -(void) requestEventsAuthorization:(id)args
+{
+    DEPRECATED_REPLACED(@"Calendar.requestEventsAuthorization", @"5.1.0", @"Calendar.requestCalendarPermissions");
+    [self requestCalendarPermissions:args];
+}
+
+-(void) requestCalendarPermissions:(id)args
 {
     ENSURE_SINGLE_ARG(args, KrollCallback);
     [self requestAuthorization:args forEntityType:EKEntityTypeEvent];
 }
 
--(void) requestRemindersAuthorization:(id)args
+// Not documented + used, yet. Part of the 5.2.0 release.
+-(void) requestRemindersPermissions:(id)args
 {
     ENSURE_SINGLE_ARG(args, KrollCallback);
     [self requestAuthorization:args forEntityType:EKEntityTypeReminder];
@@ -263,18 +284,15 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
 
 -(NSNumber*) eventsAuthorization
 {
-    long int result = EKAuthorizationStatusAuthorized;
-    if (iOS6API) { //in iOS 5.1 and below: no need to check for authorization.
-        result = [EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent];
-    }
-    return [NSNumber numberWithLong:result];
+    EKAuthorizationStatus result = [EKEventStore authorizationStatusForEntityType:EKEntityTypeEvent];
+    return [NSNumber numberWithInteger:result];
 }
 #pragma mark - Properties
 
 MAKE_SYSTEM_PROP(STATUS_NONE,EKEventStatusNone);
 MAKE_SYSTEM_PROP(STATUS_CONFIRMED,EKEventStatusConfirmed);
-MAKE_SYSTEM_PROP(STATUS_TENTATIVE,EKEventStatusNone);
-MAKE_SYSTEM_PROP(STATUS_CANCELED,EKEventStatusNone);
+MAKE_SYSTEM_PROP(STATUS_TENTATIVE,EKEventStatusTentative);
+MAKE_SYSTEM_PROP(STATUS_CANCELLED,EKEventStatusCanceled);
 
 MAKE_SYSTEM_PROP(AVAILABILITY_NOTSUPPORTED, EKEventAvailabilityNotSupported);
 MAKE_SYSTEM_PROP(AVAILABILITY_BUSY, EKEventAvailabilityBusy);

@@ -15,18 +15,25 @@
 //NOTE:FilesystemFile is conditionally compiled based on the filesystem module.
 #import "TiRect.h"
 #import "TiFilesystemFileProxy.h"
+#import "NSDictionary+Merge.h"
+#import "UIImage+UserInfo.h"
+#import "TiImageHelper.h"
 
 static NSString *const MIMETYPE_PNG = @"image/png";
 static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 
 @implementation TiBlob
+{
+    NSDictionary* extraInfo;
+}
 
 -(void)dealloc
 {
 	RELEASE_TO_NIL(mimetype);
 	RELEASE_TO_NIL(data);
 	RELEASE_TO_NIL(image);
-	RELEASE_TO_NIL(path);
+    RELEASE_TO_NIL(path);
+    RELEASE_TO_NIL(extraInfo);
 	[super dealloc];
 }
 
@@ -114,6 +121,7 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	if (self = [super init])
 	{
 		image = [image_ retain];
+        [self setInfo:image.info];
 		type = TiBlobTypeImage;
 		mimetype = [([UIImageAlpha hasAlpha:image_] ? MIMETYPE_PNG : MIMETYPE_JPEG) copy];
 	}
@@ -173,6 +181,49 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	return nil;
 }
 
+- (NSString *)hexString
+{
+    NSData* theData = [self data];
+    /* Returns hexadecimal string of NSData. Empty string if data is empty.   */
+    
+    const unsigned char *dataBuffer = (const unsigned char *)[theData bytes];
+    
+    if (!dataBuffer)
+    {
+        return [NSString string];
+    }
+    
+    NSUInteger          dataLength  = [theData length];
+    NSMutableString     *hexString  = [NSMutableString stringWithCapacity:(dataLength * 2)];
+    
+    for (int i = 0; i < dataLength; ++i)
+    {
+        [hexString appendFormat:@"%02x", (unsigned int)dataBuffer[i]];
+    }
+    
+    return [NSString stringWithString:hexString];
+}
+
+-(NSArray*)byteArray
+{    
+    const unsigned char *dataBuffer = (const unsigned char *)[data bytes];
+    
+    if (!dataBuffer)
+    {
+        return [NSMutableArray array];
+    }
+    
+    NSUInteger          dataLength  = [data length];
+    NSMutableArray     *hexArray  = [NSMutableArray arrayWithCapacity:dataLength];
+    
+    for (int i = 0; i < dataLength; ++i)
+    {
+        [hexArray addObject:NUMINTEGER((unsigned int)dataBuffer[i])];
+    }
+    
+    return [NSArray arrayWithArray:hexArray];
+}
+
 -(NSData*)data
 {
 	switch(type)
@@ -187,7 +238,7 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
             if ([mimetype isEqualToString:MIMETYPE_PNG]) {
                 return UIImagePNGRepresentation(image);
             }
-            return UIImageJPEGRepresentation(image,1.0);
+            return UIImageJPEGRepresentation(image, image.compressionLevel);
 		}
 		default: {
 			break;
@@ -203,8 +254,8 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 		case TiBlobTypeFile:
 		{
             if (image == nil) {
-                NSURL * result = [TiUtils toURL:path proxy:self];
-                image = [[UIImage alloc] initWithContentsOfFile:[result path]];
+//                NSURL * result = [TiUtils toURL:path proxy:self];
+                image = [[UIImage alloc] initWithContentsOfFile:path];
             }
             break;
 		}
@@ -309,11 +360,18 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 		case TiBlobTypeImage:
 		{
 			writeData = [self data];
+            CGFloat scale =[[self image] scale];
+            if (scale > 1 && [destination rangeOfString:@"@"].location == NSNotFound) {
+                NSString* mainPath = [destination stringByDeletingPathExtension];
+                NSString* ext = [destination pathExtension];
+                destination = [NSString stringWithFormat:@"%@@%.0fx.%@", mainPath, scale, ext];
+            }
 			break;
 		}
 		case TiBlobTypeData:
 		{
 			writeData = data;
+            
 			break;
 		}
 	}
@@ -381,54 +439,72 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	return nil;
 }
 
-- (id)imageAsResized:(id)args
+- (id)imageAsFiltered:(id)args
 {
 	[self ensureImageLoaded];
 	if (image!=nil)
 	{
-		ENSURE_ARG_COUNT(args,2);
-		NSUInteger width = [TiUtils intValue:[args objectAtIndex:0]];
-		NSUInteger height = [TiUtils intValue:[args objectAtIndex:1]];
-		TiBlob *blob =  [[TiBlob alloc] initWithImage:[UIImageResize resizedImage:CGSizeMake(width, height) interpolationQuality:kCGInterpolationHigh image:image hires:NO]];
-		return [blob autorelease];
+        ENSURE_SINGLE_ARG_OR_NIL(args, NSDictionary)
+		return [[[TiBlob alloc] initWithImage:[TiImageHelper imageFiltered:image withOptions:args]] autorelease];
 	}
 	return nil;
 }
 
-- (id)imageAsCropped:(id)args
+- (id)imageAsResized:(id)args
+{
+    [self ensureImageLoaded];
+    if (image!=nil)
+    {
+        ENSURE_ARG_COUNT(args,2);
+        NSUInteger width = [TiUtils intValue:[args objectAtIndex:0]];
+        NSUInteger height = [TiUtils intValue:[args objectAtIndex:1]];
+        TiBlob *blob =  [[TiBlob alloc] initWithImage:[UIImageResize resizedImage:CGSizeMake(width, height) interpolationQuality:kCGInterpolationHigh image:image hires:NO]];
+        return [blob autorelease];
+    }
+    return nil;
+}
+
+-(UIImage*)shrinkImage:(UIImage*)theImage withMaxByteSize:(NSUInteger)byteSize {
+    
+    double compressionRatio = 1;
+    int resizeAttempts = 10;
+    NSData * lastImgData = nil;
+    NSData * imgData = UIImageJPEGRepresentation(theImage,compressionRatio);
+    
+    NSUInteger currentSize = [imgData length];
+    while (currentSize > byteSize && resizeAttempts > 0) {
+        resizeAttempts -= 1;
+        lastImgData = imgData;
+        compressionRatio = 0.7;
+        imgData = UIImageJPEGRepresentation([UIImage imageWithData:lastImgData],compressionRatio);
+        currentSize = [imgData length];
+        if (currentSize <= byteSize) {
+//            imgData = [UIImage imageWithData:imgData];
+            break;
+        } else {
+            compressionRatio = 1.0;
+        }
+        // too much of a compression let's resize the image
+        UIImage* newImage = [UIImage imageWithData:lastImgData];
+        
+        newImage = [UIImageResize resizedImage:CGSizeMake(newImage.size.width*0.5, newImage.size.height*0.5) interpolationQuality:kCGInterpolationDefault image:newImage hires:(newImage.scale >= 2)];
+        imgData = UIImageJPEGRepresentation(newImage, 1);
+        currentSize = [imgData length];
+        //Test size after compression
+    }
+    UIImage* result = [UIImage imageWithData:imgData];
+    result.compressionLevel = compressionRatio;
+    return result;
+}
+
+- (id)imageAsCompressed:(id)args
 {
 	[self ensureImageLoaded];
 	if (image!=nil)
 	{
-        CGSize imageSize = [image size];
-		CGRect bounds;
-        NSDictionary *options = nil;
-        ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 1, NSDictionary);
-		EXTRACT_SINGLE_ARG(args);
-        if ([args isKindOfClass:[TiRect class]]) {
-            bounds = [((TiRect*)args) rect];
-        }
-        else {
-            bounds.size.width = [TiUtils floatValue:@"width" properties:args def:imageSize.width];
-            bounds.size.height = [TiUtils floatValue:@"height" properties:args def:imageSize.height];
-            bounds.origin.x = [TiUtils floatValue:@"x" properties:args def:(imageSize.width - bounds.size.width) / 2.0];
-            bounds.origin.y = [TiUtils floatValue:@"y" properties:args def:(imageSize.height - bounds.size.height) / 2.0];
-
-        }
-        if (options) {
-            if ([options objectForKey:@"scale"]) {
-                float scale = [TiUtils floatValue:@"scale" properties:options def:1.0f];
-                if ([TiUtils isRetinaDisplay])
-                {
-                    scale*=2;
-                }
-                bounds.origin.x *= scale;
-                bounds.origin.y *= scale;
-                bounds.size.width *= scale;
-                bounds.size.height *= scale;
-            }
-        }
-        TiBlob *blob = [[TiBlob alloc] initWithImage:[UIImageResize croppedImage:bounds image:image]];
+        ENSURE_SINGLE_ARG(args, NSNumber);
+        NSUInteger maxSize = [args intValue];
+        TiBlob *blob = [[TiBlob alloc] initWithImage:[self shrinkImage:image withMaxByteSize:maxSize]];
 		return [blob autorelease];
 	}
 	return nil;
@@ -440,27 +516,38 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
     return self;
 }
 
-
--(id)toJSON
-{
-    id represented = [self representedObject];
-    if ([represented isKindOfClass:[UIImage class]]) {
-        return [NSString stringWithFormat:@"%@",@{@"type": @"image",
-                 @"width":@(((UIImage*)represented).size.width),
-                 @"height":@(((UIImage*)represented).size.height)
-                 }] ;
-    }
-    return [NSNull null];
-}
-
 -(id)toString:(id)args
 {
-	id t = [self text];
-	if (t!=nil)
-	{
-		return t;
-	}
+	id represented = [self representedObject];
+    if ([represented isKindOfClass:[UIImage class]]) {
+        return [TiUtils jsonStringify:@{@"type": @"image",
+                                        @"width":@(((UIImage*)represented).size.width),
+                                        @"height":@(((UIImage*)represented).size.height)
+                                        }];
+    } else if ([represented isKindOfClass:[NSString class]]) {
+        return represented;
+    }
 	return [super toString:args];
+}
+
+-(void)setInfo:(NSDictionary*)info {
+    RELEASE_TO_NIL(extraInfo)
+    extraInfo = [info retain];
+}
+
+-(void)addInfo:(NSDictionary*)info {
+    if (extraInfo) {
+        NSDictionary* oldInfo = extraInfo;
+        extraInfo = [oldInfo dictionaryByMergingWith:info];
+        RELEASE_TO_NIL(oldInfo)
+    }
+    else {
+        [self setInfo:info];
+    }
+}
+
+-(NSDictionary*)info {
+    return extraInfo;
 }
 
 @end

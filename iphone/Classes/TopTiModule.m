@@ -42,6 +42,15 @@
 	return [[TiApp app] userAgent];
 }
 
+-(id)tiSDKInfo
+{
+    return @{
+        @"version": [self version],
+        @"buildDate": [self buildDate],
+        @"buildHash": [self buildHash]
+    };
+}
+
 -(NSString*)apiName
 {
     return @"Ti";
@@ -92,7 +101,7 @@
     BOOL hasLength;
     id data;
     NSString* type;
-    int byteOrder;
+    CFByteOrder byteOrder;
     BOOL hasByteOrder;
     
     ENSURE_INT_OR_NIL_FOR_KEY(length, arg, @"length", hasLength);
@@ -108,7 +117,7 @@
     // NOTE: We use the length of the buffer as a hint when encoding strings.  In this case, if [string length] > length,
     // we only encode up to 'length' of the string.
     if ([data isKindOfClass:[NSString class]]) {
-        int encodeLength = (hasLength) ? length : [data length];
+        NSUInteger encodeLength = (hasLength) ? length : [data length];
 
         NSString* charset = (type != nil) ? type : kTiUTF8Encoding;
         
@@ -146,10 +155,10 @@
         }
         
         byteOrder = (hasByteOrder) ? byteOrder : CFByteOrderGetCurrent();
-        [buffer setByteOrder:[NSNumber numberWithInt:byteOrder]];
+        [buffer setByteOrder:NUMLONG(byteOrder)];
         switch ([TiUtils encodeNumber:data toBuffer:buffer offset:0 type:type endianness:byteOrder]) {
             case BAD_ENDIAN: {
-                [self throwException:[NSString stringWithFormat:@"Invalid endianness: %d", byteOrder]
+                [self throwException:[NSString stringWithFormat:@"Invalid endianness: %ld", byteOrder]
                            subreason:nil
                             location:CODELOCATION];
                 break;

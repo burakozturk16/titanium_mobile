@@ -34,7 +34,8 @@ import android.app.Activity;
     TiC.PROPERTY_TRANSITION,
     TiC.PROPERTY_INDEX,
     TiC.PROPERTY_PROGRESS,
-	TiC.PROPERTY_SCALE_TYPE
+    TiC.PROPERTY_SCALE_TYPE,
+	TiC.PROPERTY_ONLY_TRANSITION_IF_REMOTE,
 })
 public class ImageViewProxy extends ViewProxy
 {
@@ -63,7 +64,7 @@ public class ImageViewProxy extends ViewProxy
 		setProperty("animating", true);
 		setProperty("paused", false);
 		if (view != null) {
-			((TiUIImageView)view).start();
+		    getImageView().start();
 		}
 	}
 	
@@ -72,7 +73,7 @@ public class ImageViewProxy extends ViewProxy
 		setProperty("animating", false);
 		setProperty("paused", false);
 		if (view != null) {
-			((TiUIImageView)view).stop();
+		    getImageView().stop();
 		}
 	}
 	
@@ -80,21 +81,25 @@ public class ImageViewProxy extends ViewProxy
 	public void pause() {
 		setProperty("paused", true);
 		if (view != null) {
-			((TiUIImageView)view).pause();
+		    getImageView().pause();
 		}
 	}
 	
 	@Kroll.method
 	public void resume() {
+        boolean animating = TiConvert.toBoolean(getProperty("animating"), false);
+        if (!animating) {
+            start();
+            return;
+        }
 		setProperty("paused", false);
 		if (view != null) {
-			((TiUIImageView)view).resume();
+		    getImageView().resume();
 		}
 	}
 	
 	@Kroll.method
 	public void pauseOrResume() {
-		boolean animating = TiConvert.toBoolean(getProperty("animating"), false);
 		boolean paused = TiConvert.toBoolean(getProperty("paused"), true);
 		if (paused) resume();
 		else pause();
@@ -115,7 +120,7 @@ public class ImageViewProxy extends ViewProxy
     @Kroll.method
     public int getIndex() {
         if (view != null) {
-            ((TiUIImageView)view).getCurrentIndex();
+            getImageView().getCurrentIndex();
         }
         return 0;
     }
@@ -124,7 +129,7 @@ public class ImageViewProxy extends ViewProxy
     @Kroll.method
     public float getProgress() {
         if (view != null) {
-            ((TiUIImageView)view).getProgress();
+            getImageView().getProgress();
         }
         return 1;
     }

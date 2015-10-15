@@ -12,12 +12,31 @@ import java.util.HashMap;
 
 import jp.co.cyberagent.android.gpuimage.GPUImage;
 import jp.co.cyberagent.android.gpuimage.GPUImageBoxBlurFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageFilterGroup;
 import jp.co.cyberagent.android.gpuimage.GPUImageGaussianBlurFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageiOSBlurFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImage.ScaleType;
+import jp.co.cyberagent.android.gpuimage.Rotation;
 
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.common.TiMessenger.CommandNoReturn;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.view.TiDrawableReference;
+import org.michaelevans.colorart.library.ColorArt;
 
+import com.squareup.picasso.Cache;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Picasso.LoadedFrom;
+import com.squareup.picasso.Target;
+
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -25,8 +44,13 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.RectF;
 import android.media.ExifInterface;
+import android.os.AsyncTask;
+import android.util.Pair;
 
 /**
  * Utility class for image manipulations.
@@ -38,9 +62,8 @@ public class TiImageHelper
 	private static GPUImage mGPUImage;
 	
 	public enum FilterType {
-		kFilterBoxBlur, kFilterGaussianBlur
+		kFilterBoxBlur, kFilterGaussianBlur, kFilteriOSBlur
 	}
-
 	private static GPUImage getGPUImage()
 	{
 		if (mGPUImage == null) {
@@ -66,6 +89,19 @@ public class TiImageHelper
 		}
 		return image.copy(Bitmap.Config.ARGB_8888, true);
 	}
+	
+    public static Bitmap imageWithAlpha(Bitmap src, float alpha) {
+        int width = src.getWidth();
+        int height = src.getHeight();
+        Bitmap transBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(transBitmap);
+//        canvas.drawARGB(0, 0, 0, 0);
+        // config paint
+        final Paint paint = new Paint();
+        paint.setAlpha((int) (alpha * 255));
+        canvas.drawBitmap(src, 0, 0, paint);
+        return transBitmap;
+    }
 
 	/**
 	 * Create a copy of the given image with rounded corners and a transparent border around its edges.
@@ -151,43 +187,89 @@ public class TiImageHelper
 	}
 	
 	private static Bitmap getFilteredBitmap(Bitmap bitmap, FilterType filterType, HashMap options) {
-		switch (filterType) {
-		case kFilterBoxBlur:
-		{
-			float radius = 1.0f;
-			if (options != null) {
-				radius = TiConvert.toFloat(options.get("radius"), radius);
-			}
-			getGPUImage().setFilter(new GPUImageBoxBlurFilter(radius));
-			break;
-		}
-		case kFilterGaussianBlur:
-		{
-			float radius = 1.0f;
-			if (options != null) {
-				radius = TiConvert.toFloat(options.get("radius"), radius);
-			}
-			getGPUImage().setFilter(new GPUImageGaussianBlurFilter(radius));
-			break;
-		}
-		default:
-			return null;
-		}
-		return mGPUImage.getBitmapWithFilterApplied(bitmap);
+	    GPUImageFilter filter = getFilter(filterType, options);
+	    if (filter != null) {
+            return getGPUImage().getBitmapWithFilterApplied(bitmap, 
+                    filter, 
+                    ScaleType.CENTER_CROP, 
+                    Rotation.NORMAL);
+	    }
+	    else {
+	        return bitmap;
+	    }
 	}
 	
+	private static GPUImageFilter getFilter(FilterType filterType, HashMap options) {
+        GPUImageFilter filter = null;
+        switch (filterType) {
+            case kFilterBoxBlur:
+            {
+                float radius = 1.0f;
+                if (options != null) {
+                    radius = TiConvert.toFloat(options.get("radius"), radius);
+                }
+                filter = new GPUImageBoxBlurFilter(radius);
+                break;
+            }
+            case kFilterGaussianBlur:
+            {
+                float radius = 1.0f;
+                if (options != null) {
+                    radius = TiConvert.toFloat(options.get("radius"), radius);
+                }
+                filter = new GPUImageGaussianBlurFilter(radius);
+                break;
+            }
+            case kFilteriOSBlur:
+            {
+                filter = new GPUImageiOSBlurFilter();
+                if (options != null) {
+                    if (options.containsKey("radius")) {
+                        ((GPUImageiOSBlurFilter)filter).setBlurRadiusInPixels(TiConvert.toFloat(options, "radius"));
+                    }
+                    if (options.containsKey("saturation")) {
+                        ((GPUImageiOSBlurFilter)filter).setSaturation(TiConvert.toFloat(options, "saturation"));
+                    }
+                    if (options.containsKey("downsampling")) {
+                        ((GPUImageiOSBlurFilter)filter).setDownSampling(TiConvert.toFloat(options, "downsampling"));
+                    }
+                }
+                break;
+            }
+        }
+        return filter;
+    }
+	
 	public static Bitmap imageTinted(Bitmap bitmap, int tint, Mode mode) {
+        Bitmap target = bitmap.copy (Bitmap.Config.ARGB_8888,true);; 
 		if (tint != 0) {
-			Canvas canvas = new Canvas(bitmap);
+			Canvas canvas = new Canvas(target);
+			
 			canvas.drawColor(tint, mode);
+			//fix for Mode not applying alpha
+            if (mode == Mode.LIGHTEN || mode == Mode.SCREEN) {
+			    composeAlpha(target, bitmap);
+			}
 		}
-		return bitmap;
+		bitmap.recycle();
+		bitmap = null;
+		return target;
 	}
+
+	public static Bitmap composeAlpha(Bitmap target, Bitmap sourceAlpha) {
+        Canvas c = new Canvas(target);
+
+        final Paint paint = new Paint();
+        paint.setXfermode(new PorterDuffXfermode(Mode.DST_IN));
+        c.drawBitmap(sourceAlpha, 0, 0, paint); 
+
+        return target;
+    }
 	
 	public static Bitmap imageCropped(Bitmap bitmap, TiRect rect) {
 		int width = bitmap.getWidth();
 		int height = bitmap.getHeight();
-		RectF realRect = rect.getAsPixels(TiApplication.getInstance().getBaseContext(), width, height);
+		RectF realRect = rect.getAsPixels(width, height);
 		try {
 			bitmap = Bitmap.createBitmap(bitmap, (int)realRect.left, (int)realRect.top, (int)realRect.width(), (int)realRect.height());
 		} catch (Exception e) {
@@ -204,6 +286,7 @@ public class TiImageHelper
 			int dstWidth = (int) (width * scale);
 			int dstHeight = (int) (height * scale);
 			try {
+			    
 				bitmap = Bitmap.createScaledBitmap(bitmap, dstWidth, dstHeight, true);
 				
 			} catch (OutOfMemoryError e) {
@@ -222,29 +305,101 @@ public class TiImageHelper
 		return getFilteredBitmap(bitmap, filterType, options);
 	}
 	
-	public static Bitmap imageFiltered(Bitmap bitmap, HashMap options) {
+	public static Pair<Drawable, KrollDict> drawableFiltered(Drawable drawable, HashMap options, final boolean shouldCopySource) {
+        Bitmap bitmap = null;
+        byte[] chunk = null;
+        if (drawable instanceof BitmapDrawable) {
+            bitmap = ((BitmapDrawable) drawable).getBitmap();
+        } else if (drawable instanceof TiNinePatchDrawable) {
+            bitmap = ((TiNinePatchDrawable) drawable).getBitmap();
+        }
+        if (bitmap == null) {
+            return null;
+        }
+        Pair<Bitmap, KrollDict> result = imageFiltered(bitmap, options, shouldCopySource);
+        final Resources resources = TiApplication.getInstance().getResources();
+        if (drawable instanceof BitmapDrawable) {
+            return new Pair<Drawable, KrollDict>(new BitmapDrawable(resources, result.first), result.second);
+        } else if (drawable instanceof TiNinePatchDrawable) {
+            TiNinePatchDrawable npDrawable = (TiNinePatchDrawable)drawable;
+            return new Pair<Drawable, KrollDict>(new TiNinePatchDrawable(resources, result.first,
+                    npDrawable.getChunk(), npDrawable.getPadding(), ""), result.second);
+        }
+        return null;
+    }
+	
+	public static Pair<Bitmap, KrollDict> imageFiltered(Bitmap bitmap, HashMap options, final boolean shouldCopySource) {
+	    if (bitmap == null) {
+            return null;
+        }
+	    if (shouldCopySource) {
+	        bitmap = bitmap.copy (Bitmap.Config.ARGB_8888,true);
+	    }
+	    KrollDict infoData = new KrollDict();
 		if (options.containsKey("crop")) {
 			TiRect rect = new TiRect(options.get("crop"));
+            Bitmap oldBitmap  = bitmap;
 			bitmap = TiImageHelper.imageCropped(bitmap, rect);
+            bitmap = bitmap.copy (Bitmap.Config.ARGB_8888,true);
+            oldBitmap.recycle();
+            oldBitmap = null;
 		}
-		if (options.containsKey("scale")) {
-			float scale = TiConvert.toFloat(options, "scale", 1.0f);
-			bitmap = TiImageHelper.imageScaled(bitmap, scale);
-		}
-		
+
+        if (options.containsKey("scale")) {
+            float scale = TiConvert.toFloat(options, "scale", 1.0f);
+            Bitmap oldBitmap  = bitmap;
+            bitmap = TiImageHelper.imageScaled(bitmap, scale);
+            bitmap = bitmap.copy (Bitmap.Config.ARGB_8888,true);
+            oldBitmap.recycle();
+            oldBitmap = null;
+        }
+
 		if (options.containsKey("filters")) {
-			int[] filters = TiConvert.toIntArray((Object[]) options.get("filters"));
+		    GPUImageFilterGroup group = new GPUImageFilterGroup();
+			Object[] filters = (Object[]) options.get("filters");
 			for (int i = 0; i < filters.length; i++) {
-				bitmap = getFilteredBitmap(bitmap, FilterType.values()[filters[i]], options);
+			    if (filters[i] instanceof HashMap) {
+			        HashMap<String, Object> filterOptions = (HashMap<String, Object>) filters[i];
+			        GPUImageFilter filter =  getFilter(FilterType.values()[TiConvert.toInt(filterOptions, "type")], filterOptions);
+			        if (filter != null) {
+			            group.addFilter(filter);
+			        }
+			    }
 			}
+            Bitmap oldBitmap  = bitmap;
+			bitmap = getGPUImage().getBitmapWithFilterApplied(bitmap, 
+			        group, 
+                    ScaleType.CENTER_CROP, 
+                    Rotation.NORMAL);
+            bitmap = bitmap.copy (Bitmap.Config.ARGB_8888,true);
+            oldBitmap.recycle();
+            oldBitmap = null;
 		}
 		
 		if (options.containsKey("tint")) {
 			int tint = TiConvert.toColor(options, "tint", 0);
-			Mode mode = Mode.values()[TiConvert.toInt(options, "blend", Mode.LIGHTEN.ordinal())];
+			Mode mode = Mode.values()[TiConvert.toInt(options, "blend", Mode.MULTIPLY.ordinal())];
 			bitmap = TiImageHelper.imageTinted(bitmap, tint, mode);
 		}
-		return bitmap;
+		
+		if (options.containsKey("colorArt")) {
+            int width = 120;
+            int height = 120;
+            Object colorArtOptions = options.get("colorArt");
+            if (colorArtOptions instanceof HashMap) {
+                width = TiConvert.toInt((HashMap)colorArtOptions, "width", width);
+                height = TiConvert.toInt((HashMap)colorArtOptions, "height", height);
+            }
+            ColorArt art = new ColorArt(bitmap, width, height);
+            KrollDict colorArtData = new KrollDict();
+            colorArtData.put("backgroundColor", TiColorHelper.toHexString(art.getBackgroundColor()));
+            colorArtData.put("primaryColor", TiColorHelper.toHexString(art.getPrimaryColor()));
+            colorArtData.put("secondaryColor", TiColorHelper.toHexString(art.getSecondaryColor()));
+            colorArtData.put("detailColor", TiColorHelper.toHexString(art.getDetailColor()));
+            infoData.put("colorArt", colorArtData);
+        }
+		
+		return new Pair<Bitmap, KrollDict>(bitmap, infoData);
 	}
 	
 	private static final String FILE_PREFIX = "file://";
@@ -296,5 +451,87 @@ public class TiImageHelper
 		Matrix matrix = new Matrix();
 	    matrix.postRotate(rotation);
 	    return Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
+	}
+	
+	
+	public interface TiDrawableTarget extends Target {
+	    public void onDrawableLoaded(Drawable drawable, LoadedFrom from);
+	}
+	
+	private static class LoadLocalDrawableTask extends AsyncTask<TiDrawableReference, Void, Drawable> {
+        private TiDrawableTarget target;
+        private Cache cache;
+        private TiDrawableReference imageref;
+        
+        LoadLocalDrawableTask(Cache cache, TiDrawableTarget target) { 
+            this.target = target;
+            this.cache = cache;
+       }
+        @Override
+        protected Drawable doInBackground(TiDrawableReference... params) {
+            imageref = params[0];
+            return imageref.getDrawable();
+
+        }
+        
+        @Override
+        protected void onPostExecute(Drawable drawable) {
+            Bitmap bitmap = null;
+            if (drawable instanceof BitmapDrawable) {
+                bitmap = ((BitmapDrawable)drawable).getBitmap();
+                if (imageref.getUrl() != null) {
+                    cache.set(imageref.getUrl(), bitmap);
+                }
+            }
+            target.onDrawableLoaded(drawable, LoadedFrom.DISK);
+        }
+    }
+    
+	public static void downloadDrawableReference(final TiDrawableReference imageref, final KrollDict options, final Target target) {
+        
+        Picasso picasso = TiApplication.getPicassoInstance();
+        
+        if (options != null) {
+            final Context context = TiApplication.getAppContext();
+            picasso = new Picasso.Builder(context).downloader(new OkHttpDownloader(TiApplication.getPicassoHttpClient(options))).build();
+        }
+        // picasso will cancel running request if reusing
+        picasso.cancelRequest(target);
+        picasso.load(imageref.getUrl()).into(target);
+    }
+	
+	public static void downloadDrawable(final KrollProxy proxy, final TiDrawableReference imageref, final boolean localLoadSync, final TiDrawableTarget target) {
+	    Picasso picasso = TiApplication.getPicassoInstance();
+	    picasso.cancelRequest(target);
+        if (imageref.isNetworkUrl()) {
+            final KrollDict properties =  (KrollDict) ((proxy != null) ? TiConvert.toKrollDict(proxy.getProperty(TiC.PROPERTY_HTTP_OPTIONS)) : null);
+            TiActivityHelper.runInUiThread(TiApplication.getAppCurrentActivity(), new CommandNoReturn() {
+                @Override
+                public void execute() {
+                    downloadDrawableReference(imageref, properties, target);
+                }
+            });
+        } else {
+            String cacheKey = imageref.getCacheKey();
+            Cache cache = TiApplication.getImageMemoryCache();
+            Bitmap bitmap = (cacheKey != null) ? cache.get(cacheKey) : null;
+            Drawable drawable = null;
+            if (bitmap == null) {
+                if (!localLoadSync && !imageref.isTypeBlob() && !imageref.isTypeResourceId()) {
+                    (new LoadLocalDrawableTask(cache, target)).execute(imageref);
+                    return;
+                }
+                drawable = imageref.getDrawable();
+                if (drawable instanceof BitmapDrawable) {
+                    bitmap = ((BitmapDrawable) drawable).getBitmap();
+                    if (cacheKey != null) {
+                        cache.set(cacheKey, bitmap);
+                    }
+                }
+                target.onDrawableLoaded(drawable, LoadedFrom.DISK);
+            } else {
+                target.onBitmapLoaded(bitmap, LoadedFrom.MEMORY);
+            }
+        }
 	}
 }

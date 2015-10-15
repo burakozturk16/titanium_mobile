@@ -9,7 +9,7 @@
 
 }
 
-+(UIView*)systemButtonWithType:(int)type;
-+(UIView*)buttonWithType:(int)type;
++(UIView*)systemButtonWithType:(NSInteger)type;
++(UIView*)buttonWithType:(NSInteger)type;
 
 @end

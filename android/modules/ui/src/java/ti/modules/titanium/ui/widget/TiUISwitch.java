@@ -7,227 +7,204 @@
 package ti.modules.titanium.ui.widget;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.android.AndroidModule;
-import android.annotation.SuppressLint;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.support.v7.widget.SwitchCompat;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ToggleButton;
-import android.widget.Switch;
 
-@SuppressLint("NewApi")
 public class TiUISwitch extends TiUIView
 	implements OnCheckedChangeListener
 {
 	private static final String TAG = "TiUISwitch";
 	
-	private boolean oldValue = false;
-	private int style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
-	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
+	private boolean ignoreChangeEvent = false;
+	private int style = AndroidModule.SWITCH_STYLE_SWITCH;
 	
 	public TiUISwitch(TiViewProxy proxy) {
 		super(proxy);
-		Log.d(TAG, "Creating a switch", Log.DEBUG_MODE);
-
-		propertyChanged(TiC.PROPERTY_STYLE, null, proxy.getProperty(TiC.PROPERTY_STYLE), proxy);
-	}
-
-	@Override
-	public void processProperties(KrollDict d)
-	{
-		super.processProperties(d);
-
-		if (d.containsKey(TiC.PROPERTY_STYLE)) {
-			setStyle(TiConvert.toInt(d.get(TiC.PROPERTY_STYLE), style));
-		}
-
-		if (d.containsKey(TiC.PROPERTY_VALUE)) {
-			oldValue = TiConvert.toBoolean(d, TiC.PROPERTY_VALUE);
-		}
-
-		View nativeView = getNativeView();
-		if (nativeView != null) {
-			updateButton((CompoundButton)nativeView, d);
-		}
 	}
 	
-	private void updateToggleButton(ToggleButton cb, KrollDict d) {
-		if (cb == null) return;
-		if (d.containsKey(TiC.PROPERTY_TITLE_OFF)) {
-			cb.setTextOff(TiConvert.toString(d, TiC.PROPERTY_TITLE_OFF));
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_ON) ) {
-			cb.setTextOn(TiConvert.toString(d, TiC.PROPERTY_TITLE_ON));
-		}
+	private void propertySetSwitch(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+	    switch (key) {
+        case TiC.PROPERTY_TITLE_OFF:
+            getSwitch().setTextOff(TiConvert.toString(newValue));
+            break;
+        case TiC.PROPERTY_TITLE_ON:
+            getSwitch().setTextOn(TiConvert.toString(newValue));
+            break;
+        default:
+            propertySetCompound(key, newValue, oldValue, changedProperty);
+            break;
+        }
 	}
-
-	private void updateSwitchButton(Switch cb, KrollDict d) {
-		if (cb == null) return;
-		Log.d(TAG, "updateSwitchButton" + d.toString(), Log.DEBUG_MODE);
-		if (d.containsKey(TiC.PROPERTY_TITLE_OFF)) {
-			cb.setTextOff(TiConvert.toString(d, TiC.PROPERTY_TITLE_OFF));
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_ON) ) {
-			cb.setTextOn(TiConvert.toString(d, TiC.PROPERTY_TITLE_ON));
-		}
-	}
-
-	protected void updateButton(CompoundButton cb, KrollDict d) {
-		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-
-		if (d.containsKey(TiC.PROPERTY_TITLE)) {
-			cb.setText(TiConvert.toString(d, TiC.PROPERTY_TITLE));
-		}
-		if (d.containsKey(TiC.PROPERTY_VALUE)) {
-		
-			cb.setChecked(TiConvert.toBoolean(d, TiC.PROPERTY_VALUE));
-		}
-		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			cb.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
-		}
-		if (d.containsKey(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(cb, d.getKrollDict(TiC.PROPERTY_FONT));
-		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN)) {
-			String textAlign = d.getString(TiC.PROPERTY_TEXT_ALIGN);
-			TiUIHelper.setAlignment(cb, textAlign, null);
-		}
-		if (d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			String verticalAlign = d.getString(TiC.PROPERTY_VERTICAL_ALIGN);
-			TiUIHelper.setAlignment(cb, null, verticalAlign);
-		}
-		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_COLOR)) {
-			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_CHECKED_STATE, TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_CHECKED_COLOR));
-		}
-		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE)) {
-			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE), backgroundRepeat, proxy);
-			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
-		}
-		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT));
-			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
-		}
-		if (cb instanceof ToggleButton) {
-			updateToggleButton((ToggleButton) cb, d);
-		}
-		else if (cb instanceof Switch) {
-			updateSwitchButton((Switch) cb, d);
-		}
-		cb.invalidate();
-	}
-
-	private boolean propertyChangedToggleButton(ToggleButton cb, String key, Object oldValue, Object newValue, KrollProxy proxy) {
-		if (cb == null) return false;
-		if (key.equals(TiC.PROPERTY_TITLE_OFF)) {
-			cb.setTextOff((String)  newValue);
-		}
-		else if (key.equals(TiC.PROPERTY_TITLE_ON)) {
-			cb.setTextOn((String)  newValue);
-		} else {
-			return false;
-		}
-		return true;
-	}
-
-	private boolean propertyChangedSwitchButton(Switch cb, String key, Object oldValue, Object newValue, KrollProxy proxy) {
-		if (cb == null) return false;
-		if (key.equals(TiC.PROPERTY_TITLE_OFF)) {
-			cb.setTextOff((String)  newValue);
-		}
-		else if (key.equals(TiC.PROPERTY_TITLE_ON)) {
-			cb.setTextOn((String)  newValue);
-		} else {
-			return false;
-		}
-		return true;
-	}
-
+	
+	private void propertySetToggle(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_TITLE_OFF:
+            getToggle().setTextOff(TiConvert.toString(newValue));
+            break;
+        case TiC.PROPERTY_TITLE_ON:
+            getToggle().setTextOn(TiConvert.toString(newValue));
+            break;
+        default:
+            propertySetCompound(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
+	
+	private void propertySetCompound(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+	    if (key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX)) {
+            TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+            switch (key) {
+            case TiC.PROPERTY_BACKGROUND_CHECKED_COLOR:
+                bgdDrawable.setColorForState(
+                        TiUIHelper.BACKGROUND_CHECKED_STATE,
+                        TiConvert.toColor(newValue));
+                break;
+            case TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT:
+            {
+                Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+                        .toKrollDict(newValue));
+                bgdDrawable.setGradientDrawableForState(
+                        TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
+                break;
+            }
+            case TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE:
+            {
+                boolean repeat = proxy.getProperties().optBoolean(
+                        TiC.PROPERTY_BACKGROUND_REPEAT, false);
+                setBackgroundImageDrawable(newValue, repeat,
+                        new int[][] { TiUIHelper.BACKGROUND_CHECKED_STATE });
+                break;
+            }
+            default:
+                super.propertySet(key, newValue, oldValue, changedProperty);
+                break;
+            }
+            if (changedProperty)
+                bgdDrawable.invalidateSelf();
+            return;
+        }
+        switch (key) {
+        case TiC.PROPERTY_STYLE:
+            setStyle(TiConvert.toInt(newValue, style));
+            break;
+        case TiC.PROPERTY_VALUE:
+            ignoreChangeEvent = true;
+            getButton().setChecked(TiConvert.toBoolean(newValue, false));
+            break;
+        case TiC.PROPERTY_TITLE:
+            getButton().setText(TiConvert.toString(newValue));
+            break;
+        case TiC.PROPERTY_COLOR:
+            getButton().setTextColor(TiConvert.toColor(newValue));
+            break;
+        case TiC.PROPERTY_FONT:
+            TiUIHelper.styleText(getButton(), TiConvert.toKrollDict(TiC.PROPERTY_FONT));
+            break;
+        case TiC.PROPERTY_TEXT_ALIGN:
+            TiUIHelper.setAlignment(getButton(), TiConvert.toString(newValue), null);
+            break;
+        case TiC.PROPERTY_VERTICAL_ALIGN:
+            TiUIHelper.setAlignment(getButton(), null, TiConvert.toString(newValue));
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
+	
 	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
-		}
-		
-		CompoundButton cb = (CompoundButton) getNativeView();
-		if (key.equals(TiC.PROPERTY_STYLE) && newValue != null) {
-			setStyle(TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_TITLE)) {
-			cb.setText((String) newValue);
-		} else if (key.equals(TiC.PROPERTY_VALUE)) {
-			cb.setChecked(TiConvert.toBoolean(newValue));
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			cb.setTextColor(TiConvert.toColor(TiConvert.toString(newValue)));
-		} else if (key.equals(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(cb, (KrollDict) newValue);
-		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
-			TiUIHelper.setAlignment(cb, TiConvert.toString(newValue), null);
-			cb.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			TiUIHelper.setAlignment(cb, null, TiConvert.toString(newValue));
-			cb.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_COLOR)) {
-			ColorDrawable drawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
-			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE)) {
-			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(newValue), repeat, proxy);
-			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
-			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
-		} else if (cb instanceof ToggleButton) {
-			propertyChangedToggleButton((ToggleButton) cb, key, oldValue, newValue, proxy);
-		} else if (cb instanceof Switch) {
-			propertyChangedSwitchButton((Switch) cb, key, oldValue, newValue, proxy);
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+	    if (isToggle()) {
+	        propertySetToggle(key, newValue, oldValue, changedProperty);
+        } else if (isSwitch()) {
+            propertySetSwitch(key, newValue, oldValue, changedProperty);
+        } else {
+            propertySetCompound(key, newValue, oldValue, changedProperty);
+        }
+    }
+    
+	
+    @Override
+	protected void aboutToProcessProperties(KrollDict d) {
+      //make sure style is handled first to create the button
+        if (d.containsKey(TiC.PROPERTY_STYLE)) {
+            propertySet(TiC.PROPERTY_STYLE, d.get(TiC.PROPERTY_STYLE), style, false);
+            d.remove(TiC.PROPERTY_STYLE);
+        }
+        super.aboutToProcessProperties(d);
+    }
+    
+    @Override
+    protected void didProcessProperties() {
+        super.didProcessProperties();
+        getButton().invalidate();
+        ignoreChangeEvent = false;
+    }
+	
+	private CompoundButton getButton() {
+	       return (CompoundButton) getNativeView();
 	}
+	
+	private SwitchCompat getSwitch() {
+        return (SwitchCompat) getNativeView();
+	}
+	
+	private ToggleButton getToggle() {
+        return (ToggleButton) getNativeView();
+    }
+	
+	private boolean isSwitch() {
+	    return style == AndroidModule.SWITCH_STYLE_SWITCH;
+	}
+	
+	private boolean isToggle() {
+        return style == AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
+    }
 
 	@Override
 	public void onCheckedChanged(CompoundButton btn, boolean value) {
-
-		proxy.setProperty(TiC.PROPERTY_VALUE, value);
-
-		//if user triggered change, we fire it.
-		if (oldValue != value) {
-			oldValue = value;
-			if (hasListeners(TiC.EVENT_CHANGE)) {
-				KrollDict data = new KrollDict();
-				data.put(TiC.PROPERTY_VALUE, value);
-				fireEvent(TiC.EVENT_CHANGE, data, false, false);
-			}
-		}
+	    
+	    if (!ignoreChangeEvent) {
+	        proxy.setProperty(TiC.PROPERTY_VALUE, value);
+            if (hasListeners(TiC.EVENT_CHANGE)) {
+                KrollDict data = new KrollDict();
+                data.put(TiC.PROPERTY_VALUE, value);
+                fireEvent(TiC.EVENT_CHANGE, data, false, false);
+            }
+	    }
+        ignoreChangeEvent = false;
 	}
 	
 	protected void setStyle(int style)
 	{
 		CompoundButton currentButton = (CompoundButton) getNativeView();
+        if (this.style == style && currentButton != null) {
+            return;
+        }
 		CompoundButton button = null;
-		if  (!ICE_CREAM_OR_GREATER && style == AndroidModule.SWITCH_STYLE_SWITCH) {
-			style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
-		}
 		this.style = style;
-		
 
 		switch (style) {
 			case AndroidModule.SWITCH_STYLE_CHECKBOX:
-				if (!(currentButton instanceof CheckBox)) {
-					button = new CheckBox(proxy.getActivity())
+				if (!(currentButton instanceof AppCompatCheckBox)) {
+					button = new AppCompatCheckBox(proxy.getActivity())
 					{
 						@Override
 						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
@@ -268,8 +245,8 @@ public class TiUISwitch extends TiUIView
 				break;
 
 			case AndroidModule.SWITCH_STYLE_SWITCH:
-				if (!(currentButton instanceof Switch)) {
-					button = new Switch(proxy.getActivity())
+				if (!(currentButton instanceof SwitchCompat)) {
+					button = new SwitchCompat(proxy.getActivity())
 					{
 						@Override
 						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
@@ -292,10 +269,15 @@ public class TiUISwitch extends TiUIView
 				return;
 		}
 
-		if (button != null) {
+		if (button != null && currentButton != button) {
 			setNativeView(button);
-			updateButton(button, proxy.getProperties());
-			button.setOnCheckedChangeListener(this);
+			if (currentButton != null) {
+	            currentButton.setOnCheckedChangeListener(null);
+	            currentButton = null;
+	            //we need to reprocess properties
+	            processProperties(proxy.getProperties());
+			}
+            button.setOnCheckedChangeListener(this);
 		}
 	}
 }

@@ -8,35 +8,20 @@
 
 #import "TiUISliderProxy.h"
 
-NSArray* sliderKeySequence;
-
 @implementation TiUISliderProxy
-
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"min",
-                                              @"max",@"value",@"enabled",@"leftTrackLeftCap",
-                                              @"leftTrackTopCap",@"rightTrackLeftCap",
-                                              @"rightTrackTopCap", @"thumbImage",
-                                              @"selectedThumbImage",@"highlightedThumbImage",
-                                              @"disabledThumbImage", @"leftTrackImage",
-                                              @"selectedLeftTrackImage",@"highlightedLeftTrackImage",
-                                              @"disabledLeftTrackImage", @"rightTrackImage",
-                                              @"selectedRightTrackImage",@"highlightedRightTrackImage",
-                                              @"disabledRightTrackImage", nil]];
-}
 
 -(NSArray *)keySequence
 {
-	if (sliderKeySequence == nil)
-	{
-		sliderKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"min",@"max",@"value",@"leftTrackLeftCap",@"leftTrackTopCap",@"rightTrackLeftCap",@"rightTrackTopCap",
-                              @"leftTrackImage",@"selectedLeftTrackImage", @"highlightedLeftTrackImage", @"disabledLeftTrackImage",
-                              @"rightTrackImage",@"selectedRightTrackImage", @"highlightedRightTrackImage", @"disabledRightTrackImage"]] retain];
-	}
-	return sliderKeySequence;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"min",@"max",@"value",@"leftTrackLeftCap",@"leftTrackTopCap",@"rightTrackLeftCap",@"rightTrackTopCap",
+                                                                            @"leftTrackImage",@"selectedLeftTrackImage", @"highlightedLeftTrackImage", @"disabledLeftTrackImage",
+                                                                            @"rightTrackImage",@"selectedRightTrackImage", @"highlightedRightTrackImage", @"disabledRightTrackImage"]] retain];;
+    });
+    return keySequence;
 }
+
 
 -(NSString*)apiName
 {
@@ -45,10 +30,6 @@ NSArray* sliderKeySequence;
 
 -(void)_initWithProperties:(NSDictionary *)properties
 {
-    [self initializeProperty:@"leftTrackLeftCap" defaultValue:NUMFLOAT(1.0)];
-    [self initializeProperty:@"leftTrackTopCap" defaultValue:NUMFLOAT(1.0)];
-    [self initializeProperty:@"rightTrackLeftCap" defaultValue:NUMFLOAT(1.0)];
-    [self initializeProperty:@"rightTrackTopCap" defaultValue:NUMFLOAT(1.0)];
     [super _initWithProperties:properties];
 }
 

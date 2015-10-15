@@ -9,14 +9,19 @@ package org.appcelerator.titanium;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,10 +39,11 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.kroll.util.TiTempFileHelper;
 import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
+import org.appcelerator.titanium.util.TiActivityHelper;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
-import org.appcelerator.titanium.util.TiImageLruCache;
+import org.appcelerator.titanium.util.TiHTTPHelper;
 import org.appcelerator.titanium.util.TiPlatformHelper;
-import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
 import org.json.JSONException;
@@ -51,6 +57,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -61,6 +68,11 @@ import android.view.accessibility.AccessibilityManager;
 
 import com.appcelerator.analytics.APSAnalytics;
 import com.appcelerator.analytics.APSAnalytics.DeployType;
+import com.squareup.okhttp.Cache;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.picasso.LruCache;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 
 /**
  * The main application entry point for all Titanium applications and services.
@@ -76,9 +88,14 @@ public abstract class TiApplication extends Application implements
     private static final String PROPERTY_USE_LEGACY_WINDOW = "ti.android.useLegacyWindow";
     private  static String TITANIUM_USER_AGENT;
     
-    private static long mainThreadId = 0;
+    private static long sMainThreadId = 0;
 
-    protected static WeakReference<TiApplication> tiApp = null;
+    private static int sAppDensityDpi = -1;
+    private static float sAppDensity = -1;
+    private static float sAppScaledDensity = -1;
+    private static String sAppDensityString = null;
+
+    protected static WeakReference<TiApplication> sTiApp = null;
 
     public static final String DEPLOY_TYPE_DEVELOPMENT = "development";
     public static final String DEPLOY_TYPE_TEST = "test";
@@ -104,10 +121,8 @@ public abstract class TiApplication extends Application implements
     private WeakReference<TiRootActivity> rootActivity;
     private TiProperties appProperties;
     private WeakReference<Activity> currentActivity;
-    private String density;
     private String buildVersion = "", buildTimestamp = "", buildHash = "";
     private String defaultUnit;
-    private TiResponseCache responseCache;
     private BroadcastReceiver externalStorageReceiver;
     private AccessibilityManager accessibilityManager = null;
     private boolean forceFinishRootActivity = false;
@@ -117,6 +132,24 @@ public abstract class TiApplication extends Application implements
     protected ITiAppInfo appInfo;
     protected TiStylesheet stylesheet;
     protected static HashMap<String, WeakReference<KrollModule>> modules;
+	protected String[] filteredAnalyticsEvents;
+    
+    protected static ArrayList<AppStateListener> sAppStateListeners = new ArrayList<AppStateListener>();
+
+    public static interface AppStateListener {
+        public void onAppPaused();
+        public void onAppResume();
+    }
+
+    public static void addAppStateListener(
+            AppStateListener a) {
+        sAppStateListeners.add(a);
+    }
+
+    public static void removeAppStateListener(
+            AppStateListener a) {
+        sAppStateListeners.remove(a);
+    }
 
     public static AtomicBoolean isActivityTransition = new AtomicBoolean(false);
     protected static ArrayList<ActivityTransitionListener> activityTransitionListeners = new ArrayList<ActivityTransitionListener>();
@@ -151,8 +184,8 @@ public abstract class TiApplication extends Application implements
 
         loadBuildProperties();
 
-        mainThreadId = Looper.getMainLooper().getThread().getId();
-        tiApp = new WeakReference<TiApplication>(this);
+        sMainThreadId = Looper.getMainLooper().getThread().getId();
+        sTiApp = new WeakReference<TiApplication>(this);
 
         modules = new HashMap<String, WeakReference<KrollModule>>();
         TiMessenger.getMessenger(); // initialize message queue for main thread
@@ -169,8 +202,8 @@ public abstract class TiApplication extends Application implements
      * @module.api
      */
     public static TiApplication getInstance() {
-        if (tiApp != null) {
-            TiApplication tiAppRef = tiApp.get();
+        if (sTiApp != null) {
+            TiApplication tiAppRef = sTiApp.get();
             if (tiAppRef != null) {
                 return tiAppRef;
             }
@@ -187,15 +220,16 @@ public abstract class TiApplication extends Application implements
     public static void removeFromActivityStack(Activity activity) {
         activityStack.remove(activity);
     }
+    
+    public static Object getAppSystemService(final String name) {
+        return getInstance().getSystemService(name);
+    }
 
     // Calls finish on the list of activities in the stack. This should only be
     // called when we want to terminate the
     // application (typically when the root activity is destroyed)
     public static void terminateActivityStack() {
-        TiApplication instance = getInstance();
-        for (WeakReference<KrollModule> module : modules.values()) {
-            module.get().onAppTerminate(instance);
-        }
+        
 
         if (activityStack == null || activityStack.size() == 0) {
             return;
@@ -375,9 +409,14 @@ public abstract class TiApplication extends Application implements
             }
         }
     }
-
-    private void loadAppProperties() {
+    
+    private boolean loadingProps = false;
+    public void loadAppProperties() {
         // Load the JSON file:
+        if (loadingProps || TiProperties.systemPropertiesLoaded()) {
+            return;
+        }
+        loadingProps = true;
         String appPropertiesString = KrollAssetHelper
                 .readAsset("Resources/_app_props_.json");
         if (appPropertiesString != null) {
@@ -388,6 +427,7 @@ public abstract class TiApplication extends Application implements
                 Log.e(TAG, "Unable to load app properties.");
             }
         }
+        loadingProps = false;
     }
 
     @Override
@@ -437,17 +477,21 @@ public abstract class TiApplication extends Application implements
     @Override
     public void onLowMemory() {
         // Release all the cached images
-        TiImageLruCache.getInstance().evictAll();
+        if (_picassoMermoryCache != null) {
+            _picassoMermoryCache.clear();
+        }
         super.onLowMemory();
     }
 
     @SuppressLint("NewApi")
     @Override
     public void onTrimMemory(int level) {
-        if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB
+        if (TiC.HONEYCOMB_OR_GREATER
                 && level >= TRIM_MEMORY_RUNNING_LOW) {
             // Release all the cached images
-            TiImageLruCache.getInstance().evictAll();
+            if (_picassoMermoryCache != null) {
+                _picassoMermoryCache.clear();
+            }
         }
         super.onTrimMemory(level);
     }
@@ -456,8 +500,240 @@ public abstract class TiApplication extends Application implements
         deployData = new TiDeployData(this);
 
         TiPlatformHelper.getInstance().initialize();
-        // Fastdev has been deprecated
-        // TiFastDev.initFastDev(this);
+    }
+    
+    public static class TiBitmapMemoryCache extends LruCache
+    {
+        public TiBitmapMemoryCache(int maxSize) {
+            super(maxSize);
+        }
+    }
+    
+    
+    
+    private static TiBitmapMemoryCache _picassoMermoryCache;
+    public static TiBitmapMemoryCache getImageMemoryCache() {
+        if (_picassoMermoryCache == null) {
+//            int maxMemory = (int) (Runtime.getRuntime().maxMemory());
+//            int cacheSize = maxMemory / 7;
+            _picassoMermoryCache = new TiBitmapMemoryCache(TiActivityHelper.calculateMemoryCacheSize(getAppContext()));
+        }
+        return _picassoMermoryCache;
+    }
+    
+    private static Picasso _picasso;
+    public static Picasso getPicassoInstance() {
+        if (_picasso == null) {
+            _picasso = new Picasso.Builder(getAppContext())
+            .memoryCache(getImageMemoryCache())
+            .downloader(new OkHttpDownloader(getPicassoHttpClientInstance()))
+            .build();
+        }
+        return _picasso;
+    }
+    
+    static File createDefaultCacheDir(Context context, String path) {
+        File cacheDir = getAppContext().getExternalCacheDir();
+        if (cacheDir == null)
+            cacheDir = getAppContext().getCacheDir();
+        File cache = new File(cacheDir, path);
+        if (!cache.exists()) {
+            cache.mkdirs();
+        }
+        return cache;
+    }
+    
+    private static HashMap<String, String> _currentCacheDir = new HashMap<>();
+    private static HashMap<String, Cache> _currentCache = new HashMap<>();
+
+    public static Cache getDiskCache(final String name) {
+        if (_currentCache.get(name) == null) {
+            File cacheDir = createDefaultCacheDir(getAppContext(), name);
+            if (_currentCacheDir.get(name) == null || cacheDir == null || !cacheDir.equals(_currentCacheDir.get(name).toString())) {
+                    if (cacheDir != null ) {
+                        int maxCacheSize = getInstance().getAppProperties().getInt(CACHE_SIZE_KEY, DEFAULT_CACHE_SIZE) * 1024 * 1024;
+                        _currentCacheDir.put(name, cacheDir.toString());
+                        _currentCache.put(name, new Cache(cacheDir, maxCacheSize));
+                    } else {
+                        _currentCache.remove(name);
+                        _currentCacheDir.remove(name);
+                    }
+            }
+        }
+        return _currentCache.get(name);
+    }
+//    public static Cache getHttpDiskCache() {
+//        return getDiskCache("http");
+//    }
+    
+    public static void clearDiskCache(final String name) {
+        Cache cache = getDiskCache(name);
+        if (cache != null) {
+            try {
+                cache.evictAll();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public static void closeCache(final String name) {
+        Cache cache = _currentCache.get(name);
+        if (cache != null) {
+            try {
+                cache.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            _currentCache.remove(name);
+        }
+    }
+    
+    private static OkHttpClient _httpClient;
+    private static OkHttpClient _picassoHttpClient;
+    private static final String CACHE_SIZE_KEY = "ti.android.cache.size.max";
+    private static final int DEFAULT_CACHE_SIZE = 25; // 25MB
+    public static OkHttpClient getOkHttpClientInstance() {
+        if (_httpClient == null) {
+            _httpClient = new OkHttpClient();
+            _httpClient.setCache(getDiskCache("http"));
+            _httpClient.interceptors().add(new com.squareup.okhttp.Interceptor() {
+                @Override public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
+                    com.squareup.okhttp.Request.Builder builder = chain.request().newBuilder();
+                    builder.addHeader("TiCache", "true");
+                    builder.addHeader("Cache-Control", "no-cached");
+                    builder.addHeader("User-Agent", TiApplication.getInstance()
+                            .getUserAgent());
+                    builder.addHeader("X-Requested-With", "XMLHttpRequest");
+                    
+                    return chain.proceed(builder.build());
+                }
+              });
+        }
+        return _httpClient;
+    }
+    public static OkHttpClient getPicassoHttpClientInstance() {
+        if (_picassoHttpClient == null) {
+            _picassoHttpClient = new OkHttpClient();
+            _picassoHttpClient.setCache(getDiskCache("image"));
+        }
+        return _picassoHttpClient;
+    }
+    
+    private static void updateCaches() {
+        closeCache("http");
+        closeCache("image");
+        getOkHttpClientInstance().setCache(getDiskCache("http"));
+        getPicassoHttpClientInstance().setCache(getDiskCache("image"));
+    }
+    
+    
+    public static void prepareURLConnection(HttpURLConnection connection,
+            HashMap options) {
+        connection.setUseCaches(true);
+        connection.addRequestProperty("TiCache", "true");
+        connection.addRequestProperty("Cache-Control", "no-cached");
+        connection.addRequestProperty("User-Agent", TiApplication.getInstance()
+                .getUserAgent());
+        connection.addRequestProperty("X-Requested-With", "XMLHttpRequest");
+
+        if (options != null) {
+            Object value = options.get("headers");
+            if (value != null && value instanceof HashMap) {
+                HashMap<String, Object> headers = (HashMap<String, Object>) value;
+                for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                    connection.addRequestProperty(entry.getKey(),
+                            TiConvert.toString(entry.getValue()));
+                }
+            }
+            if (options.containsKey("timeout")) {
+                int timeout = TiConvert.toInt(options, "timeout");
+                connection.setConnectTimeout(timeout);
+            }
+            if (options.containsKey("autoRedirect")) {
+                connection.setInstanceFollowRedirects(TiConvert.toBoolean(
+                        options, "autoRedirect"));
+            }
+            if (options.containsKey("method")) {
+                Object data = options.get("data");
+                if (data instanceof String) {
+                    connection.setRequestProperty("Content-Type",
+                            "charset=utf-8");
+                } else if (data instanceof HashMap) {
+                    connection.setRequestProperty("Content-Type",
+                            "application/json; charset=utf-8");
+                }
+                String dataToSend = TiConvert.toString(data);
+                if (dataToSend != null) {
+                    byte[] outputInBytes;
+                    try {
+                        outputInBytes = dataToSend.getBytes("UTF-8");
+                        OutputStream os = connection.getOutputStream();
+                        os.write(outputInBytes);
+                        os.close();
+                        connection.setRequestMethod(TiConvert.toString(options,
+                                "method"));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    
+                }
+            }
+        }
+    }
+    
+    public static OkHttpClient getPicassoHttpClient(final KrollDict options) {
+        OkHttpClient client = getPicassoHttpClientInstance();
+        if (options == null) {
+            return client;
+        }
+        client = client.clone();
+        if (options.containsKey("timeout")) {
+            int timeout = TiConvert.toInt(options, "timeout");
+            client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
+            client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
+            client.setWriteTimeout(timeout, TimeUnit.MILLISECONDS);
+        }
+        if (options.containsKey("autoRedirect")) {
+            boolean redirect = TiConvert.toBoolean(options, "autoRedirect");
+            client.setFollowRedirects(redirect);
+            client.setFollowSslRedirects(redirect);
+        }
+        client.interceptors().add(new com.squareup.okhttp.Interceptor() {
+          @Override public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
+              com.squareup.okhttp.Request.Builder builder = chain.request().newBuilder();
+              TiHTTPHelper.prepareBuilder(builder, TiConvert.toString(options, "method", "get"), options.get("data"));
+              Object value = options.get("headers");
+              if (value != null && value instanceof HashMap) {
+                  HashMap<String, Object> headers = (HashMap<String, Object>) value;
+                  for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                      builder.addHeader(entry.getKey(), TiConvert.toString(entry.getValue()));
+                  }
+              }
+              return chain.proceed(builder.build());
+          }
+        });
+        return client;
+    }
+
+    
+    public static OkHttpClient httpClient(final HashMap options) {
+        if (options == null) {
+            return getOkHttpClientInstance();
+        }
+        OkHttpClient client = getOkHttpClientInstance().clone();
+        int timeout = 20000;        
+
+        if (options.containsKey("timeout")) {
+            timeout = TiConvert.toInt(options, "timeout");
+        }
+        if (options.containsKey("autoRedirect")) {
+            client.setFollowSslRedirects(TiConvert.toBoolean(options, "autoRedirect"));
+        }
+
+        client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
+        client.setReadTimeout(timeout, TimeUnit.MILLISECONDS);
+        return client;
     }
 
     public void postOnCreate() {
@@ -480,43 +756,23 @@ public abstract class TiApplication extends Application implements
         startExternalStorageMonitor();
 
         // Register the default cache handler
-        responseCache = new TiResponseCache(getRemoteCacheDir(), this);
-        TiResponseCache.setDefault(responseCache);
         KrollRuntime.setPrimaryExceptionHandler(new TiExceptionHandler());
     }
 
-    private File getRemoteCacheDir() {
-        File cacheDir = new File(tempFileHelper.getTempDirectory(),
-                "remote-cache");
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs();
-            tempFileHelper.excludeFileOnCleanup(cacheDir);
-        }
-        return cacheDir.getAbsoluteFile();
-    }
+//    private File getRemoteCacheDir() {
+//        File cacheDir = new File(tempFileHelper.getTempDirectory(),
+//                "remote-cache");
+//        if (!cacheDir.exists()) {
+//            cacheDir.mkdirs();
+//            tempFileHelper.excludeFileOnCleanup(cacheDir);
+//        }
+//        return cacheDir.getAbsoluteFile();
+//    }
 
     public void setRootActivity(TiRootActivity rootActivity) {
         this.rootActivity = new WeakReference<TiRootActivity>(rootActivity);
         rootActivityLatch.countDown();
-
-        // calculate the display density
-        DisplayMetrics dm = new DisplayMetrics();
-        rootActivity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-        switch (dm.densityDpi) {
-        case DisplayMetrics.DENSITY_HIGH: {
-            density = "high";
-            break;
-        }
-        case DisplayMetrics.DENSITY_MEDIUM: {
-            density = "medium";
-            break;
-        }
-        case DisplayMetrics.DENSITY_LOW: {
-            density = "low";
-            break;
-        }
-        }
-
+        
         TiPlatformHelper.getInstance().initAnalytics();
         TiPlatformHelper.getInstance().setSdkVersion(
                 "ti." + getTiBuildVersion());
@@ -535,11 +791,11 @@ public abstract class TiApplication extends Application implements
 		// Just use type 'other' enum since it's open ended.
 		DeployType.OTHER.setName(deployType);
 		TiPlatformHelper.getInstance().setDeployType(DeployType.OTHER);
-        //TiPlatformHelper.getInstance().setDeployType(deployType);
+        Log.d(TAG, "TiPlatformHelper.deployType: " + TiPlatformHelper.getInstance().getDeployType(), Log.DEBUG_MODE);
         if (isAnalyticsEnabled()) {
             APSAnalytics.getInstance().sendAppEnrollEvent();
         } else {
-            Log.i(TAG, "Analytics have been disabled");
+            Log.d(TAG, "Analytics have been disabled", Log.DEBUG_MODE);
         }
         tempFileHelper.scheduleCleanTempDir();
     }
@@ -622,6 +878,7 @@ public abstract class TiApplication extends Application implements
      * @module.api
      */
     public TiProperties getAppProperties() {
+        loadAppProperties();
         return appProperties;
     }
 
@@ -638,6 +895,57 @@ public abstract class TiApplication extends Application implements
     public ITiAppInfo getAppInfo() {
         return appInfo;
     }
+    
+    public static Context getAppContext() {
+        return getInstance().getApplicationContext();
+    }
+    
+    public static float getAppDensity() {
+        if (sAppDensity == -1) {
+            sAppDensity =  TiDimension.getDisplayMetrics().density;
+        }
+        return sAppDensity;
+    }
+    
+    public static int getAppDensityDpi() {
+        if (sAppDensityDpi == -1) {
+            sAppDensityDpi =  TiDimension.getDisplayMetrics().densityDpi;
+        }
+        return sAppDensityDpi;
+    }
+    
+    public static float getAppScaledDensity() {
+        if (sAppScaledDensity == -1) {
+            sAppScaledDensity =  TiDimension.getDisplayMetrics().scaledDensity;
+        }
+        return sAppScaledDensity;
+    }
+    
+    public static String getAppDensityString() {
+        if (sAppDensityString == null) {
+            switch(getAppDensityDpi()) {
+            case DisplayMetrics.DENSITY_HIGH :
+            case 213: //TV
+                sAppDensityString = "high";
+            case DisplayMetrics.DENSITY_MEDIUM :
+                sAppDensityString = "medium";
+            case 280: //Introduce in API 22.
+            case 320 : // DisplayMetrics.DENSITY_XHIGH (API 9)
+                sAppDensityString = "xhigh";
+            case 400:
+            case 480 :
+                sAppDensityString = "xxhigh";
+            case 560:
+            case 640 :
+                sAppDensityString = "xxxhigh";
+            case DisplayMetrics.DENSITY_LOW :
+                sAppDensityString = "low";
+            default :
+                sAppDensityString = "medium";
+            }
+        }
+        return sAppDensityString;
+    }
 
     /**
      * @return the app's GUID. Each application has a unique GUID.
@@ -649,7 +957,7 @@ public abstract class TiApplication extends Application implements
     public KrollDict getStylesheet(String basename, Collection<String> classes,
             String objectId) {
         if (stylesheet != null) {
-            return stylesheet.getStylesheet(objectId, classes, density,
+            return stylesheet.getStylesheet(objectId, classes, getAppDensityString(),
                     basename);
         }
         return null;
@@ -673,9 +981,31 @@ public abstract class TiApplication extends Application implements
         return proxy;
     }
 
-    public boolean isAnalyticsEnabled() {
-        return getAppInfo().isAnalyticsEnabled();
-    }
+    public boolean isAnalyticsEnabled()
+	{
+		return getAppInfo().isAnalyticsEnabled();
+	}
+	
+	public void setFilterAnalyticsEvents(String[] events)
+	{
+		filteredAnalyticsEvents = events;
+	}
+	
+	public boolean isAnalyticsFiltered(String eventName)
+	{
+		if (filteredAnalyticsEvents == null) {
+			return false;
+		}
+
+		for (int i = 0; i < filteredAnalyticsEvents.length; ++i) {
+			String currentName = filteredAnalyticsEvents[i];
+			if (eventName.equals(currentName)) {
+				return true;
+			}
+					
+		}
+		return false;
+	}
 
     public String getDeployType() {
         return getAppInfo().getDeployType();
@@ -784,7 +1114,7 @@ public abstract class TiApplication extends Application implements
      * @module.api
      */
     public static boolean isUIThread() {
-        if (mainThreadId == Thread.currentThread().getId()) {
+        if (sMainThreadId == Thread.currentThread().getId()) {
             return true;
         }
 
@@ -821,15 +1151,14 @@ public abstract class TiApplication extends Application implements
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (Intent.ACTION_MEDIA_MOUNTED.equals(intent.getAction())) {
-                    responseCache.setCacheDir(getRemoteCacheDir());
-                    TiResponseCache.setDefault(responseCache);
+                    updateCaches();
                     Log.i(TAG,
                             "SD card has been mounted. Enabling cache for http responses.",
                             Log.DEBUG_MODE);
 
                 } else {
                     // if the sd card is removed, we don't cache http responses
-                    TiResponseCache.setDefault(null);
+                    updateCaches();
                     Log.i(TAG,
                             "SD card has been unmounted. Disabling cache for http responses.",
                             Log.DEBUG_MODE);
@@ -853,6 +1182,25 @@ public abstract class TiApplication extends Application implements
     }
 
     public void dispose() {
+        appEventProxies.clear();
+        proxyMap.clear();
+        if (TiApplication.activityTransitionListeners != null) {
+            TiApplication.activityTransitionListeners.clear();
+        }
+        if (TiApplication.sAppStateListeners != null) {
+            TiApplication.sAppStateListeners.clear();
+        }
+        if (TiApplication.activityStack != null) {
+            TiApplication.activityStack.clear();
+        }
+        if (TiApplication.modules != null) {
+            TiApplication instance = getInstance();
+            for (WeakReference<KrollModule> module : modules.values()) {
+                module.get().onAppTerminate(instance);
+                module.get().release();
+            }
+            TiApplication.modules.clear();
+        }
         TiActivityWindows.dispose();
         TiActivitySupportHelpers.dispose();
         TiFileHelper.getInstance().destroyTempFiles();
@@ -871,9 +1219,14 @@ public abstract class TiApplication extends Application implements
     public void beforeForcedRestart() {
         restartPending = false;
         currentActivity = null;
+        appEventProxies.clear();
+        proxyMap.clear();
         TiApplication.isActivityTransition.set(false);
         if (TiApplication.activityTransitionListeners != null) {
             TiApplication.activityTransitionListeners.clear();
+        }
+        if (TiApplication.sAppStateListeners != null) {
+            TiApplication.sAppStateListeners.clear();
         }
         if (TiApplication.activityStack != null) {
             TiApplication.activityStack.clear();
@@ -902,6 +1255,9 @@ public abstract class TiApplication extends Application implements
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == PAUSE) {
+                for (int i = 0; i < sAppStateListeners.size(); ++i) {
+                    sAppStateListeners.get(i).onAppPaused();
+                }
                 fireAppEvent(TiC.EVENT_PAUSE, null);
                 paused = true;
                 final AsyncTask<Void, Void, Void> sendTask = new AsyncTask<Void, Void, Void>() {
@@ -935,6 +1291,9 @@ public abstract class TiApplication extends Application implements
         mHandler.removeMessages(PAUSE);
         if (paused && activity == getAppCurrentActivity()
                 && isCurrentActivityPaused()) {
+            for (int i = 0; i < sAppStateListeners.size(); ++i) {
+                sAppStateListeners.get(i).onAppResume();
+            }
             fireAppEvent(TiC.EVENT_RESUME, null);
             paused = false;
             final AsyncTask<Void, Void, Void> sendTask = new AsyncTask<Void, Void, Void>() {
@@ -960,5 +1319,60 @@ public abstract class TiApplication extends Application implements
 
     public boolean isPaused() {
         return paused;
+    }
+    
+    
+    public static boolean testPermission(final String permission) {
+        int res = getAppContext().checkCallingOrSelfPermission("android.permission." + permission);
+        return (res == PackageManager.PERMISSION_GRANTED);
+    }
+    
+    
+//    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    /**
+     * Check the device to make sure it has the Google Play Services APK. If
+     * it doesn't, display a dialog that allows users to download the APK from
+     * the Google Play Store or enable it in the device's system settings.
+     */
+    private static int googlePlayServicesState = -1;
+    private static boolean googlePlayServicesAvailable = false;
+    private static String googlePlayServicesErrorMessage = null;
+    public static int getGooglePlayServicesState() {
+        if (googlePlayServicesState == -1) {
+            final Activity activity = getAppRootOrCurrentActivity();
+            try {
+                Class<?> c = Class.forName("com.google.android.gms.common.GooglePlayServicesUtil");
+                Method  isGooglePlayServicesAvailable = c.getDeclaredMethod ("isGooglePlayServicesAvailable", Context.class);
+                googlePlayServicesState = (int) isGooglePlayServicesAvailable.invoke(null, new Object[] {activity});
+            } catch (Exception e) {
+                googlePlayServicesState = 1;
+                Throwable cause = e.getCause();
+                if (cause != null) {
+                    googlePlayServicesErrorMessage = cause.getMessage();
+                }
+                e.printStackTrace();
+            }
+            googlePlayServicesAvailable = googlePlayServicesState == 0;
+        }
+        return googlePlayServicesState;
+    }
+    public static String getGooglePlayServicesErrorString() {
+        if (googlePlayServicesErrorMessage == null) {
+            try {
+                Class<?> c = Class.forName("com.google.android.gms.common.GooglePlayServicesUtil");
+                Method  isGooglePlayServicesAvailable = c.getDeclaredMethod ("getErrorString", Integer.class);
+                googlePlayServicesErrorMessage = (String) isGooglePlayServicesAvailable.invoke(null, new Object[] {getGooglePlayServicesState()});
+                
+            } catch (Exception e) {
+            }
+        }
+        return googlePlayServicesErrorMessage;
+    }
+    
+    public static boolean isGooglePlayServicesAvailable() {
+        if (googlePlayServicesState == -1) {
+            getGooglePlayServicesState();
+        }
+        return googlePlayServicesAvailable;
     }
 }

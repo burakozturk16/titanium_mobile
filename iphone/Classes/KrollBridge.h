@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Bridge.h"
-#import "Ti.h"
+#import "TiToJS.h"
 #import "TiEvaluator.h"
 #import "TiProxy.h"
 #import "KrollContext.h"

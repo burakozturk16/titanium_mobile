@@ -15,6 +15,11 @@ var NativeModule = require('native_module'),
 
 var TAG = "Module";
 
+
+function stringEndsWith(str, suffix) {
+	return str.indexOf(suffix, str.length - suffix.length) !== -1;
+};
+
 function Module(id, parent, context) {
 	this.id = id;
 	this.exports = {};
@@ -119,11 +124,15 @@ Module.prototype.createModuleWrapper = function(externalModule, sourceUrl) {
 
 	wrapper.addEventListener = function() {
 		externalModule.addEventListener.apply(externalModule, arguments);
+		return wrapper;
 	}
+	wrapper.on = wrapper.addEventListener;
 
 	wrapper.removeEventListener = function() {
 		externalModule.removeEventListener.apply(externalModule, arguments);
+		return wrapper;
 	}
+	wrapper.off = wrapper.removeEventListener;
 
 	wrapper.fireEvent = function() {
 		externalModule.fireEvent.apply(externalModule, arguments);
@@ -330,6 +339,11 @@ Module.prototype._runScript = function (source, filename) {
 	context.module = this;
 
 	var ti = new Titanium.Wrapper(context);
+	var dirname = path.dirname(filename);
+	if (dirname === '.' && !stringEndsWith(filename, '.js')) //root we need to set dirname to module name
+	{
+		dirname = filename;
+	}
 
 	// In V8, we treat external modules the same as native modules.  First, we wrap the
 	// module code and then run it in the current context.  This will allow external modules to
@@ -338,7 +352,7 @@ Module.prototype._runScript = function (source, filename) {
 	source = Module.wrap(source);
 
 	var f = Script.runInThisContext(source, filename, true);
-	return f(this.exports, require, this, filename, path.dirname(filename), ti, ti, global, kroll);
+	return f(this.exports, require, this, filename, dirname, ti, ti, global, kroll);
 }
 
 // Determine the paths where the requested module could live.
@@ -348,26 +362,30 @@ function resolveLookupPaths(request, parentModule) {
 
 	// "absolute" in Titanium is relative to the Resources folder
 	if (request.charAt(0) === '/') {
-		request = request.substring(1);
+		// request = request.substring(1);
+		return [request.substring(1), Module.paths];
+	} else if (request.indexOf('app://') === 0) {
+		// request = request.substring(6);
+		return [request.substring(6), Module.paths];
 	}
-
+	var paths = Module.paths;
+	if (parentModule) {
+		if (!parentModule.paths) {
+			parentModule.paths = [];
+		}
+		// Check if parent is root CommonJS module packaged
+		// with a native external module, in which case the
+		// module id is itself a path that needs to be checked.
+		var parentId = parentModule.id;
+		var pos = parentId.lastIndexOf(".commonjs");
+		if (pos === parentId.length - ".commonjs".length) {
+			paths = [parentId.substr(0, pos)].concat(paths);
+		}
+		paths = parentModule.paths.concat(paths);
+	}
 	var start = request.substring(0, 2);
 	if (start !== './' && start !== '..') {
-		var paths = Module.paths;
-		if (parentModule) {
-			if (!parentModule.paths) {
-				parentModule.paths = [];
-			}
-			// Check if parent is root CommonJS module packaged
-			// with a native external module, in which case the
-			// module id is itself a path that needs to be checked.
-			var parentId = parentModule.id;
-			var pos = parentId.lastIndexOf(".commonjs");
-			if (pos === parentId.length - ".commonjs".length) {
-				paths = [parentId.substr(0, pos)].concat(paths);
-			}
-			paths = parentModule.paths.concat(paths);
-		}
+
 		return [request, paths];
 	}
 
@@ -402,7 +420,7 @@ Module.prototype.resolveFilename = function (request) {
 	// could be located.
 	for (var i = 0, pathCount = paths.length; i < pathCount; ++i) {
 		var filename = path.resolve(paths[i], id) + '.js';
-		if (this.filenameExists(filename) || assets.fileExists(filename)) {
+		if (this.filenameExists(filename)) {
 			return [id, filename];
 		}
 	}

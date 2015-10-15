@@ -6,25 +6,38 @@
  */
 package org.appcelerator.titanium.util;
 
+import java.io.File;
 import java.util.HashMap;
 
 import android.webkit.MimeTypeMap;
 
 public class TiMimeTypeHelper
 {
-	public static final String MIME_TYPE_JAVASCRIPT = "text/javascript";
-	public static final String MIME_TYPE_HTML = "text/html";
-	public static final HashMap<String, String> EXTRA_MIMETYPES = new HashMap<String, String>();
+
+	public static final HashMap<String, String> EXTRA_TEXT_MIMETYPES = new HashMap<String, String>();
 	static {
-		EXTRA_MIMETYPES.put("js", MIME_TYPE_JAVASCRIPT);
-		EXTRA_MIMETYPES.put("html", MIME_TYPE_HTML);
-		EXTRA_MIMETYPES.put("htm", MIME_TYPE_HTML);
+		EXTRA_TEXT_MIMETYPES.put("js", "javascript");
+		EXTRA_TEXT_MIMETYPES.put("html", "html");
+		EXTRA_TEXT_MIMETYPES.put("htm", "html");
 	}
+    public static final HashMap<String, String> EXTRA_IMAGE_MIMETYPES = new HashMap<String, String>();
+    static {
+        EXTRA_IMAGE_MIMETYPES.put("png", "png");
+        EXTRA_IMAGE_MIMETYPES.put("jpg", "jpg");
+        EXTRA_IMAGE_MIMETYPES.put("gif", "gif");
+        EXTRA_IMAGE_MIMETYPES.put("bmp", "bmp");
+        EXTRA_IMAGE_MIMETYPES.put("pjpeg", "pjpeg");
+        EXTRA_IMAGE_MIMETYPES.put("tiff", "tiff");
+    } 
 	
 	public static String getMimeType(String url) {
 		return getMimeType(url, "application/octet-stream");
 	}
 	
+	public static String getMimeType(File file) {
+        return getMimeType(file.getAbsolutePath());
+    }
+    
 	public static String getMimeTypeFromFileExtension(String extension, String defaultType) {
 		MimeTypeMap mtm = MimeTypeMap.getSingleton();
 		String mimetype = defaultType;
@@ -35,18 +48,28 @@ public class TiMimeTypeHelper
 				mimetype = type;
 			} else {
 				String lowerExtension = extension.toLowerCase();
-				if (EXTRA_MIMETYPES.containsKey(lowerExtension)) {
-					mimetype = EXTRA_MIMETYPES.get(lowerExtension);
-				}
+		            if (EXTRA_TEXT_MIMETYPES.containsKey(lowerExtension)) {
+		                return "text/" +  EXTRA_TEXT_MIMETYPES.get(lowerExtension);
+		            } else if (EXTRA_IMAGE_MIMETYPES.containsKey(lowerExtension)) {
+		                return "image/" +  EXTRA_IMAGE_MIMETYPES.get(lowerExtension);
+		            }
 			}
 		}
 
 		return mimetype;
 	}
 	
+	public static String getFileExtensionFromUrl(String url) {
+		return MimeTypeMap.getFileExtensionFromUrl(url);
+	}
+
 	public static String getMimeType(String url, String defaultType)
 	{
-		String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+		String extension = "";
+		int pos = url.lastIndexOf('.');
+		if (pos > 0) {
+			extension = url.substring(pos + 1);
+		}
 		return getMimeTypeFromFileExtension(extension, defaultType);
 	}
 	
@@ -57,11 +80,7 @@ public class TiMimeTypeHelper
 		if (extension != null) {
 			result = extension;
 		} else {
-			for (String ext : EXTRA_MIMETYPES.keySet()) {
-				if (EXTRA_MIMETYPES.get(ext).equalsIgnoreCase(mimeType)) {
-					return ext;
-				}
-			}
+//			return mimeType;
 		}
 		
 		return result;

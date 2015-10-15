@@ -13,9 +13,11 @@ import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiPlatformHelper;
+import org.appcelerator.titanium.util.TiUIHelper;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -23,8 +25,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Build;
 
 @Kroll.module
 public class PlatformModule extends KrollModule
@@ -95,6 +99,11 @@ public class PlatformModule extends KrollModule
 	public String getVersion() {
 		return TiPlatformHelper.getInstance().getVersion();
 	}
+	
+	@Kroll.getProperty @Kroll.method
+    public int getSDKVersion() {
+        return Build.VERSION.SDK_INT;
+    }
 	
 	@Kroll.getProperty @Kroll.method
 	public double getAvailableMemory() {
@@ -316,4 +325,37 @@ public class PlatformModule extends KrollModule
 	{
 		return "Ti.Platform";
 	}
+	
+    @Kroll.getProperty
+    @Kroll.method
+    public KrollDict getFullInfo() {
+        KrollDict result = new KrollDict();
+        result.put("dpi", getDisplayCaps().getDpi());
+        result.put("density", getDisplayCaps().getDensity());
+        result.put("version", getVersion());
+        result.put("SDKVersion", getSDKVersion());
+        result.put("ostype", getOstype());
+        result.put("name", getName());
+        result.put("model", getModel());
+        result.put("locale", getLocale());
+        result.put("id", getId());
+        result.put("pixelWidth", getDisplayCaps().getPlatformWidth());
+        result.put("pixelHeight", getDisplayCaps().getPlatformHeight());
+        result.put("densityFactor", getDisplayCaps().getLogicalDensityFactor());
+        return result;
+    }
+    
+    @Kroll.getProperty @Kroll.method
+    public TiBlob getSplashImageForCurrentOrientation() {
+        Drawable drawable = TiUIHelper.getResourceDrawable((Object)"background.9.png");
+        if (drawable == null) {
+            drawable = TiUIHelper.getResourceDrawable((Object)"background.png");
+        }
+        if (drawable != null) {
+            return TiBlob.blobFromObject(drawable);
+        }
+        return null;
+    }
+
+
 }

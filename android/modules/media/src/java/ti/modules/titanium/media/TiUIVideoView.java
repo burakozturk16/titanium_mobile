@@ -7,7 +7,6 @@
 package ti.modules.titanium.media;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
@@ -15,6 +14,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
@@ -117,59 +117,44 @@ public class TiUIVideoView extends TiUIView
 
 		getPlayerProxy().fireLoadState(MediaModule.VIDEO_LOAD_STATE_UNKNOWN);
 
-		String url = d.getString(TiC.PROPERTY_URL);
-		if (url == null) {
-			url = d.getString(TiC.PROPERTY_CONTENT_URL);
-			if (url != null) {
-				Log.w(TAG, "contentURL is deprecated, use url instead");
-				proxy.setProperty(TiC.PROPERTY_URL, url);
-			}
-		}
-		if (url != null) {
-			videoView.setVideoURI(Uri.parse(proxy.resolveUrl(null, url)));
-			seekIfNeeded();
-		}
-
 		// Proxy holds the scaling mode directly.
 		videoView.setScalingMode(getPlayerProxy().getScalingMode());
 
 		// Proxy holds the media control style directly.
 		setMediaControlStyle(getPlayerProxy().getMediaControlStyle());
-
-		if (d.containsKey(TiC.PROPERTY_VOLUME)) {
-			videoView.setVolume(TiConvert.toFloat(d, TiC.PROPERTY_VOLUME, 1.0f));
-		}
 	}
-
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		if (videoView == null) {
-			return;
-		}
-
-		if (key.equals(TiC.PROPERTY_URL) || key.equals(TiC.PROPERTY_CONTENT_URL)) {
-			if (newValue != null) {
-				getPlayerProxy().fireLoadState(MediaModule.VIDEO_LOAD_STATE_UNKNOWN);
-				videoView.setVideoURI(Uri.parse(proxy.resolveUrl(null, TiConvert.toString(newValue))));
-				seekIfNeeded();
-			} else {
-				videoView.stopPlayback();
-			}
-			if (key.equals(TiC.PROPERTY_CONTENT_URL)) {
-				Log.w(TAG, "contentURL is deprecated, use url instead");
-				proxy.setProperty(TiC.PROPERTY_URL, newValue);
-			}
-
-		} else if (key.equals(TiC.PROPERTY_SCALING_MODE)) {
-			videoView.setScalingMode(TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_VOLUME)) {
-			videoView.setVolume(TiConvert.toFloat(newValue));
-
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
-	}
+	
+    @Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        if (videoView == null) {
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            return;
+        }
+        switch (key) {
+        case TiC.PROPERTY_URL:
+        case TiC.PROPERTY_CONTENT_URL:
+            videoView.setVideoURI(Uri.parse(proxy.resolveUrl(null, TiConvert.toString(newValue))));
+            seekIfNeeded();
+            break;
+        case TiC.PROPERTY_VOLUME:
+            videoView.setVolume(TiConvert.toFloat(newValue, 1.0f));
+            break;
+        case TiC.PROPERTY_REPEAT_MODE:
+            videoView.setRepeatMode(TiConvert.toInt(newValue, MediaModule.VIDEO_REPEAT_MODE_NONE));
+            break;
+        case TiC.PROPERTY_SCALING_MODE:
+            videoView.setScalingMode(TiConvert.toInt(newValue));
+            break;
+        case "zOrderOnTop":
+            videoView.setZOrderOnTop(TiConvert.toBoolean(newValue));
+            videoView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
 
 	public boolean isPlaying()
 	{

@@ -1,14 +1,14 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
 
-#if defined(USE_TI_FILESYSTEM) || defined(USE_TI_DATABASE) || defined(USE_TI_MEDIA)
+#if defined(USE_TI_FILESYSTEM)
 
 #include <sys/xattr.h>
-
+#import "TiBase.h"
 #import "TiUtils.h"
 #import "TiBlob.h"
 #import "TiFilesystemFileProxy.h"
@@ -155,6 +155,29 @@ FILENOOP(setHidden:(id)x);
 	return [resultDict objectForKey:NSFileSystemFreeSize];
 }
 
+-(NSString *)getProtectionKey:(id)args
+{
+	NSError *error = nil;
+	NSDictionary * resultDict = [fm attributesOfItemAtPath:path error:&error];
+	if (error != nil) {
+		NSLog(@"[ERROR] Error getting protection key: %@", [TiUtils messageFromError:error]);
+		return nil;
+	}
+	return [resultDict objectForKey:NSFileProtectionKey];
+}
+
+-(NSNumber *)setProtectionKey:(id)args
+{
+	ENSURE_SINGLE_ARG(args, NSString);
+	NSError *error = nil;
+	[fm setAttributes:[NSDictionary dictionaryWithObjectsAndKeys:args, NSFileProtectionKey, nil] ofItemAtPath:path error:&error];
+	if (error != nil) {
+		NSLog(@"[ERROR] Error setting protection key: %@", [TiUtils messageFromError:error]);
+		return NUMBOOL(NO);
+	}
+	return NUMBOOL(YES);
+}
+
 -(id)createDirectory:(id)args
 {
 	BOOL result = NO;
@@ -199,7 +222,7 @@ FILENOOP(setHidden:(id)x);
 			[fm createDirectoryAtPath:[path stringByDeletingLastPathComponent] withIntermediateDirectories:YES attributes:nil error:nil];
 			//We don't care if this fails.
 		}
-		result = [[NSData data] writeToFile:path options:NSDataWritingFileProtectionComplete error:nil];
+		result = [[NSData data] writeToFile:path options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:nil];
 	}			
 	return NUMBOOL(result);
 }
@@ -457,7 +480,7 @@ FILENOOP(setHidden:(id)x);
 	} 
 	else 
 	{
-		[[NSData data] writeToFile:resultPath options:NSDataWritingFileProtectionComplete error:&error];
+		[[NSData data] writeToFile:resultPath options:NSDataWritingFileProtectionComplete | NSDataWritingAtomic error:&error];
 	}
 	
 	if (error != nil)
@@ -474,7 +497,7 @@ FILENOOP(setHidden:(id)x);
     u_int8_t value;
     const char* fullPath = [[self path] fileSystemRepresentation];
     
-    int result = getxattr(fullPath, backupAttr, &value, sizeof(value), 0, 0);
+    ssize_t result = getxattr(fullPath, backupAttr, &value, sizeof(value), 0, 0);
     if (result == -1) {
         // Doesn't matter what errno is set to; this means that we're backing up.
         return @YES;

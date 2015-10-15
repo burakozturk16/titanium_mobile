@@ -14,28 +14,26 @@ import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.kroll.common.TiFastDev;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBlob;
-import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.TiFileProxy;
 import org.appcelerator.titanium.io.TiBaseFile;
-import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.util.TiDownloadListener;
-import org.appcelerator.titanium.util.TiDownloadManager;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiImageHelper;
-import org.appcelerator.titanium.util.TiImageLruCache;
+import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.util.TiUrl;
 
 import com.trevorpage.tpsvg.SVGDrawable;
 import com.trevorpage.tpsvg.SVGFlyweightFactory;
@@ -48,7 +46,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.media.ExifInterface;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.webkit.URLUtil;
@@ -56,7 +53,7 @@ import android.webkit.URLUtil;
 /**
  * Helper class for loading, scaling, and caching images if necessary.
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings("deprecation")
 public class TiDrawableReference
 {
 	private static Map<Integer, Bounds> boundsCache;
@@ -78,25 +75,35 @@ public class TiDrawableReference
 	}
 
 	private static final String TAG = "TiDrawableReference";
-	private static final String FILE_PREFIX = "file://";
 	private static final int UNKNOWN = -1;
 	private static final int DEFAULT_SAMPLE_SIZE = 1;
 	private int resourceId = UNKNOWN;
 	private String url;
 	private TiBlob blob;
     private TiBaseFile file;
-    private HttpURLConnection http;
+//    private HttpURLConnection http;
 	private DrawableReferenceType type;
 	private boolean oomOccurred = false;
 	private boolean anyDensityFalse = false;
 	private boolean autoRotate;
 	private int orientation = -1;
+	
+	private static Resources RESOURCES = null;
+	
+    private static final Pattern drawablePattern = Pattern.compile("drawable\\.(.*)$", Pattern.CASE_INSENSITIVE);
 
 	// TIMOB-3599: A bug in Gingerbread forces us to retry decoding bitmaps when they initially fail
 	public static final int DEFAULT_DECODE_RETRIES = 5;
 	private int decodeRetries;
 
 	private SoftReference<Activity> softActivity = null;
+	
+	private static Resources getResources() {
+	    if (RESOURCES == null) {
+	        RESOURCES = TiApplication.getInstance().getResources();
+	    }
+	    return RESOURCES;
+	}
 
 	public TiDrawableReference(Activity activity, DrawableReferenceType type)
 	{
@@ -170,10 +177,27 @@ public class TiDrawableReference
 	 */
 	public static TiDrawableReference fromUrl(KrollProxy proxy, String url)
 	{
+	    Activity activity = (proxy != null)? proxy.getActivity():null;
 		if (url == null || url.length() == 0 || url.trim().length() == 0) {
-			return new TiDrawableReference(proxy.getActivity(), DrawableReferenceType.NULL);
+			return new TiDrawableReference(activity, DrawableReferenceType.NULL);
 		}
-		return fromUrl(proxy.getActivity(), proxy.resolveUrl(null, url));
+		Matcher matcher = drawablePattern.matcher(url);
+        if (matcher.find()) {
+            int id = 0;
+            try {
+                id =  TiRHelper.getResource(url, true);
+            } catch (TiRHelper.ResourceNotFoundException e) {
+                id = 0;
+            }
+            if (id != 0) {
+                TiDrawableReference ref = new TiDrawableReference(activity, DrawableReferenceType.RESOURCE_ID);
+                ref.resourceId = id;
+                ref.url = url;
+                return ref;
+            }
+        }
+            
+		return fromUrl(activity, (proxy != null)? proxy.resolveUrl(null, url):url);
 	}
 
 	/**
@@ -213,7 +237,7 @@ public class TiDrawableReference
 		return ref;
 	}
 	
-	public static TiDrawableReference fromDictionary(Activity activity, HashMap dict)
+	public static TiDrawableReference fromDictionary(final Activity activity, HashMap dict)
 	{
 		if (dict.containsKey("media")) {
 			return fromBlob(activity, TiConvert.toBlob(new KrollDict(dict), "media"));
@@ -230,42 +254,61 @@ public class TiDrawableReference
 	 * @return A ready instance of TiDrawableReference.
 	 * @module.api
 	 */
-	public static TiDrawableReference fromObject(Activity activity, Object object)
+	public static TiDrawableReference fromObject(final KrollProxy proxy, Object object)
 	{
-		if (object == null) {
-			return new TiDrawableReference(activity, DrawableReferenceType.NULL);
-		}
-		
 		if (object instanceof String) {
-			return fromUrl(activity, TiConvert.toString(object));
-		} else if (object instanceof HashMap) {
-			return fromDictionary(activity, (HashMap)object);
-		} else if (object instanceof TiBaseFile) {
-			return fromFile(activity, (TiBaseFile)object);
-		} else if (object instanceof TiBlob) {
-			return fromBlob(activity, TiConvert.toBlob(object));
-		} else if (object instanceof Number) {
-			return fromResourceId(activity, ((Number)object).intValue());
+			return fromUrl(proxy, TiConvert.toString(object));
 		} else {
-			Log.w(TAG, "Unknown image resource type: " + object.getClass().getSimpleName()
-				+ ". Returning null drawable reference");
-			return fromObject(activity, null);
+			return fromObject((proxy != null)? proxy.getActivity():null, object);
 		}
 	}
 	
-	   /**
-     * Creates and returns a TiDrawableReference with type DrawableReferenceType.HTTP.
+	/**
+     * Does its best to determine the type of reference (url, blob, etc) based on object parameter.
      * @param activity the referenced activity.
-     * @param http the referenced httpurlconnection.
+     * @param object the referenced object.
      * @return A ready instance of TiDrawableReference.
+     * @module.api
      */
-    public static TiDrawableReference fromHttp(Activity activity, HttpURLConnection http)
+    public static TiDrawableReference fromObject(final Activity activity, Object object)
     {
-        TiDrawableReference ref = new TiDrawableReference(activity, DrawableReferenceType.URL);
-        ref.http = http;
-        ref.url = http.getURL().toString();
-        return ref;
+        if (object == null) {
+            return new TiDrawableReference(activity, DrawableReferenceType.NULL);
+        }
+        
+        if (object instanceof String) {
+            return fromUrl(activity, TiConvert.toString(object));
+        } else if (object instanceof TiFileProxy) {
+            return TiDrawableReference.fromFile(activity,
+                    ((TiFileProxy) object).getBaseFile());
+        } else if (object instanceof HashMap) {
+            return fromDictionary(activity, (HashMap)object);
+        } else if (object instanceof TiBaseFile) {
+            return fromFile(activity, (TiBaseFile)object);
+        } else if (object instanceof TiBlob) {
+            return fromBlob(activity, TiConvert.toBlob(object));
+        } else if (object instanceof Number) {
+            return fromResourceId(activity, ((Number)object).intValue());
+        } else {
+            Log.w(TAG, "Unknown image resource type: " + object.getClass().getSimpleName()
+                + ". Returning null drawable reference");
+            return fromObject(activity, null);
+        }
     }
+	
+//	   /**
+//     * Creates and returns a TiDrawableReference with type DrawableReferenceType.HTTP.
+//     * @param activity the referenced activity.
+//     * @param http the referenced httpurlconnection.
+//     * @return A ready instance of TiDrawableReference.
+//     */
+//    public static TiDrawableReference fromHttp(Activity activity, HttpURLConnection http)
+//    {
+//        TiDrawableReference ref = new TiDrawableReference(activity, DrawableReferenceType.URL);
+//        ref.http = http;
+//        ref.url = http.getURL().toString();
+//        return ref;
+//    }
 
 	public boolean isNetworkUrl()
 	{
@@ -287,11 +330,11 @@ public class TiDrawableReference
 		return type == DrawableReferenceType.BLOB;
 	}
     
-    public boolean isTypeHttp()
-    {
-        return type == DrawableReferenceType.URL && http != null;
-    }
-    
+//    public boolean isTypeHttp()
+//    {
+//        return type == DrawableReferenceType.URL && http != null;
+//    }
+//    
 	public boolean isSVG()
 	{
 		return (url != null && url.endsWith(".svg"));
@@ -331,6 +374,22 @@ public class TiDrawableReference
 	 */
 	public Bitmap getBitmap(boolean needRetry)
 	{
+		return getBitmap(needRetry, false);
+	}
+	
+	/**
+	 * Gets the bitmap from the resource. If densityScaled is set to true, image is scaled
+	 * based on the device density otherwise no sampling/scaling is done.
+	 * When needRetry is set to true, it will retry loading when decode fails.
+	 * If decode fails because of out of memory, clear the memory and call GC and retry loading a smaller image.
+	 * If decode fails because of the odd Android 2.3/Gingerbread behavior (TIMOB-3599), retry loading the original image.
+	 * This method should be called from a background thread when needRetry is set to true because it may block
+	 * the thread if it needs to retry several times.
+	 * @param needRetry If true, it will retry loading when decode fails.
+	 * @return Bitmap, or null if errors occurred while trying to load or fetch it.
+	 */
+	public Bitmap getBitmap(boolean needRetry, boolean densityScaled)
+	{
 		if(isTypeBlob())
 		{
 			Bitmap bitmap = blob.getImage();
@@ -339,11 +398,20 @@ public class TiDrawableReference
 		InputStream is = null;
 		Bitmap b = null;
 		try {
-			is = getInputStream();
 			BitmapFactory.Options opts = new BitmapFactory.Options();
 			opts.inInputShareable = true;
 			opts.inPurgeable = true;
 			opts.inPreferredConfig = Bitmap.Config.RGB_565;
+			if (densityScaled) {
+				DisplayMetrics dm = new DisplayMetrics();
+				dm.setToDefaults();
+				opts.inDensity = DisplayMetrics.DENSITY_MEDIUM;
+
+				opts.inTargetDensity = dm.densityDpi;
+				opts.inScaled = true;
+			}
+
+			is = getInputStream();
 			if (needRetry) {
 				for (int i = 0; i < decodeRetries; i++) {
 					// getInputStream() fails sometimes but after retry it will get
@@ -381,7 +449,7 @@ public class TiDrawableReference
 						oomOccurred = true;
 						Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage(), e);
 						Log.i(TAG, "Clear memory cache and signal a GC. Will retry load.", Log.DEBUG_MODE);
-						TiImageLruCache.getInstance().evictAll();
+						TiApplication.getImageMemoryCache().clear();
 						System.gc(); // See if we can force a compaction
 						try {
 							Thread.sleep(1000);
@@ -390,6 +458,28 @@ public class TiDrawableReference
 						}
 						opts.inSampleSize = (int) Math.pow(2, i);
 					}
+				}
+				// If decoding fails, we try to get it from httpclient.
+				if (b == null) {
+                    HttpURLConnection connection = null;
+                    try {
+                        URL mURL = new URL(url);
+                        connection = (HttpURLConnection) mURL.openConnection();
+                        connection.setInstanceFollowRedirects(true);
+                        connection.setDoInput(true);
+                        connection.connect();
+                        int responseCode = connection.getResponseCode();
+                        if (responseCode == 200) {
+                            b = BitmapFactory.decodeStream(connection.getInputStream());
+                        } else
+                            b = null;
+                    } catch (Exception e) {
+                        b = null;
+                    } finally {
+                        if (connection != null) {
+                            connection.disconnect();
+                        }
+                    }
 				}
 			} else {
 				if (is == null) {
@@ -429,11 +519,6 @@ public class TiDrawableReference
 		}
 	}
 
-	private Resources getResources()
-	{
-		return TiApplication.getInstance().getResources();
-	}
-
 	private Drawable getResourceDrawable()
 	{
 		if (!isTypeResourceId()) {
@@ -454,14 +539,13 @@ public class TiDrawableReference
 	 * Gets a resource drawable directly if the reference is to a resource, else
 	 * makes a BitmapDrawable with the given attributes.
 	 */
-	@SuppressWarnings("deprecation")
 	public Drawable getDrawable(View parent, TiDimension destWidthDimension, TiDimension destHeightDimension)
 	{
 		Drawable drawable = getResourceDrawable();
 		if (drawable == null) {
 			Bitmap b = getBitmap(parent, destWidthDimension, destHeightDimension);
 			if (b != null) {
-				drawable = new BitmapDrawable(b);
+				drawable = new BitmapDrawable(getResources(), b);
 			}
 		}
 		return drawable;
@@ -476,7 +560,7 @@ public class TiDrawableReference
 		if (drawable == null) {
 			Bitmap b = getBitmap(destWidth, destHeight);
 			if (b != null) {
-				drawable = new BitmapDrawable(TiApplication.getInstance().getResources(), b);
+				drawable = new BitmapDrawable(getResources(), b);
 			}
 		}
 		return drawable;
@@ -501,11 +585,37 @@ public class TiDrawableReference
 		if (isSVG()) {
 			return getSVG();
 		}
+		if (isTypeBlob() && blob.getType() == TiBlob.TYPE_DRAWABLE) {
+            return blob.getDrawable();
+        }
 		Drawable drawable = getResourceDrawable();
 		if (drawable == null) {
-			Bitmap b = getBitmap(needsRetry);
+		    if (isTypeUrl()) {
+		        TiFileHelper tfh = TiFileHelper.getInstance();
+		        drawable = tfh.loadDrawable(url, false, true, false);
+		    }
+		    if (drawable == null) {
+    			Bitmap b = getBitmap(needsRetry);
+    			if (b != null) {
+    				drawable = new BitmapDrawable(getResources(), b);
+    			}
+		    }
+		}
+		return drawable;
+	}
+	
+	/**
+	 * Gets a scaled resource drawable directly if the reference is to a resource, else
+	 * makes a BitmapDrawable with default attributes. Scaling is done based on the device
+	 * resolution.
+	 */
+	public Drawable getDensityScaledDrawable()
+	{
+		Drawable drawable = getResourceDrawable();
+		if (drawable == null) {
+			Bitmap b = getBitmap(false, true);
 			if (b != null) {
-				drawable = new BitmapDrawable(TiApplication.getInstance().getResources(), b);
+				drawable = new BitmapDrawable(b);
 			}
 		}
 		return drawable;
@@ -781,7 +891,7 @@ public class TiDrawableReference
 				Log.e(TAG, "Problem closing stream: " + e.getMessage(), e);
 			}
 		}
-		if (Log.isDebugModeEnabled()) {
+		if (Log.isDebugModeEnabled() && b != null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Details of returned bitmap: .getWidth()=" + b.getWidth());
 			sb.append("; getHeight()=" + b.getHeight());
@@ -794,20 +904,20 @@ public class TiDrawableReference
 	/**
 	 * Just runs TiDownloadManager.download(URI, listener) giving it the passed listener.
 	 */
-	public void getBitmapAsync(TiDownloadListener listener)
-	{
-		if (!isNetworkUrl()) {
-			Log.w(TAG, "getBitmapAsync called on non-network url.  Will attempt load.", Log.DEBUG_MODE);
-		}
-		
-		try {
-			TiDownloadManager.getInstance().download(new URI(TiUrl.getCleanUri(url).toString()), listener);
-		} catch (URISyntaxException e) {
-			Log.e(TAG, "URI Invalid: " + url, e);
-		} catch (NullPointerException e) {
-			Log.e(TAG, "NullPointerException: " + url, e);
-		}
-	}
+//	public void getBitmapAsync(TiDownloadListener listener)
+//	{
+//		if (!isNetworkUrl()) {
+//			Log.w(TAG, "getBitmapAsync called on non-network url.  Will attempt load.", Log.DEBUG_MODE);
+//		}
+//		
+//		try {
+//			TiDownloadManager.getInstance().download(new URI(TiUrl.getCleanUri(url).toString()), listener);
+//		} catch (URISyntaxException e) {
+//			Log.e(TAG, "URI Invalid: " + url, e);
+//		} catch (NullPointerException e) {
+//			Log.e(TAG, "NullPointerException: " + url, e);
+//		}
+//	}
 
 	/**
 	 * Uses BitmapFactory.Options' 'inJustDecodeBounds' to peak at the bitmap's bounds
@@ -866,28 +976,12 @@ public class TiDrawableReference
 		InputStream stream = null;
 
 		if (isTypeUrl() && url != null) {
-		    if (http != null) {
-	            stream = http.getInputStream();
-		    }
-		    else {
-		        try {
-	                if (url.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)
-	                    && TiFastDev.isFastDevEnabled()) {
-	                    TiBaseFile tbf = TiFileFactory.createTitaniumFile(new String[] { url }, false);
-	                    if (!tbf.exists()) throw new FileNotFoundException();
-	                    stream = tbf.getInputStream();
-	                } else {
-	                    stream = TiFileHelper.getInstance().openInputStream(url, false);
-	                }
-	            } catch (FileNotFoundException e) {
-	                Log.e(TAG, "file not found with url " + url, e);
-	                throw e;
-	            }
-	            catch (IOException e) {
-	                    Log.e(TAG, "Problem opening stream with url " + url + ": " + e.getMessage(), e);
-	            }
-		    }
-			
+			try {
+				stream = TiFileHelper.getInstance().openInputStream(url, false);
+				
+			} catch (IOException e) {
+				Log.e(TAG, "Problem opening stream with url " + url + ": " + e.getMessage(), e);
+			}
 
 		} else if (isTypeFile() && file != null) {
 			if (!file.exists()) throw new FileNotFoundException();
@@ -901,7 +995,7 @@ public class TiDrawableReference
 			stream = blob.getInputStream();
 		} else if (isTypeResourceId() && resourceId != UNKNOWN) {
 			try {
-				stream = TiApplication.getInstance().getResources().openRawResource(resourceId);
+				stream = getResources().openRawResource(resourceId);
 			} catch (Resources.NotFoundException e) {
 				Log.e(TAG, "Drawable resource could not be opened. Are you sure you have the resource for the current device configuration (orientation, screen size, etc.)?");
 				throw e;
@@ -968,7 +1062,6 @@ public class TiDrawableReference
 	public int getOrientation()
 	{
 		String path = null;
-		int orientation = 0;
 
 		if (isTypeBlob() && blob != null) {
 			path = blob.getNativePath();
@@ -1005,4 +1098,18 @@ public class TiDrawableReference
 	{
 		return url;
 	}
+	
+	public String getCacheKey()
+    {
+	    if (url != null) {
+	        return url;
+	    }
+	    if (file != null) {
+            return file.nativePath();
+        }
+	    if (blob != null) {
+            return blob.getNativePath();
+        }
+        return null;
+    }
 }

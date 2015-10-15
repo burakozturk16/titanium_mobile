@@ -1,12 +1,11 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
 #import "TiBase.h"
 #import "TiApp.h"
-#import "TiDebugger.h"
 
 #include <stdarg.h>
 #include <pthread.h>
@@ -20,6 +19,10 @@
 #include <unistd.h>
 #include <sys/sysctl.h>
 
+#endif
+
+#ifndef USE_JSCORE_FRAMEWORK
+#import "TiDebugger.h"
 #endif
 
 static bool ApplicationBeingDebugged(void)
@@ -92,28 +95,30 @@ void TiLogMessage(NSString* str, ...) {
     NSString* message = [[NSString alloc] initWithFormat:str arguments:args];
 #if defined(DEBUG) || defined(DEVELOPER)
     if ([[TiApp app] debugMode]) {
+#ifdef TI_DEBUGGER_PROFILER
         TiDebuggerLogMessage(OUT, message);
+#endif
     }
     else {
-        
-        if (ApplicationBeingDebugged()) {
-            const char* s = [message UTF8String];
-            if (s[0]=='[')
-            {
-                fprintf(stderr,"%s\n", s);
-                fflush(stderr);
-            }
-            else
-            {
-                fprintf(stderr,"[DEBUG] %s\n", s);
-                fflush(stderr);
-            }
+#ifdef TITANIUM_CLI_XCODEBUILD
+        [TiApp TiNSLog:message];
+#else
+        const char* s = [message UTF8String];
+        if (s[0]=='[')
+        {
+            fprintf(stdout,"%s\n", s);
+            fflush(stdout);
         }
-        else{
+        else
+        {
+            fprintf(stdout,"[DEBUG] %s\n", s);
+            fflush(stdout);
+        }
 #endif
-            [TiApp TiNSLog:message];
+#else
+        [TiApp TiNSLog:message];
+#endif
 #if defined(DEBUG) || defined(DEVELOPER)
-        }
     }
 #endif
     [message release];
@@ -135,7 +140,9 @@ void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName
     message = [[NSString alloc] initWithFormat:format arguments:ap];
 #endif
     if ([[TiApp app] debugMode]) {
+#ifndef USE_JSCORE_FRAMEWORK
         TiDebuggerLogMessage(OUT, message);
+#endif
     }
     else {
         
@@ -184,6 +191,7 @@ NSString * const kTiSuspendNotification = @"TiSuspend";
 NSString * const kTiPausedNotification = @"TiPaused";
 NSString * const kTiResumeNotification = @"TiResume";
 NSString * const kTiResumedNotification = @"TiResumed";
+NSString * const kTiErrorNotification = @"TiError";
 NSString * const kTiAnalyticsNotification = @"TiAnalytics";
 NSString * const kTiRemoteDeviceUUIDNotification = @"TiDeviceUUID";
 NSString * const kTiGestureShakeNotification = @"TiGestureShake";
@@ -198,9 +206,20 @@ NSString * const kTiURLDowloadProgress = @"TiDownloadProgress";
 NSString * const kTiURLUploadProgress = @"TiUploadProgress";
 NSString * const kTiFrameAdjustNotification = @"TiFrameAdjust";
 NSString * const kTiLocalNotification = @"TiLocalNotification";
+NSString * const kTiKeyboardHeightChangedNotification = @"TiKeyboardHeightChanged";
+NSString * const kTiNetworkChangedNotification = @"TiNetworkChangedNotification";
+NSString * const kTiBackgroundLocalNotification = @"TiBackgroundLocalNotification";
+NSString * const kTiLocalNotificationAction = @"TiLocalNotificationAction";
+NSString * const kTiRemoteNotificationAction = @"TiRemoteNotificationAction";
+NSString * const kTiUserNotificationSettingsNotification = @"TiUserNotificationSettingsNotification";
+NSString * const kTiWatchKitExtensionRequest = @"TiWatchKitExtensionRequest";
+NSString * const kTiContinueActivity = @"TiContinueActivity";
+NSString * const kTiApplicationShortcut = @"TiApplicationShortcut";
 
+#ifndef TI_USE_AUTOLAYOUT
 NSString* const kTiBehaviorSize = @"SIZE";
 NSString* const kTiBehaviorFill = @"FILL";
+NSString* const kTiBehaviorMatch = @"MATCH";
 NSString* const kTiBehaviorAuto = @"auto";
 NSString* const kTiUnitPixel = @"px";
 NSString* const kTiUnitCm = @"cm";
@@ -210,6 +229,7 @@ NSString* const kTiUnitDip = @"dip";
 NSString* const kTiUnitDipAlternate = @"dp";
 NSString* const kTiUnitSystem = @"system";
 NSString* const kTiUnitPercent = @"%";
+#endif
 
 NSString* const kTiExceptionSubreason = @"TiExceptionSubreason";
 NSString* const kTiExceptionLocation = @"TiExceptionLocation";
@@ -243,6 +263,8 @@ NSString *JavascriptNameForClass(Class c)
 	return NSStringFromClass(c);
 }
 
+#ifdef TI_USE_KROLL_THREAD
+
 void TiThreadReleaseOnMainThread(id releasedObject,BOOL waitForFinish)
 {
 	if (releasedObject == nil) {
@@ -272,7 +294,7 @@ void TiThreadRemoveFromSuperviewOnMainThread(UIView* view,BOOL waitForFinish)
 		TiThreadPerformOnMainThread(^{[blockVar removeFromSuperview];}, waitForFinish);
 	}
 }
-
+#endif
 // NOTE: This method of batch-processing is actually fairly expensive
 // for us, and doesn't take full advantage of GCD scheduling (and requires
 // lots of mutexing). Unfortunately for now it seems to be necessary, as:
@@ -283,6 +305,7 @@ void TiThreadRemoveFromSuperviewOnMainThread(UIView* view,BOOL waitForFinish)
 // pulls from a private queue, for example) but in and of itself this could be
 // expensive (still have to semaphore the queue) and requires further research.
 
+#ifdef TI_USE_KROLL_THREAD
 NSMutableArray * TiThreadBlockQueue = nil;
 pthread_mutex_t TiThreadBlockMutex;
 pthread_cond_t TiThreadBlockCondition;
@@ -293,10 +316,15 @@ void TiThreadInitalize()
     pthread_cond_init(&TiThreadBlockCondition, NULL);
 	TiThreadBlockQueue = [[NSMutableArray alloc] initWithCapacity:10];
 }
+#endif
+
 
 void TiThreadPerformOnMainThread(void (^mainBlock)(void),BOOL waitForFinish)
 {
 	BOOL alreadyOnMainThread = [NSThread isMainThread];
+    
+#ifdef TI_USE_KROLL_THREAD
+
 	BOOL usesWaitSemaphore = waitForFinish && !alreadyOnMainThread;
 
 	__block dispatch_semaphore_t waitSemaphore;
@@ -374,7 +402,33 @@ void TiThreadPerformOnMainThread(void (^mainBlock)(void),BOOL waitForFinish)
 		[caughtException autorelease];
 		[caughtException raise];
 	}
+#else
+    if (alreadyOnMainThread) {
+        mainBlock();
+    } else {
+        if (waitForFinish) {
+            dispatch_sync(dispatch_get_main_queue(), mainBlock);
+        } else {
+            dispatch_async(dispatch_get_main_queue(), mainBlock);
+        }
+    }
+    
+#endif
 }
+
+void TiThreadPerformBlockOnMainThread(void (^mainBlock)(void),BOOL waitForFinish)
+{
+    if ([NSThread isMainThread]) {
+        mainBlock();
+    }
+    else
+    {
+        TiThreadPerformOnMainThread(mainBlock, waitForFinish);
+    }
+}
+
+
+#ifdef TI_USE_KROLL_THREAD
 //Initializing krollContextCounter to zero.
 int krollContextCounter = 0;
 
@@ -451,3 +505,4 @@ void decrementKrollCounter(){
         pthread_mutex_unlock(&TiThreadBlockMutex);
     }
 }
+#endif

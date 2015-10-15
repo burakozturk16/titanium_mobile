@@ -53,5 +53,4 @@
  */
 @property(nonatomic,assign) TiDimension yDimension;
 
-
 @end

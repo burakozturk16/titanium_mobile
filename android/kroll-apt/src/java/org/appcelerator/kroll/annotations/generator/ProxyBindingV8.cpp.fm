@@ -34,10 +34,6 @@
 #include "${superPackageName}.${superProxyClassName}.h"
 </#if>
 
-<#if moduleId != "titanium" && superApiName??>
-using namespace <@Proxy.superNamespaceApi/>;
-</#if>
-
 #define TAG "${proxyClassName}"
 
 using namespace v8;

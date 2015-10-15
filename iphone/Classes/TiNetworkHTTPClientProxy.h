@@ -65,7 +65,7 @@
 
 // public methods
 -(void)abort:(id)args;
--(void)open:(id)args;
+-(id)open:(id)args;
 -(void)setRequestHeader:(id)args;
 -(void)send:(id)args;
 -(void)clearCookies:(id)args;

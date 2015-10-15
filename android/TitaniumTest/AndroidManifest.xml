@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="9"
-        android:targetSdkVersion="14" />
+        android:targetSdkVersion="21" />
     
 <!--     <supports-screens android:anyDensity="true"
                 android:largeScreens="false"
@@ -32,9 +32,17 @@
     <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-feature android:name="android.hardware.bluetooth_le"  android:required="true" />
+    
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="com.akylas.titanium.ks.permission.C2D_MESSAGE"/>
     <permission android:name="com.akylas.titanium.ks.permission.C2D_MESSAGE" android:protectionLevel="signature"/>
+    
     
 <!--     <uses-feature
         android:glEsVersion="0x00020000"
@@ -51,14 +59,19 @@
         android:name="TitaniumtestApplication"
         android:allowBackup="false"
         android:hardwareAccelerated="true"
-        android:label="TitaniumTest"
-        android:theme="@style/Theme.Titanium" >
+        android:largeHeap="true"
+         android:icon="@drawable/appicon"
+        android:label="AkSync"
+        android:theme="@style/Theme.Titanium.Overlay" >
          <meta-data
             android:name="com.google.android.gms.version"
-            android:value="5077000" />
+            android:value="6587000" />
          <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyA4DiNxX9WbOV6anySJHjGeyW9CJf3AhZ0" />
+         <activity android:name="com.google.android.gms.ads.AdActivity"
+                   android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+                   android:theme="@style/Theme.Titanium.Translucent" />
 
         <!-- 
      		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
@@ -69,19 +82,19 @@
 		    </intent-filter>
 		</receiver>
         -->
-        <receiver android:name="akylas.location.locationmanager.PassiveLocationChangedReceiver" />
+<!--         <receiver android:name="akylas.location.locationmanager.PassiveLocationChangedReceiver" />
         <receiver android:name="akylas.location.StartupIntentReceiver"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>
+        </receiver> -->
                 
         <!-- TI_APPLICATION -->
 
         <activity
             android:name="com.akylas.titanium.ks.TitaniumtestActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:label="TitaniumTest"
             android:theme="@style/Theme.Titanium.SplashScreen" >
             <intent-filter>
@@ -95,10 +108,10 @@
 
         <activity
             android:name="org.appcelerator.titanium.TiActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize" />
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
         <activity
             android:name="org.appcelerator.titanium.TiTranslucentActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:theme="@style/Theme.Titanium.Translucent" />
         <activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
         <!-- TI_SERVICES -->
@@ -114,9 +127,9 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service> -->
-        <service android:name="org.aps.analytics.APSAnalyticsService" >
-        </service>
-
+        <service android:name="org.aps.analytics.APSAnalyticsService" />
+        <service android:name="akylas.bluetooth.UartService" />
+        
         
 <!--         <receiver android:name="akylas.millenoki.vpn.StartupIntentReceiver"
 			android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
@@ -148,7 +161,16 @@
                 <category android:name="com.akylas.push"/>
             </intent-filter>
         </receiver>
-    </application>
+        <receiver android:name=".TiMediaButtonEventReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+                <action android:name="android.media.AUDIO_BECOMING_NOISY"/>
+            </intent-filter>
+        </receiver>
+        <service android:name="ti.modules.titanium.audio.streamer.AudioStreamerService"/>
+        <service android:name="ti.modules.titanium.audio.streamer.AudioStreamerExoService"/>
+        <service android:name="akylas.triton.TritonAudioService"/>
+        </application>
 
     <!-- TI_PERMISSIONS -->
 

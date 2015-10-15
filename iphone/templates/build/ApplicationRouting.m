@@ -30,7 +30,8 @@ extern NSData* filterDataInRange(NSData* thedata, NSRange range);
 	if (map == nil) return nil;
 	NSMutableArray* result = [[NSMutableArray alloc] init];
 	NSString* pathToCompare = path;
-	if (![pathToCompare hasSuffix:@"/"])
+    BOOL needsCompare = [pathToCompare length] > 0;
+	if (needsCompare && ![pathToCompare hasSuffix:@"/"])
 		pathToCompare = [pathToCompare stringByAppendingString:@"/"];
 	id key;
 	NSArray *keys = [map allKeys];
@@ -38,16 +39,15 @@ extern NSData* filterDataInRange(NSData* thedata, NSRange range);
 	for (int i = 0; i < count; i++)
 	{
 		key = [keys objectAtIndex: i];
-		if ([key hasPrefix:path]) {
-            NSString* value = [key substringFromIndex:[pathToCompare length]];
+        if (!needsCompare || [key hasPrefix:path]) {
+            NSString* value = needsCompare?[key substringFromIndex:[pathToCompare length]]:key;
             value = [[value componentsSeparatedByString:@"/"] objectAtIndex:0];
             value = [value stringByReplacingOccurrencesOfString:@"_" withString:@"."];
             [result addObject: value];
 		}
 	}
-	NSArray* array = [NSArray arrayWithArray:result];
+	NSArray* array = [[NSOrderedSet orderedSetWithArray:result] array];
 	[result release];
 	return array;
  }
-
 @end

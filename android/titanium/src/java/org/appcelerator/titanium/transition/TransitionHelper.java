@@ -2,9 +2,7 @@ package org.appcelerator.titanium.transition;
 
 import java.util.HashMap;
 
-import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionCube;
 import org.appcelerator.titanium.transition.TransitionFlip;
@@ -14,8 +12,15 @@ import org.appcelerator.titanium.util.TiConvert;
 
 
 
+import org.appcelerator.titanium.util.TiUIHelper;
+
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.AnimatorSet;
+import com.nineoldandroids.animation.Animator.AnimatorListener;
+
 import android.annotation.SuppressLint;
-import android.view.animation.Interpolator;
+import android.view.View;
+import android.view.ViewGroup;
 
 @SuppressLint("NewApi")
 public class TransitionHelper {
@@ -53,13 +58,13 @@ public class TransitionHelper {
 	}
 	
 	
-	private static Interpolator stepsInterpolator(final int numSteps) {
-		return new Interpolator() {
-	        public float getInterpolation(float time) {
-	            return time/numSteps;
-	       }
-		};
-    }
+//	private static Interpolator stepsInterpolator(final int numSteps) {
+//		return new Interpolator() {
+//	        public float getInterpolation(float time) {
+//	            return time/numSteps;
+//	       }
+//		};
+//    }
 	
 	public static Transition transitionForType(int type, int subtype, boolean isOut,
 			int duration) {
@@ -111,18 +116,25 @@ public class TransitionHelper {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static Transition transitionFromObject(HashMap options, HashMap defaultOptions, Transition defaultTransition)  
+	public static Transition transitionFromObject(Object options, HashMap defaultOptions, Transition defaultTransition)  
 	{
+	    if (options instanceof Transition) {
+	        return (Transition) options;
+	    }
+        HashMap theOptions = null;
+	    if (options instanceof HashMap) {
+	        theOptions = (HashMap)options;
+	    }
 		Transition result = defaultTransition;
 		int style = TiConvert.toInt(defaultOptions, TiC.PROPERTY_STYLE,-1);
 		int substyle = TiConvert.toInt(defaultOptions, TiC.PROPERTY_SUBSTYLE,SubTypes.kRightToLeft.ordinal());
-		int duration = TiConvert.toInt(defaultOptions, TiC.PROPERTY_DURATION, (defaultTransition != null)?defaultTransition.getDuration():300);
+		int duration = TiConvert.toInt(defaultOptions, TiC.PROPERTY_DURATION, (defaultTransition != null)?defaultTransition.getDuration():200);
 		boolean reverse = false;
-		if (options != null) {
-			style = TiConvert.toInt(options, TiC.PROPERTY_STYLE, style);
-			substyle = TiConvert.toInt(options, TiC.PROPERTY_SUBSTYLE, substyle);
-			duration = TiConvert.toInt(options, TiC.PROPERTY_DURATION, duration);
-			reverse = TiConvert.toBoolean(options, TiC.PROPERTY_REVERSE, reverse);
+		if (theOptions != null) {
+			style = TiConvert.toInt(theOptions, TiC.PROPERTY_STYLE, style);
+			substyle = TiConvert.toInt(theOptions, TiC.PROPERTY_SUBSTYLE, substyle);
+			duration = TiConvert.toInt(theOptions, TiC.PROPERTY_DURATION, duration);
+			reverse = TiConvert.toBoolean(theOptions, TiC.PROPERTY_REVERSE, reverse);
 		}
 
 		if (style != -1  && (defaultTransition == null || substyle != defaultTransition.subType.ordinal())) {
@@ -133,5 +145,73 @@ public class TransitionHelper {
 			result.setReversed(reverse);
 		}
 		return result;
+	}
+	
+	public interface CompletionBlock 
+    {
+        public void transitionDidFinish(boolean success);
+    }
+
+    public static AnimatorSet transitionViews (final ViewGroup viewHolder, 
+            final View viewToAdd, 
+            final View viewToHide, 
+            final CompletionBlock block, 
+            Object args) {
+        return transitionViews(viewHolder, viewToAdd, viewToHide, block, args, (viewToAdd != null)?viewToAdd.getLayoutParams():null);
+    }
+	
+	public static AnimatorSet transitionViews (final ViewGroup viewHolder, 
+	        final View viewToAdd, 
+	        final View viewToHide, 
+	        final CompletionBlock block, 
+	        Object args,
+            ViewGroup.LayoutParams layoutParams) {
+        AnimatorSet set = null;
+        if (viewHolder == null) return set;
+        Transition transition = TransitionHelper.transitionFromObject(args, null, null);
+        if (viewToAdd!=null) {
+            viewToAdd.setVisibility(View.GONE);
+            TiUIHelper.addView(viewHolder, viewToAdd, layoutParams); //make sure it s removed from its parent
+        }
+        if (transition != null) {
+            transition.setTargets(viewHolder, viewToAdd, viewToHide);
+
+            set = transition.getSet(new AnimatorListener() {
+                public void onAnimationEnd(Animator arg0) { 
+                    if (viewToHide!=null) {
+                        viewHolder.removeView(viewToHide);
+                    }
+                    if (block != null) {
+                        block.transitionDidFinish(true);
+                    }
+                }
+
+                public void onAnimationCancel(Animator arg0) {
+                    if (viewToHide!=null) {
+                        viewHolder.removeView(viewToHide);
+                    }
+                    if (block != null) {
+                        block.transitionDidFinish(false);
+                    }
+                }
+
+                public void onAnimationRepeat(Animator arg0) {
+                }
+
+                public void onAnimationStart(Animator arg0) {
+                }
+            });
+            set.start();
+        }
+        else {
+            if (viewToHide!=null) {
+                viewHolder.removeView(viewToHide);
+            }
+            if (block != null) {
+                block.transitionDidFinish(true);
+            }
+        }
+        if (viewToAdd!=null) viewToAdd.setVisibility(View.VISIBLE);
+        return set;
 	}
 }

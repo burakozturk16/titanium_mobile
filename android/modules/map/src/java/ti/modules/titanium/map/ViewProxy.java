@@ -26,8 +26,10 @@ import android.app.Activity;
 import android.app.LocalActivityManager;
 import android.content.Intent;
 import android.os.Message;
+import android.os.Bundle;
 import android.view.Window;
 
+@SuppressWarnings("deprecation")
 @Kroll.proxy(creatableInModule = MapModule.class, propertyAccessors = {
 	TiC.PROPERTY_ANNOTATIONS,
 	TiC.PROPERTY_MAP_TYPE,
@@ -114,6 +116,11 @@ public class ViewProxy extends TiViewProxy implements OnLifecycleEvent
 			// based on its context;
 			rootLifecycleListener = new OnLifecycleEvent()
 			{
+				@Override
+				public void onCreate(Activity activity, Bundle savedInstanceState)
+				{
+				}
+
 				@Override
 				public void onStop(Activity activity)
 				{
@@ -482,6 +489,10 @@ public class ViewProxy extends TiViewProxy implements OnLifecycleEvent
 	public double getLatitudeDelta()
 	{
 		return mapView.getLatitudeDelta();
+	}
+
+	public void onCreate(Activity activity, Bundle savedInstanceState)
+	{
 	}
 
 	public void onDestroy(Activity activity)

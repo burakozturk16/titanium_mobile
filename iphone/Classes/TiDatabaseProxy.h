@@ -10,6 +10,10 @@
 
 #import "PlausibleDatabase.h"
 
+#if defined(USE_TI_FILESYSTEM)
+@class TiFilesystemFileProxy;
+#endif
+
 @interface TiDatabaseProxy : TiProxy {
 @protected
 	NSString *name;
@@ -19,11 +23,15 @@
 }
 
 @property(nonatomic,readonly) NSString *name;
+@property(nonatomic,readonly) NSString *path;
 @property(nonatomic,readonly) NSNumber *rowsAffected;
 @property(nonatomic,readonly) NSNumber *lastInsertRowId;
 
 -(void)open:(NSString*)name;
 -(void)install:(NSString*)path name:(NSString*)name;
+#if defined(USE_TI_FILESYSTEM)
+-(TiFilesystemFileProxy*)file;
+#endif
 
 #pragma mark Internal
 

@@ -97,6 +97,12 @@ def prepare_commonjs(module_dir):
 		sys.exit(1)
 
 	moduleid = id_lines[0].split(":")[1].strip()
+	id_lines = [l for l in lines if l.strip().startswith("guid:")]
+	if not id_lines:
+		print >> sys.stderr, "[ERROR] Manifest %s does not contain guid key." % manifest_file
+		sys.exit(1)
+
+	guid = id_lines[0].split(":")[1].strip()
 
 	commonjs_lines = [l for l in lines if l.strip().startswith("commonjs:")]
 
@@ -177,7 +183,7 @@ def prepare_commonjs(module_dir):
 		# Pack (encrypt) the compiled JS files.
 		print "[DEBUG] Packing compiled JavaScript files"
 		generated_java_folder = os.path.join(module_dir, "build", "generated", "java")
-		jspacker.pack(output_folder, compiled_files, moduleid, generated_java_folder)
+		jspacker.pack(output_folder, compiled_files, moduleid, guid, generated_java_folder)
 
 		if len(modules_used) > 0:
 			output_folder = os.path.join(module_dir, "build", "generated", "json")

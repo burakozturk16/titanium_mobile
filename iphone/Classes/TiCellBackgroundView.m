@@ -20,10 +20,10 @@
 
 @implementation TiCellBackgroundView
 
-+ (Class)layerClass
-{
-    return [TiSelectableBackgroundLayer class];
-}
+//+ (Class)layerClass
+//{
+//    return [TiSelectableBackgroundLayer class];
+//}
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -32,7 +32,7 @@
         // Initialization code
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         self.layer.masksToBounds = YES;
-        [self selectableLayer].animateTransition = NO;
+//        [self selectableLayer].animateTransition = NO;
     }
     return self;
 }
@@ -76,10 +76,10 @@
         [self updateMaskOnLayer:self.layer];
     }
 }
-
--(TiSelectableBackgroundLayer*)selectableLayer
-{
-    return (TiSelectableBackgroundLayer*)self.layer;
-}
+//
+//-(TiSelectableBackgroundLayer*)selectableLayer
+//{
+//    return (TiSelectableBackgroundLayer*)self.layer;
+//}
 
 @end

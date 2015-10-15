@@ -5,7 +5,7 @@
  * Please see the LICENSE included with this distribution for details.
  */
 #import <Foundation/Foundation.h>
-#import "TiCore.h"
+#import "TiToJS.h"
 #import "KrollContext.h"
 
 @class KrollBridge;
@@ -22,7 +22,9 @@
 	TiObjectRef function;
 	KrollContext *context;
 	KrollBridge * bridge;
-	NSLock* contextLock;
+#ifdef TI_USE_KROLL_THREAD
+    NSLock* contextLock;
+#endif
 	NSString *type;
 }
 

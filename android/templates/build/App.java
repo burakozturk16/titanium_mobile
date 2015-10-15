@@ -30,7 +30,6 @@ public final class <%= classname %>Application extends TiApplication
 		super.onCreate();
 
 		appInfo = new <%= classname %>AppInfo(this);
-		postAppInfo();
 
 <% if (encryptJS) { %>
 	    KrollAssetHelper.setAssetCrypt(new AssetCryptImpl());
@@ -45,9 +44,9 @@ public final class <%= classname %>Application extends TiApplication
 	<% } %>
 <% }); %>
 
+		postAppInfo();
 		KrollRuntime.init(this, runtime);
 
-		stylesheet = new ApplicationStylesheet();
 		postOnCreate();
 
 <% appModules.forEach(function (module) { %>
@@ -85,5 +84,13 @@ public final class <%= classname %>Application extends TiApplication
 	@Override
 	public void verifyCustomModules(TiRootActivity rootActivity)
 	{
+<% if (customModules.length) { %>
+		// Custom modules
+	<% customModules.forEach(function (module) { %>
+		<% if (module.onVerifyModule) { %>
+		<%- module.className %>.<%- module.onVerifyModule %>(this);
+		<% } %>
+	<% }); %>
+<% } %>
 	}
 }

@@ -6,19 +6,18 @@
  */
 #ifdef USE_TI_UISCROLLABLEVIEW
 
-#import "TiUIView.h"
+#import "TiScrollingView.h"
 
-@interface TiUIScrollableView : TiUIView<UIScrollViewDelegate> {
+@interface TiUIScrollableView : TiScrollingView<TiScrolling> {
 @private
-	UIScrollView *scrollview;
+	TDUIScrollView *scrollview;
 	UIPageControl *pageControl;
-	int currentPage; // Duplicate some info, just in case we're not showing the page control
+	NSInteger currentPage; // Duplicate some info, just in case we're not showing the page control
 	BOOL showPageControl;
 	UIColor *pageControlBackgroundColor;
 	CGFloat pageControlHeight;
     CGFloat pagingControlAlpha;
 	BOOL handlingPageControlEvent;
-    BOOL scrollingEnabled;
     BOOL pagingControlOnTop;
     BOOL overlayEnabled;
     
@@ -28,23 +27,22 @@
     BOOL needsToRefreshScrollView;
 
     // See the code for why we need this...
-    int lastPage;
     BOOL enforceCacheRecalculation;
-    int cacheSize;
+    NSInteger cacheSize;
     BOOL verticalLayout;
     
     BOOL pageChanged;
+    
+    
 }
 @property(nonatomic,readwrite,assign)CGFloat switchPageAnimationDuration;
 
-#pragma mark - Titanium Internal Use Only
+#pragma mark - MapMe Internal Use Only
 -(void)manageRotation;
 -(UIScrollView*)scrollview;
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd;
 -(void)setVerticalLayout:(BOOL)value;
 -(NSArray*)wrappers;
--(void)setCurrentPage:(id)page animated:(NSNumber*)animate;
 @end
-
 
 #endif

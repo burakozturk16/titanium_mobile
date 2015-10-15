@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:divider="?android:listDivider"
+        android:dividerPadding="2dp"
+        android:padding="10dp"
+        android:showDividers="middle"
+        android:orientation="vertical" >
+
+        <TextView android:textColor="#ffffff" 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Location:" 
+            android:textScaleX="1.5"/>
+        <TextView android:textColor="#000000" 
+            android:background="#ffffff"
+            android:layout_width="fill_parent"
+             android:textSize="12dp"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:id="@+id/tiexd_location"/>
+        <TextView android:textColor="#ffffff" 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Message:" 
+            android:textScaleX="1.5"/>
+        <TextView android:textColor="#000000" 
+            android:background="#ffffff"
+            android:layout_width="fill_parent"
+            android:textSize="12dp"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:id="@+id/tiexd_message"/>
+        <TextView android:textColor="#ffffff" 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Source:" 
+            android:textScaleX="1.5"/>
+        <TextView android:textColor="#000000" 
+            android:background="#ffffff"
+            android:layout_width="fill_parent"
+            android:textSize="12dp"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:id="@+id/tiexd_source"/>
+        <TextView android:textColor="#ffffff" 
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Callstack:" 
+            android:textScaleX="1.5"/>
+        <TextView android:textColor="#000000" 
+            android:background="#ffffff"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12dp"
+            android:padding="5dp"
+            android:id="@+id/tiexd_callstack"/>
+
+    </LinearLayout>
+    </ScrollView>

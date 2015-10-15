@@ -6,10 +6,11 @@
  */
 #ifdef USE_TI_UIWEBVIEW
 
-#import "TiUIView.h"
+#import "TiScrollingView.h"
 #import "APSHTTPRequest.h"
+#import "NJKWebViewProgress.h"
 
-@interface TiUIWebView : TiUIView<UIWebViewDelegate, APSHTTPRequestDelegate> {
+@interface TiUIWebView : TiScrollingView<UIWebViewDelegate, APSHTTPRequestDelegate, NJKWebViewProgressDelegate> {
 @private
 	UIWebView *webview;
 	UIActivityIndicatorView *spinner;

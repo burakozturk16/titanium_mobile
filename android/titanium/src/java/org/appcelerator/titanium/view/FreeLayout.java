@@ -127,13 +127,13 @@ public class FreeLayout extends FrameLayout {
             this(width,height,null);
         }
         public LayoutParams(FreeLayout.LayoutParams source) {
-            super(source);
+            this((ViewGroup.LayoutParams)source);
             this.matrix = source.matrix;
             this.anchorX = source.anchorX;
             this.anchorY = source.anchorY;
         }
         public LayoutParams(FrameLayout.LayoutParams source) {
-            super((ViewGroup.LayoutParams)source);
+            this((ViewGroup.LayoutParams)source);
         }
         public LayoutParams(ViewGroup.LayoutParams source) {
             super(source);
@@ -145,24 +145,12 @@ public class FreeLayout extends FrameLayout {
     }
     
     ///////////////////////////////////////////// implementation
-
-//	@Override
-//	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-////		transformedMatrix = null;
-//		super.onSizeChanged(w, h, oldw, oldh);
-//	}
 	
     @Override
 	public void setLayoutParams(ViewGroup.LayoutParams params) {
 		 transformedMatrix = null;
 		super.setLayoutParams(params);
 	}
-	
-    @Override
-    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
-//		 transformedMatrix = null;
-		 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
 
     @Override
     protected FrameLayout.LayoutParams generateDefaultLayoutParams() {

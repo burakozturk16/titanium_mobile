@@ -74,7 +74,7 @@ if (![self propertyExists:key]) return defaultValue; \
 -(id)getInt:(NSString*)key defaultValue:(id)defaultValue
 {
 	GETPROP
-	return [NSNumber numberWithInt:[[self userDefaults] integerForKey:key]];
+	return [NSNumber numberWithInteger:[[self userDefaults] integerForKey:key]];
 }
 
 -(id)getString:(NSString*)key defaultValue:(id)defaultValue

@@ -4,9 +4,5 @@
     "ti.android.debug": true,
     "ti.compilejs": false,
     "ti.android.bug2373.finishfalseroot": true,
-    "testflight.token": "798c904f-466a-42d1-a9be-28bdad05d23e",
-    "testflight.sessionKeepAliveTimeout": "7200",
-    "testflight.reinstallCrashHandlers": "true",
-    "ti.deploytype": "test",
-    "akylas.location.script":"akylas.location.script.js"
+    "ti.deploytype": "development"
 }

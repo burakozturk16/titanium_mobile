@@ -54,13 +54,13 @@
 
 -(void)updatePositioning
 {
-    CGSize size = [[_snapItem view] bounds].size;
     CGPoint center = [[_snapItem view] center];
-    CGPoint anchor = [[[_snapItem view] layer] anchorPoint];
+#ifndef TI_USE_AUTOLAYOUT
     
     LayoutConstraint* constraint = [_snapItem layoutProperties];
     constraint->centerX = TiDimensionDip(center.x);
     constraint->centerY = TiDimensionDip(center.y);
+#endif
 }
 
 #pragma mark - Public API

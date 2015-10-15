@@ -171,11 +171,13 @@ public class BufferStreamProxy extends KrollProxy implements TiStream
 		} else {
 			throw new IllegalArgumentException("Invalid number of arguments");
 		}
+		if (bufferProxy != null ) {
+		    int bytesWritten = buffer.write(position, bufferProxy.getBuffer(), offset, length);
+	        position += bytesWritten;
 
-		int bytesWritten = buffer.write(position, bufferProxy.getBuffer(), offset, length);
-		position += bytesWritten;
-
-		return bytesWritten;
+	        return bytesWritten;
+		}
+		return 0;
 	}
 
 	@Kroll.method

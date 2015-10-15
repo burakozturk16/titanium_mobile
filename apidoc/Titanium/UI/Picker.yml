@@ -3,25 +3,35 @@ name: Titanium.UI.Picker
 summary: |
     A control used to select one or more fixed values.
 description: |
+    <table id="platformComparison">
+      <tr>
+        <td><img src="images/picker/picker_android.png" height="150" /></td>
+        <td><img src="images/picker/picker_ios.png" height="75" style="border: 1px solid black;"/></td>
+        <td><img src="images/picker/picker_mobileweb.png" height="75" style="border: 1px solid black;"/></td>
+      </tr>
+      <tr><th>Android</th><th>iOS</th><th>Mobile Web</th></tr>
+    </table>
+
     Use the <Titanium.UI.createPicker> method or Alloy **`<Picker>`** element to create a picker control.
 
     On Android, the `useSpinner` property must be enabled to support multiple columns.
     By default, the spinner is automatically sized to fit its content and can overflow
     to additional spinner rows. The size of the picker can be adjusted with the `width`
     and `height` properties, but may omit picker columns or cut off picker rows
-    if the size is set too small.
-    
+    if the size is set too small. Note: On iOS, the `height` property is only available in iOS9 and later.
+
     On iOS, by default, the size of the picker, including its background, is fixed at the
-    same size as the iPhone keyboard to respect the
+    same height as the iPhone keyboard to respect the
     [iOS Human Interface Guidelines](https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/MobileHIG/Controls.html#//apple_ref/doc/uid/TP40006556-CH15-SW3).
-    The size of the picker should not be modified.
+    The default `width` on iOS is 320px and the `height` is 228px. As part of iOS9, the `height` can be changed
+    and will be ignored on devices running iOS < 9.
     The contents of the picker are sized to fit the picker, which may cut off text
     in the picker rows. Adding views to picker rows is also supported on iOS.
 
     On iPad, Apple recommends using a picker only in a popover.  Since the size of the picker
     cannot be adjusted, it is not suitable for the main screen.
 
-    On Mobile Web and Tizen, by default, the picker fills the entire view it is contained in
+    On Mobile Web, by default, the picker fills the entire view it is contained in
     but is adjustable using the `width` and `height` properties.
 
     **Note:** you can only set the [columns](Titanium.UI.Picker.columns) property for the plain picker.
@@ -29,16 +39,15 @@ description: |
     `Titanium.UI.PICKER_TYPE_PLAIN`, you cannot modify the picker's columns.
 
 extends: Titanium.UI.View
-excludes: {
+excludes:
     properties: [
         anchorPoint,backgroundDisabledColor,backgroundDisabledImage,backgroundFocusedColor,
         backgroundFocusedImage,backgroundGradient,backgroundImage,backgroundLeftCap,backgroundRepeat,
-        backgroundSelectedColor,backgroundSelectedImage,backgroundTopCap,center,enabled,layout,tintColor,zIndex
-    ],
+        backgroundSelectedColor,backgroundSelectedImage,backgroundTopCap,center,enabled,layout,tintColor,zIndex]
     methods: [ remove, removeAllChildren ]
-}
+
 since: "0.8"
-platforms: [android, iphone, ipad, mobileweb, tizen]
+platforms: [android, iphone, ipad, mobileweb]
 methods:
   - name: add
     summary: Adds rows or columns to the picker.
@@ -60,7 +69,7 @@ methods:
         type: Number
     returns: 
       - type: Titanium.UI.PickerRow
-    
+
   - name: reloadColumn
     summary: Repopulates values for a column.
     parameters:
@@ -143,19 +152,19 @@ events:
     properties:
       - name: columnIndex
         summary: |
-            Selected column index. On iOS, Tizen and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN> 
+            Selected column index. On iOS and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN>
             picker types.
         type: Number
         
       - name: rowIndex
         summary: |
-            Selected row index. On iOS, Tizen and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN> 
+            Selected row index. On iOS and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN>
             picker types.
         type: Number
         
       - name: column
         summary: |
-            The column object. On iOS, Tizen and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN> 
+            The column object. On iOS and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN>
             picker types.
         type: Titanium.UI.PickerColumn
         
@@ -172,7 +181,7 @@ events:
         
       - name: row
         summary: |
-            The row object. On iOS, Tizen and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN> picker types.
+            The row object. On iOS and Mobile Web, only applicable to <Titanium.UI.PICKER_TYPE_PLAIN> picker types.
         type: Titanium.UI.PickerRow
         
       - name: selectedValue
@@ -257,7 +266,18 @@ properties:
     type: Boolean
     default: true (spinner enabled), false (otherwise)
     platforms: [android]
-    
+
+  - name: height
+    summary: Sets the height of the picker.
+    description: |
+        Only available on iOS9 or later as part of the new resizable features. Ignored on iOS < 9.
+    type: String
+    default: 228
+    platforms: [iphone, ipad]
+    since: "5.0.1"
+    availability: creation
+    osver: {ios: {min: "9.0"}}
+
   - name: locale
     summary: Locale used when displaying Date and Time picker values.
     description: |
@@ -331,18 +351,30 @@ properties:
     default: true (Android), false (iPhone, iPad)
     platforms: [android, iphone, ipad]
     
+  - name: selectionOpens
+    summary: |
+        Determines whether calling the method `setSelectedRow` opens when called
+    description: |
+        If `true`, selection will open when `setSelectedRow` is called.
+
+        If `false`, selection will not open when `setSelectedRow` is called.
+    type: Boolean
+    default: false (Android)
+    platforms: [android]
+    since: "5.0.0"
+    
   - name: type
     summary: Determines the type of picker displayed
     description: |
         You can only set columns for the plain picker.  If you set the type to anything
         else except `Titanium.UI.PICKER_TYPE_PLAIN`, you cannot modify the columns.
 
-        `PICKER_TYPE_DATE_AND_TIME` is only available for iOS, Mobile Web and Tizen.
+        `PICKER_TYPE_DATE_AND_TIME` is only available for iOS and Mobile Web.
         `PICKER_TYPE_COUNT_DOWN_TIMER` is only available for iOS.
         
-        Mobile Web and Tizen rely on input types for date and time types, but as of Q1 2012 these input types 
+        Mobile Web rely on input types for date and time types, but as of Q1 2012 these input types
         are not supported on most browsers, those that do support it support it poorly, and no fall-back
-        exists. It is recommended not to use these types on Mobile Web and Tizen until browser support improves.
+        exists. It is recommended not to use these types on Mobile Web until browser support improves.
     type: Number
     constants: Titanium.UI.PICKER_TYPE_*
     default: <Titanium.UI.PICKER_TYPE_PLAIN>
@@ -363,9 +395,9 @@ properties:
     platforms: [android]
     
   - name: value
-    summary: Date and time value for Date pickers.
+    summary: Date and time value for Date and Time pickers.
     description: |
-        Applicable to <Titanium.UI.PICKER_TYPE_DATE> and <Titanium.UI.PICKER_TYPE_DATE_AND_TIME> 
+        Applicable to <Titanium.UI.PICKER_TYPE_DATE>, <Titanium.UI.PICKER_TYPE_TIME> and <Titanium.UI.PICKER_TYPE_DATE_AND_TIME> 
         picker types.
 
         For JavaScript files, use a JavaScript Date object.
@@ -397,8 +429,13 @@ properties:
     
   - name: font
     summary: Font to use for text.
+    description: |
+        Only applicable to <Titanium.UI.PICKER_TYPE_DATE> and <Titanium.UI.PICKER_TYPE_TIME> 
+        picker types for android. For <Titanium.UI.PICKER_TYPE_PLAIN>, refer to <Titanium.UI.PickerColumn>
+        for android, and <Titanium.UI.PickerRow> for iphone / ipad.
     type: Font
-    
+    platforms: [android]
+
 examples:
   - title: Multi-Column Picker using Alloy XML Markup
     example: |
@@ -562,10 +599,6 @@ examples:
         subsequent user action.
 
             Ti.UI.backgroundColor = 'white';
-            var win = Ti.UI.createWindow({
-              exitOnClose: true,
-              layout: 'vertical'
-            });
 
             var picker = Ti.UI.createPicker({
               type:Ti.UI.PICKER_TYPE_DATE,
@@ -573,8 +606,6 @@ examples:
               maxDate:new Date(2014,11,31),
               value:new Date(2014,3,12)
             });
-
-            win.open();
 
             picker.showDatePickerDialog({
               value: new Date(2010,8,1),

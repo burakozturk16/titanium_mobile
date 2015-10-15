@@ -9,40 +9,63 @@ package ti.modules.titanium.ui.widget.picker;
 
 import java.text.NumberFormat;
 
-import kankan.wheel.widget.NumericWheelAdapter;
+import android.content.Context;
+import antistatic.spinnerwheel.adapters.NumericWheelAdapter;
 
-public class FormatNumericWheelAdapter extends NumericWheelAdapter
-{
-	private NumberFormat formatter;
-	private int maxCharacterLength = 2;
+public class FormatNumericWheelAdapter extends NumericWheelAdapter {
+    private NumberFormat formatter;
+    private int maxCharacterLength = 2;
+    private int stepValue = 1;
 	
-	public FormatNumericWheelAdapter(int minValue, int maxValue, NumberFormat formatter, int maxCharLength)
+	public FormatNumericWheelAdapter(Context context, int minValue, int maxValue, NumberFormat formatter, int maxCharLength)
 	{
-		this(minValue,maxValue,formatter,maxCharLength, 1);
+		this(context, minValue,maxValue,formatter,maxCharLength, 1);
 	}
 	
-	public FormatNumericWheelAdapter(int minValue, int maxValue, NumberFormat formatter, int maxCharLength, int stepValue)
+	public FormatNumericWheelAdapter(Context context, int minValue, int maxValue, NumberFormat formatter, int maxCharLength, int stepValue)
 	{
-		super(minValue, maxValue, stepValue);
+		super(context, minValue, maxValue);
 		this.formatter = formatter;
-		this.maxCharacterLength = maxCharLength;
-	}
-	
-	public void setFormatter(NumberFormat formatter) {
-		this.formatter = formatter;
-	}
-	@Override
-	public String getItem(int index)
-	{
-		int actualValue = getValue(index);
-		if (formatter == null) {
-			return Integer.toString(actualValue);
-		} else {
-			return formatter.format(actualValue);
-		}
-	}
-	@Override
-	public int getMaximumLength()
+        this.maxCharacterLength = maxCharLength;
+        this.stepValue = stepValue;
+    }
+
+    public void setFormatter(NumberFormat formatter) {
+        this.formatter = formatter;
+    }
+    
+    public int getIndex(int value) {
+        return (value - getMinValue()) / stepValue;
+    }
+    public void setStepValue(int value)
+    {
+        this.stepValue = value;
+    }
+    public int getValue(int index) {
+        int tmpValue = (getMinValue() + index * stepValue);
+        if (tmpValue > getMaxValue())
+            return getMaxValue();
+        else
+            return tmpValue;    
+    }
+
+    @Override
+    public int getItemsCount() {
+        int itemCount = ( (getMaxValue() - getMinValue()) / stepValue) + 1;
+        return itemCount;
+    }
+
+    @Override
+    public CharSequence getItemText(int index) {
+        int actualValue = getValue(index);
+        if (formatter == null) {
+            return Integer.toString(actualValue);
+        } else {
+            return formatter.format(actualValue);
+        }
+    }
+
+    public int getMaximumLength()
 	{
 		return maxCharacterLength;
 	}

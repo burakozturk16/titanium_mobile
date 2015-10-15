@@ -67,7 +67,7 @@ static const NSTimeInterval kLauncherViewFastTransitionDuration = 0.2;
 
 @synthesize columnCount, rowCount, delegate, editable;
 
-- (id)initWithFrame:(CGRect)frame withRowCount:(int)newRowCount withColumnCount:(int)newColumnCount
+- (id)initWithFrame:(CGRect)frame withRowCount:(NSInteger)newRowCount withColumnCount:(NSInteger)newColumnCount
 {
     if ((self = [super initWithFrame:frame])) 
 	{

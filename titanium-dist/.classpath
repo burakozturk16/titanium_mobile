@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="lib" path="lib/titanium-accelerometer.jar"/>
 	<classpathentry kind="lib" path="lib/titanium-android.jar"/>
-	<classpathentry kind="lib" path="lib/titanium-app.jar"/>
 	<classpathentry kind="lib" path="lib/titanium-calendar.jar"/>
 	<classpathentry kind="lib" path="lib/titanium-contacts.jar"/>
 	<classpathentry kind="lib" path="lib/titanium-database.jar" sourcepath="/titanium-database"/>

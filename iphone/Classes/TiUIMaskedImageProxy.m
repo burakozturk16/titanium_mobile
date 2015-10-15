@@ -13,13 +13,6 @@
 
 @implementation TiUIMaskedImageProxy
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"image",
-                                              @"mask",@"tint",@"mode", nil]];
-}
-
 -(void)_initWithProperties:(NSDictionary *)properties
 {
 	[self replaceValue:NUMINT(kCGBlendModeSourceIn) forKey:@"mode" notification:NO];

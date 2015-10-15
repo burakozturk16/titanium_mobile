@@ -36,7 +36,8 @@ import android.webkit.WebView;
 	TiC.PROPERTY_WEBVIEW_IGNORE_SSL_ERROR,
 	TiC.PROPERTY_OVER_SCROLL_MODE,
 	TiC.PROPERTY_CACHE_MODE,
-	TiC.PROPERTY_LIGHT_TOUCH_ENABLED
+	TiC.PROPERTY_LIGHT_TOUCH_ENABLED,
+	TiC.PROPERTY_ENABLE_JAVASCRIPT_INTERFACE
 })
 public class WebViewProxy extends ViewProxy 
 	implements Handler.Callback, OnLifecycleEvent, interceptOnBackPressedEvent
@@ -55,8 +56,9 @@ public class WebViewProxy extends ViewProxy
 	private static final int MSG_CAN_GO_FORWARD = MSG_FIRST_ID + 109;
 	private static final int MSG_RELEASE = MSG_FIRST_ID + 110;
 	private static final int MSG_PAUSE = MSG_FIRST_ID + 111;
-	private static final int MSG_RESUME = MSG_FIRST_ID + 112;
-
+    private static final int MSG_RESUME = MSG_FIRST_ID + 112;
+    private static final int MSG_EVA_JS_ASYNC = MSG_FIRST_ID + 113;
+	
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 	private static String fusername;
 	private static String fpassword;
@@ -70,6 +72,7 @@ public class WebViewProxy extends ViewProxy
 		super();
 		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
 		defaultValues.put(TiC.PROPERTY_LIGHT_TOUCH_ENABLED, true);
+		defaultValues.put(TiC.PROPERTY_ENABLE_JAVASCRIPT_INTERFACE, true);
 	}
 
 	public WebViewProxy(TiContext context)
@@ -114,10 +117,19 @@ public class WebViewProxy extends ViewProxy
 	{
 		return (TiUIWebView) getOrCreateView();
 	}
+	
+	private void handleEvalJSAsync(final String code) {
+        getWebView().evalJSAsync("javascript:" + code);
+    }
+
 
 	@Kroll.method
-	public Object evalJS(String code)
+    public Object evalJS(String code, @Kroll.argument(optional = true) Object asyncProp) 
 	{
+	    Boolean async = false;
+        if (asyncProp instanceof Number) {
+            async = TiConvert.toBoolean(asyncProp);
+        }
 		// If the view doesn't even exist yet,
 		// or if it once did exist but doesn't anymore
 		// (like if the proxy was removed from a parent),
@@ -128,13 +140,24 @@ public class WebViewProxy extends ViewProxy
 			Log.w(TAG, "WebView not available, returning null for evalJS result.");
 			return null;
 		}
+		if (async) {
+		    if (TiApplication.isUIThread()) {
+	            handleEvalJSAsync(code);
+	        } else {
+	            Message message = getMainHandler().obtainMessage(MSG_EVA_JS_ASYNC);
+                message.obj = code;
+                message.sendToTarget();
+	        }
+		    return null;
+		}
+		
 		return view.getJSValue(code);
 	}
 
 	@Kroll.method @Kroll.getProperty
 	public String getHtml()
 	{
-		if (!hasProperty(TiC.PROPERTY_HTML)) {
+		if (!hasProperty(TiC.PROPERTY_HTML) && peekView() != null) {
 			return getWebView().getJSValue("document.documentElement.outerHTML");
 		}
 		return (String) getProperty(TiC.PROPERTY_HTML);
@@ -211,6 +234,9 @@ public class WebViewProxy extends ViewProxy
 					HashMap<String, Object> d = (HashMap<String, Object>) getProperty(OPTIONS_IN_SETHTML);
 					getWebView().setHtml(html, d);
 					return true;
+				case MSG_EVA_JS_ASYNC:
+                    handleEvalJSAsync((String)msg.obj);
+                    return true;
 			}
 		}
 		return super.handleMessage(msg);
@@ -436,6 +462,13 @@ public class WebViewProxy extends ViewProxy
 	@Override
 	public void releaseViews(boolean activityFinishing)
 	{
+	    if (this.activity != null) {
+            TiBaseActivity tiActivity = (TiBaseActivity) this.activity.get();
+            if (tiActivity != null) {
+                tiActivity.removeOnLifecycleEventListener(this);
+                tiActivity.removeInterceptOnBackPressedEventListener(this);
+            }
+        }
 		if (activityFinishing) {
 			TiUIWebView webView = (TiUIWebView) peekView();
 			if (webView != null) {
@@ -446,8 +479,6 @@ public class WebViewProxy extends ViewProxy
 				// the polling.
 				webView.destroyWebViewBinding();
 			}
-
-			super.releaseViews(activityFinishing);
 		}
 		else {
 			TiUIWebView view = (TiUIWebView) peekView();
@@ -455,6 +486,7 @@ public class WebViewProxy extends ViewProxy
 				view.pauseWebView();
 			}
 		}
+        super.releaseViews(activityFinishing);
 	}
 
 	@Kroll.method

@@ -11,49 +11,33 @@ package ti.modules.titanium.ui.widget.picker;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import kankan.wheel.widget.WheelAdapter;
+import android.content.Context;
+import antistatic.spinnerwheel.adapters.AbstractWheelTextAdapter;
 
-public class TextWheelAdapter implements WheelAdapter
+
+public class TextWheelAdapter extends AbstractWheelTextAdapter
 {
 	private ArrayList<Object> values = null;
-	private int maxLength;
 	
-	public TextWheelAdapter(ArrayList<Object> values)
+	public TextWheelAdapter(Context context, ArrayList<Object> values)
 	{
+	    super(context);
 		setValues(values);
+		
 	}
 
-	public TextWheelAdapter(Object[] values)
+	public TextWheelAdapter(Context context, Object[] values)
 	{
-		this( new ArrayList<Object>( Arrays.asList(values) ) );
+		this(context, new ArrayList<Object>( Arrays.asList(values) ) );
 	}
 
 	@Override
-	public String getItem(int index)
+	public CharSequence getItemText(int index)
 	{
 		if (values == null || index < values.size()) {
 			return values.get(index).toString();
 		} else {
 			throw new ArrayIndexOutOfBoundsException(index);
-		}
-	}
-
-	@Override
-	public int getMaximumLength()
-	{
-		return maxLength;
-	}
-
-	private int calcMaxLength()
-	{
-		if (values == null) {
-			return 0; // TODO really?
-		} else {
-			int max = 0;
-			for (Object o : values) {
-				max = Math.max(max, o.toString().length());
-			}
-			return max;
 		}
 	}
 
@@ -66,7 +50,6 @@ public class TextWheelAdapter implements WheelAdapter
 	{
 		if (values != null) values.clear();
 		this.values = newValues;
-		this.maxLength = calcMaxLength();
 	}
 
 	@Override

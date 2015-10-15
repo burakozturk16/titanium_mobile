@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -18,22 +18,11 @@
 DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 @synthesize suppressFocusEvents = _suppressFocusEvents;
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"color",
-                                              @"font",@"textAlign",@"value",@"returnKeyType",
-                                              @"enableReturnKey",@"keyboardType",
-                                              @"autocorrect", @"passwordMask",
-                                              @"appearance",@"autocapitalization", nil]];
-}
 
 - (void)windowWillClose
 {
-	if([self viewInitialized])
-	{
-		[[self view] resignFirstResponder];
-	}
+    [self blur:nil];
+
     if (keyboardAccessoryProxy) {
         [keyboardAccessoryProxy windowWillClose];
     }
@@ -78,21 +67,26 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     }
 }
 
+-(void)setValue:(id)value
+{
+    [self  noteValueChange:value];
+    [self replaceValue:value forKey:@"value" notification:YES];
+}
 
 -(void)noteValueChange:(NSString *)newValue
 {
     BOOL needsChange = NO;
     ARE_DIFFERENT_NULL_OR_EMPTY([self valueForUndefinedKey:@"value"], newValue, needsChange)
-    if (![self inReproxy] && needsChange)
+    if (!needsChange) return;
+    [self replaceValue:newValue forKey:@"value" notification:NO];
+    if ([self isConfigurationSet])
 	{
-		[self replaceValue:newValue forKey:@"value" notification:NO];
-        if ([self.eventOverrideDelegate respondsToSelector:@selector(viewProxy:updatedValue:forType:)]) {
-            [self.eventOverrideDelegate viewProxy:self updatedValue:newValue forType:@"value"];
-        }
 		[self contentsWillChange];
         if ([self _hasListeners:@"change" checkParent:NO])
         {
-            [self fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
+            [self fireEvent:@"change" withObject:@{
+                                                   @"value":newValue?newValue:@""
+                                                   } propagate:NO checkForListener:NO];
         }
         TiThreadPerformOnMainThread(^{
             //Make sure the text widget is in view when editing.
@@ -106,10 +100,19 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 - (CGFloat) keyboardAccessoryHeight
 {
 	CGFloat result = 0;
-    if (keyboardAccessoryProxy) {
-        UIView* theView = [keyboardAccessoryProxy getAndPrepareViewForOpening:[TiUtils appFrame]];
-        result = MAX(theView.bounds.size.height,40);
+ #ifndef TI_USE_AUTOLAYOUT
+   if (keyboardAccessoryProxy) {
+        UIView* theView;
+        if (keyboardAccessoryProxy.view) {
+            [keyboardAccessoryProxy refreshView];
+            theView = keyboardAccessoryProxy.view;
+        }
+        else {
+            theView = [keyboardAccessoryProxy getAndPrepareViewForOpening:[TiUtils appFrame]];
+        }
+        result = theView.bounds.size.height;
     }
+#endif
 	return result;
 }
 
@@ -119,12 +122,13 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     TiViewProxy* vp = ( TiViewProxy*)[(TiUITextWidgetProxy*)self createChildFromObject:value];
 	if (keyboardAccessoryProxy){
         [keyboardAccessoryProxy windowDidClose];
-        [keyboardAccessoryProxy setParent:nil];
+        [keyboardAccessoryProxy setParentForBubbling:nil];
         [self forgetProxy:keyboardAccessoryProxy];
         RELEASE_TO_NIL(keyboardAccessoryProxy)
     }
     if (vp) {
-        [vp setParent:(TiParentingProxy*)self];
+        [vp setParentForBubbling:(TiParentingProxy*)self];
+        vp.canBeResizedByFrame = YES;
         LayoutConstraint* constraint = [vp layoutProperties];
         if (TiDimensionIsUndefined(constraint->width))
         {
@@ -133,6 +137,12 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 		keyboardAccessoryProxy = [vp retain];
         
     }
+    [self replaceValue:value forKey:@"keyboardToolbar" notification:YES];
+}
+
+- (TiViewProxy *)keyboardAccessoryProxy;
+{
+	return keyboardAccessoryProxy;
 }
 
 - (UIView *)keyboardAccessoryView;
@@ -143,6 +153,7 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 	return nil;
 }
 
+#ifndef TI_USE_AUTOLAYOUT
 -(TiDimension)defaultAutoWidthBehavior:(id)unused
 {
     return TiDimensionAutoSize;
@@ -151,11 +162,12 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 {
     return TiDimensionAutoSize;
 }
+#endif
 
 -(TiParentingProxy*)parentForNextWidget
 {
-    if (self.eventOverrideDelegate) {
-        return self.eventOverrideDelegate;
+    if (IS_OF_CLASS(self.eventOverrideDelegate, TiParentingProxy)) {
+        return (TiParentingProxy*)self.eventOverrideDelegate;
     }
     return [self parent];
 }
@@ -192,10 +204,9 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     }
     TiThreadPerformOnMainThread(^{[(TiUITextWidget*)[self view] setSelectionFrom:arg to:property];}, NO);
 }
-//USE_VIEW_FOR_CONTENT_HEIGHT
-//USE_VIEW_FOR_CONTENT_WIDTH
+#ifndef TI_USE_AUTOLAYOUT
 USE_VIEW_FOR_CONTENT_SIZE
-
+#endif
 
 @end
 

@@ -1,5 +1,5 @@
 Window {
-    backgroundColor: $bgdColor, orientationModes : [Titanium.UI.PORTRAIT],
+    backgroundColor: $backgroundColor, orientationModes : [Titanium.UI.PORTRAIT],
 }
 
 SettingsWindow {

@@ -6,6 +6,7 @@
  */
 #import "TiUIWindow.h"
 #import "TiUIWindowProxy.h"
+#import "TiApp.h"
 
 @implementation TiUIWindow
 
@@ -43,6 +44,66 @@
 //        }
 //	}
 //    [super setFrame:frame];
+//}
+
+-(void)setStatusBarStyle_:(id)value withObject:(id)props
+{
+    NSInteger theStyle = [TiUtils intValue:value def:[[[TiApp app] controller] defaultStatusBarStyle]];
+    BOOL animated = [TiUtils boolValue:@"animated" properties:props def:(props != nil)];
+    UIStatusBarAnimation animationStyle = UIStatusBarAnimationNone;
+    if (animated) {
+        animationStyle = [TiUtils intValue:@"animationStyle" properties:props def:animationStyle] ;
+    }
+    ((TiWindowProxy*)[self viewProxy]).internalStatusBarStyle = theStyle;
+    if([[self viewProxy] viewInitialized] && [[self viewProxy] focussed]) {
+        TiThreadPerformBlockOnMainThread(^{
+            [(TiRootViewController*)[[TiApp app] controller] updateStatusBar:animated withStyle:animationStyle];
+        }, YES);
+    }
+}
+
+-(void)setFullscreen_:(id)value withObject:(id)props
+{
+    BOOL newValue = [TiUtils boolValue:value def:[[[TiApp app] controller] statusBarInitiallyHidden]];
+    BOOL animated = [TiUtils boolValue:@"animated" properties:props def:(props != nil)];
+    UIStatusBarAnimation animationStyle = UIStatusBarAnimationNone;
+    if (animated) {
+        animationStyle = [TiUtils intValue:@"animationStyle" properties:props def:animationStyle] ;
+    }
+    ((TiWindowProxy*)[self viewProxy]).hidesStatusBar = newValue;
+    if([[self viewProxy] viewInitialized] && [[self viewProxy] focussed]) {
+        TiThreadPerformBlockOnMainThread(^{
+            [(TiRootViewController*)[[TiApp app] controller] updateStatusBar:animated withStyle:animationStyle];
+        }, YES);
+    }
+}
+
+//-(void)setFullscreen:(id)args
+//{
+//    ENSURE_ARG_COUNT(args, 1);
+//    NSUInteger value = [TiUtils intValue:[args objectAtIndex:0]];
+//    NSDictionary *properties = [args count] > 1 ? [args objectAtIndex:1] : nil;
+//    BOOL newValue = [TiUtils boolValue:[args objectAtIndex:0] def:[[[TiApp app] controller] statusBarInitiallyHidden]];
+//    
+//    if (hidesStatusBar != newValue) {
+//        hidesStatusBar = newValue;
+//        
+//        [self setValue:NUMINT(hidesStatusBar) forUndefinedKey:@"fullscreen"];
+//        if([self focussed]) {
+//            NSDictionary *properties = [args count] > 1 ? [args objectAtIndex:1] : nil;
+//            BOOL animate = NO;
+//            UIStatusBarAnimation animationStyle = UIStatusBarAnimationNone;
+//            if (properties) {
+//                animate = [TiUtils boolValue:@"animated" properties:properties def:animate];
+//                if (animate) {
+//                    animationStyle = [TiUtils intValue:@"animationStyle" properties:properties def:animationStyle] ;
+//                }
+//            }
+//            TiThreadPerformBlockOnMainThread(^{
+//                [(TiRootViewController*)[[TiApp app] controller] updateStatusBar:animate withStyle:animationStyle];
+//            }, YES);
+//        }
+//    }
 //}
 
 @end

@@ -8,61 +8,109 @@
 
 #import "TiUIPickerColumnProxy.h"
 #import "TiUIPickerRowProxy.h"
+#import "TiUIPickerProxy.h"
+#import "TiUIPicker.h"
 #import "TiUtils.h"
 
 @implementation TiUIPickerColumnProxy
 
 @synthesize column;
 
--(void)dealloc
-{
-	RELEASE_TO_NIL(rows);
-	[super dealloc];
-}
+//-(void)dealloc
+//{
+//	RELEASE_TO_NIL(rows);
+//	[super dealloc];
+//}
 
 -(NSString*)apiName
 {
     return @"Ti.UI.PickerColumn";
 }
 
--(NSMutableArray*)rows
+//-(NSMutableArray*)rows
+//{
+//	// return copy so developer can't directly mutate
+//	return [[rows copy] autorelease];
+//}
+//
+//-(NSInteger)rowCount
+//{
+//	return rowsC;
+//}
+//
+//-(id)rowAt:(NSInteger)index
+//{
+//	return (index < [rows count]) ? [rows objectAtIndex:index] : nil;
+//}
+
+
++ (NSString*)defaultTemplateType
 {
-	// return copy so developer can't directly mutate
-	return [[rows copy] autorelease];
+    return @"Ti.UI.PickerRow";
 }
 
--(NSInteger)rowCount
+-(TiUIView*)getOrCreateView
 {
-	return [rows count];
+    return nil;
 }
 
--(id)rowAt:(NSInteger)index
+-(TiUIView*)view
 {
-	return (index < [rows count]) ? [rows objectAtIndex:index] : nil;
+    return nil;
 }
 
--(NSNumber*)addRow:(id)row
+-(void)addProxy:(id)child atIndex:(NSInteger)position shouldRelayout:(BOOL)shouldRelayout
 {
-	ENSURE_SINGLE_ARG(row,TiUIPickerRowProxy);
-	if (rows==nil)
-	{
-		rows = [[NSMutableArray arrayWithObject:row] retain];
-	}
-	else
-	{
-		[rows addObject:row];
-	}
-	return NUMINT([rows count]-1);
+    if (IS_OF_CLASS(child, TiUIPickerRowProxy)) {
+        [super addProxy:child atIndex:position shouldRelayout:shouldRelayout];
+    }
 }
 
--(void)removeRow:(id)row
+-(void)removeProxy:(id)child shouldDetach:(BOOL)shouldDetach
 {
-	ENSURE_SINGLE_ARG(row,TiUIPickerRowProxy);
-	if (rows!=nil)
-	{
-		[rows removeObject:row];
-	}
+    if (IS_OF_CLASS(child, TiUIPickerRowProxy)) {
+        [self removeProxy:child shouldDetach:shouldDetach];
+    }
 }
+
+-(void)childAdded:(TiProxy*)child atIndex:(NSInteger)position shouldRelayout:(BOOL)shouldRelayout
+{
+    if ([TiUtils boolValue:[child valueForUndefinedKey:@"selected"] def:NO])
+    {
+        if (IS_OF_CLASS(parent, TiUIPickerProxy)) {
+            TiThreadPerformOnMainThread(^{[[(TiUIPickerProxy*)[self parent] picker] selectRow:
+                                           [NSArray arrayWithObjects:NUMINT(0),position,nil]];}, NO);
+        }
+    }
+}
+
+-(TiUIPickerRowProxy*)rowAt:(NSUInteger)index
+{
+    return (TiUIPickerRowProxy*)[self childAt:index];
+}
+
+//-(NSNumber*)addRow:(id)row
+//{
+//	ENSURE_SINGLE_ARG(row,TiUIPickerRowProxy);
+//	if (rows==nil)
+//	{
+//		rows = [[NSMutableArray arrayWithObject:row] retain];
+//	}
+//	else
+//	{
+//		[rows addObject:row];
+//	}
+//	return NUMUINTEGER([rows count]-1);
+//}
+//
+//-(void)removeRow:(id)row
+//{
+//	ENSURE_SINGLE_ARG(row,TiUIPickerRowProxy);
+//	if (rows!=nil)
+//	{
+//		[rows removeObject:row];
+//	}
+//}
 
 
 @end

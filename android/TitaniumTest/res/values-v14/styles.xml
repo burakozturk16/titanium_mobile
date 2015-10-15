@@ -1,6 +1,0 @@
-<resources> 
-
- <style name="TiEditText" parent="@android:style/Widget.EditText">
-<item name="android:textCursorDrawable">@null</item>
-			</style>	
-</resources>

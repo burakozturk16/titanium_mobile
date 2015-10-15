@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -71,7 +71,7 @@ extern NSString * const TI_APPLICATION_GUID;
             RELEASE_TO_NIL(apsConnectionDelegate);
         } else {
             NSLog(@"[ERROR] open can only be called if client is disconnected(0) or done(4). Current state is %d ",curState);
-            return;
+            return nil;
         }
     }
     
@@ -81,6 +81,13 @@ extern NSString * const TI_APPLICATION_GUID;
     [httpRequest setMethod: method];
     [httpRequest setUrl:url];
     
+    // twitter specifically disallows X-Requested-With so we only add this normal
+    // XHR header if not going to twitter. however, other services generally expect
+    // this header to indicate an XHR request (such as RoR)
+    if ([[url absoluteString] rangeOfString:@"twitter.com"].location==NSNotFound)
+    {
+        [httpRequest addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
+    }
     if ( (apsConnectionManager != nil) && ([apsConnectionManager willHandleURL:url]) ){
         apsConnectionDelegate = [[apsConnectionManager connectionDelegateForUrl:url] retain];
     }
@@ -121,6 +128,14 @@ extern NSString * const TI_APPLICATION_GUID;
         [httpRequest setRedirects:
          [TiUtils boolValue: [self valueForUndefinedKey:@"autoRedirect"] def:YES] ];
     }
+    if([self valueForUndefinedKey:@"headers"]) {
+        NSDictionary* headers =  [self valueForUndefinedKey:@"headers"];
+        if ([headers isKindOfClass:[NSDictionary class]]) {
+            [headers enumerateKeysAndObjectsUsingBlock:^(NSString* key, id obj, BOOL *stop) {
+                [httpRequest addRequestHeader:key value:[TiUtils stringValue:obj]];
+            }];
+        }
+    }
     if([self valueForUndefinedKey:@"cache"]) {
         [httpRequest setCachePolicy:
          [TiUtils boolValue: [self valueForUndefinedKey:@"cache"] def:YES] ?
@@ -141,13 +156,6 @@ extern NSString * const TI_APPLICATION_GUID;
     }
     if([self valueForUndefinedKey:@"domain"]) {
         // TODO: NTLM
-    }
-    // twitter specifically disallows X-Requested-With so we only add this normal
-    // XHR header if not going to twitter. however, other services generally expect
-    // this header to indicate an XHR request (such as RoR)
-    if ([[self valueForUndefinedKey:@"url"] rangeOfString:@"twitter.com"].location==NSNotFound)
-    {
-        [httpRequest addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
     }
     id file = [self valueForUndefinedKey:@"file"];
     if(file) {
@@ -173,7 +181,7 @@ extern NSString * const TI_APPLICATION_GUID;
         NSString* contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
         
         id arg = [args objectAtIndex:0];
-        NSInteger timespamp = (NSInteger)[[NSDate date] timeIntervalSince1970];
+        NSInteger timestamp = (NSInteger)[[NSDate date] timeIntervalSince1970];
         if ([arg isKindOfClass:[NSDictionary class]]) {
             NSDictionary *dict = (NSDictionary*)arg;
             for(NSString *key in dict) {
@@ -197,7 +205,7 @@ extern NSString * const TI_APPLICATION_GUID;
                         extension = [Mimetypes extensionForMimeType:mime];
                     }
                     if (name == nil) {
-                        name = [NSString stringWithFormat:@"%i%i", dataIndex++, timespamp];
+                        name = [NSString stringWithFormat:@"%li%li", (long)dataIndex++, (long)timestamp];
                         if (extension != nil) {
                             name = [NSString stringWithFormat:@"%@.%@", name, extension];
                         }
@@ -207,6 +215,9 @@ extern NSString * const TI_APPLICATION_GUID;
                     } else {
                         [form addFormData:[blob data] fileName:name fieldName:key];
                     }
+                }
+                else if ([value isKindOfClass:[NSDictionary class]]) {
+                    [form setJSONData:value];
                 }
                 else {
                     [form addFormKey:key
@@ -229,7 +240,7 @@ extern NSString * const TI_APPLICATION_GUID;
             [form setStringData:[TiUtils stringValue:arg]];
         }
     }
-    
+
     if(form != nil) {
         [httpRequest setPostForm:form];
     }
@@ -285,7 +296,12 @@ extern NSString * const TI_APPLICATION_GUID;
         if(_downloadTime == 0 || diff > TI_HTTP_REQUEST_PROGRESS_INTERVAL || [response readyState] == APSHTTPResponseStateDone) {
             _downloadTime = 0;
             NSDictionary *eventDict = [NSMutableDictionary dictionary];
-            [eventDict setValue:[NSNumber numberWithFloat: [response downloadProgress]] forKey:@"progress"];
+            float downloadProgress = [response downloadProgress];
+            // return progress as -1 if it is outside the valid range
+            if (downloadProgress > 1 || downloadProgress < 0) {
+                downloadProgress = -1.0f;
+            }
+            [eventDict setValue:[NSNumber numberWithFloat: downloadProgress] forKey:@"progress"];
             [self fireCallback:@"ondatastream" withArg:eventDict withSource:self];
         }
         if(_downloadTime == 0) {
@@ -313,49 +329,53 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)request:(APSHTTPRequest *)request onLoad:(APSHTTPResponse *)response
 {
-    if([request cancelled]) {
-        return;
+    if(![request cancelled]) {
+        NSInteger responseCode = [response status];
+        /**
+         *    Per customer request, successful communications that resulted in an
+         *    4xx or 5xx response is treated as an error instead of an onload.
+         *    For backwards compatibility, if no error handler is provided, even
+         *    an 4xx or 5xx response will fall back onto an onload.
+         */
+        if (hasOnerror && (responseCode >= 400) && (responseCode <= 599)) {
+            NSMutableDictionary * event = [TiUtils dictionaryWithCode:responseCode message:@"HTTP error"];
+            [event setObject:@"error" forKey:@"type"];
+            [self fireCallback:@"onerror" withArg:event withSource:self withHandler:^(id result){
+                [self forgetSelf];
+            }];
+        } else if(hasOnload) {
+            NSMutableDictionary * event = [TiUtils dictionaryWithCode:responseCode message:nil];
+            [event setObject:@"load" forKey:@"type"];
+            [self fireCallback:@"onload" withArg:event withSource:self withHandler:^(id result){
+                [self forgetSelf];
+            }];
+        } else {
+            [self forgetSelf];
+        }
     }
-    int responseCode = [response status];
-    /**
-     *    Per customer request, successful communications that resulted in an
-     *    4xx or 5xx response is treated as an error instead of an onload.
-     *    For backwards compatibility, if no error handler is provided, even
-     *    an 4xx or 5xx response will fall back onto an onload.
-     */
-    if (hasOnerror && (responseCode >= 400) && (responseCode <= 599)) {
-        NSMutableDictionary * event = [TiUtils dictionaryWithCode:responseCode message:@"HTTP error"];
-        [event setObject:@"error" forKey:@"type"];
-        [self fireCallback:@"onerror" withArg:event withSource:self];
-    } else if(hasOnload) {
-        NSMutableDictionary * event = [TiUtils dictionaryWithCode:responseCode message:nil];
-        [event setObject:@"load" forKey:@"type"];
-        [self fireCallback:@"onload" withArg:event withSource:self];
-    }
-    
-    [self forgetSelf];
 }
 
 -(void)request:(APSHTTPRequest *)request onError:(APSHTTPResponse *)response
 {
-    if([request cancelled]) {
-        return;
+    if(![request cancelled]) {
+        if(hasOnerror) {
+            NSError *error = [response error];
+            NSMutableDictionary * event = [TiUtils dictionaryWithCode:[error code] message:[TiUtils messageFromError:error]];
+            [event setObject:@"error" forKey:@"type"];
+            [self fireCallback:@"onerror" withArg:event withSource:self withHandler:^(id result) {
+                [self forgetSelf];
+            }];
+        } else {
+            [self forgetSelf];
+        }
     }
-    if(hasOnerror) {
-        NSError *error = [response error];
-        NSMutableDictionary * event = [TiUtils dictionaryWithCode:[error code] message:[TiUtils messageFromError:error]];
-        [event setObject:@"error" forKey:@"type"];
-        [self fireCallback:@"onerror" withArg:event withSource:self];
-    }
-    
-    [self forgetSelf];
 }
 
 
 -(void)request:(APSHTTPRequest *)request onReadyStateChange:(APSHTTPResponse *)response
 {
     if(hasOnreadystatechange) {
-        [self fireCallback:@"onreadystatechange" withArg:nil withSource:self];
+        [self fireCallback:@"onreadystatechange" withArg:[NSDictionary dictionaryWithObjectsAndKeys:NUMINT(response.readyState),@"readyState", nil] withSource:self];
     }
 }
 
@@ -408,7 +428,10 @@ extern NSString * const TI_APPLICATION_GUID;
 -(void)setRequestHeader:(id)args
 {
     ENSURE_ARG_COUNT(args,2);
-    [self ensureClient];
+    if (httpRequest == nil) {
+        NSLog(@"[ERROR] No request object found. Did you call open?");
+        return;
+    }
     NSString *key = [TiUtils stringValue:[args objectAtIndex:0]];
     NSString *value = [TiUtils stringValue:[args objectAtIndex:1]];
     [httpRequest addRequestHeader:key value:value];
@@ -446,7 +469,7 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(NSNumber*)status
 {
-    return NUMINT([[self response] status]);
+    return NUMINTEGER([[self response] status]);
 }
 
 -(NSString*)statusText

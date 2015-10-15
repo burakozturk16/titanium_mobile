@@ -12,14 +12,14 @@
 
 #ifdef USE_TI_UISEARCHBAR
 
-#import "TiUIView.h"
+#import "TiUITextWidget.h"
 
 @interface TiSearchDisplayController : UISearchDisplayController
 @property (nonatomic, assign) BOOL preventHiddingNavBar;
 
 @end
 
-@interface TiUISearchBar : TiUIView<UISearchBarDelegate> {
+@interface TiUISearchBar : TiUITextWidget<UISearchBarDelegate> {
 @private
 	UISearchBar *searchView;
 	id<UISearchBarDelegate> delegate;

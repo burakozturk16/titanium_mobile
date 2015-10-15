@@ -51,6 +51,7 @@
     TiSearchDisplayController *searchController;
     BOOL hideNavBarWithSearch;
     BOOL showsCancelButton;
+    UITextField *searchBarTextField;
 }
 
 -(void)releaseSearchController {
@@ -76,7 +77,9 @@
 
 -(void)dealloc
 {
+    delegate = nil;
 	[searchView setDelegate:nil];
+    RELEASE_TO_NIL(searchBarTextField)
 	RELEASE_TO_NIL(searchView);
 	[self releaseSearchController];
 	[super dealloc];
@@ -84,7 +87,23 @@
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
-    CGSizeMake(size.width, [[self searchBar] sizeThatFits:CGSizeZero].height);
+   return [[self searchBar] sizeThatFits:size];
+}
+
+-(UITextField*)textWidgetView {
+    if (!searchBarTextField) {
+        for (UIView *subView in self.searchBar.subviews)
+        {
+            for (UIView *secondLevelSubview in subView.subviews){
+                if ([secondLevelSubview isKindOfClass:[UITextField class]])
+                {
+                    searchBarTextField = [(UITextField *)secondLevelSubview retain];
+                    break;
+                }
+            }
+        }
+    }
+    return searchBarTextField;
 }
 
 -(UISearchBar*)searchBar
@@ -111,33 +130,25 @@
         [self releaseSearchController];
     }
     else {
-        if (searchController) {
-            TiSearchDisplayController* oldController = searchController;
-            searchController = nil;
-            [self searchController];
-            searchController.preventHiddingNavBar = oldController.preventHiddingNavBar;
-            searchController.searchResultsDataSource = oldController.searchResultsDataSource;
-            searchController.searchResultsDelegate = oldController.searchResultsDelegate;
-            searchController.delegate = oldController.delegate;
-            
-            oldController.searchResultsDataSource = nil;
-            oldController.searchResultsDelegate = nil;
-            oldController.delegate = nil;
-            RELEASE_TO_NIL(oldController)
-        }
-        else {
-            [self searchController];
-        }
+        RELEASE_TO_NIL(searchController)
+        [self searchController];
     }
-	
 }
 
 -(TiSearchDisplayController*)searchController {
-    if (!searchController && [self superview] != nil) {
+    if (!searchController && ((TiUISearchBarProxy*)proxy).canHaveSearchDisplayController && [self superview] != nil) {
         UIViewController* controller = [self getContentController];
         if (controller) {
             searchController = [[TiSearchDisplayController alloc] initWithSearchBar:[self searchBar] contentsController:controller];
             searchController.preventHiddingNavBar = !hideNavBarWithSearch;
+            if ([delegate conformsToProtocol:@protocol(UITableViewDataSource)]) {
+                searchController.searchResultsDataSource = delegate;
+            }
+            if ([delegate conformsToProtocol:@protocol(UITableViewDelegate)]) {
+                searchController.searchResultsDelegate = delegate;
+            }
+            //all is optional so we can do this
+            searchController.delegate = delegate;
         }
     }
     return searchController;
@@ -169,6 +180,10 @@
 -(void)setDelegate:(id<UISearchBarDelegate>)delegate_
 {
 	delegate = delegate_;
+    if (searchController) {
+        RELEASE_TO_NIL(searchController)
+        [self searchController];
+    }
 }
 
 #pragma mark View controller stuff
@@ -202,7 +217,6 @@
 	BOOL animated = [TiUtils boolValue:@"animated" properties:object def:NO];
 	//TODO: Value checking and exception generation, if necessary.
     
-	[self.proxy replaceValue:value forKey:@"showCancel" notification:NO];
 	showsCancelButton = boolValue;
     
 	//ViewAttached gives a false negative when not attached to a window.
@@ -236,15 +250,13 @@
 	[[self searchBar] setAutocapitalizationType:[TiUtils intValue:value]];
 }
 
--(void)setTintColor_:(id)color
-{
-    if ([TiUtils isIOS7OrGreater]) {
-        TiColor *ticolor = [TiUtils colorValue:color];
-        UIColor* theColor = [ticolor _color];
-        [[self searchBar] performSelector:@selector(setTintColor:) withObject:theColor];
-        [self performSelector:@selector(setTintColor:) withObject:theColor];
-    }
-}
+//-(void)setTintColor_:(id)color
+//{
+//    [super setTintColor_:color];
+//    TiColor *ticolor = [TiUtils colorValue:color];
+//    UIColor* theColor = [ticolor _color];
+//    [[self searchBar] setTintColor:theColor];
+//}
 
 -(void)setBarColor_:(id)value
 {
@@ -254,11 +266,7 @@
 	[search setBarStyle:[TiUtils barStyleForColor:newBarColor]];
 	[search setTranslucent:[TiUtils barTranslucencyForColor:newBarColor]];
 	UIColor* theColor = [TiUtils barColorForColor:newBarColor];
-	if ([TiUtils isIOS7OrGreater]) {
-		[search performSelector:@selector(setBarTintColor:) withObject:theColor];
-	} else {
-		[search setTintColor:theColor];
-	}
+	[search setBarTintColor:theColor];
 }
 
 -(void)setTranslucent_:(id)value
@@ -266,10 +274,17 @@
 	[[self searchBar] setTranslucent:[TiUtils boolValue:value]];
 }
 
--(void)setStyle_:(id)value
+-(void)setBarStyle_:(id)value
 {
 	[[self searchBar] setBarStyle:[TiUtils intValue:value def:[self searchBar].barStyle]];
 }
+
+
+-(void)setSearchBarStyle_:(id)value
+{
+    [[self searchBar] setSearchBarStyle:[TiUtils intValue:value def:[self searchBar].searchBarStyle]];
+}
+
 
 -(UIImage *)imageWithColor:(UIColor *)color andHeight:(int)height {
     CGRect rect = CGRectMake(0, 0, height, height);
@@ -282,11 +297,25 @@
     return image;
 }
 
-//-(void)setBackgroundImage_:(id)arg
-//{
-//    [super setBackgroundImage_:arg];
-//    [[self searchBar] setSearchFieldBackgroundImage:[UIImage imageNamed:@""] forState:UIControlStateNormal];
-//}
+-(void)setBackgroundImage_:(id)arg
+{
+    UIImage *image = [self loadImage:arg];
+    UISearchBar* searchBar = [self searchBar];
+    // reset the image to nil so we can check if the next statement sets it
+    [searchBar setBackgroundImage:nil];
+    
+    // try to set the image with UIBarMetricsDefaultPrompt barMetrics
+    //
+    // Checking for the `prompt` property is not reliable, even if it's not set, the height
+    // of the searchbar determines wheather the barMetrics is `DefaultPrompt` or just `Default`
+    [searchBar setBackgroundImage:image forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefaultPrompt];
+    
+    // check that the image has been set, otherwise try the other barMetrics
+    if([searchBar backgroundImage] == nil) {
+        [searchBar setBackgroundImage:image forBarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
+    }
+//    self.backgroundImage = arg;
+}
 //
 //-(void) setBackgroundColor_:(id)color
 //{
@@ -310,7 +339,6 @@
     }
 }
 
-
 #pragma mark Delegate 
 - (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar
 {
@@ -327,7 +355,7 @@
 	[self.proxy replaceValue:text forKey:@"value" notification:NO];
 	
 	//No need to setValue, because it's already been set.
-	if ([self.proxy _hasListeners:@"focus"  checkParent:NO])
+	if ([[self viewProxy] _hasListeners:@"focus"  checkParent:NO])
 	{
 		[self.proxy fireEvent:@"focus" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
 	}
@@ -345,7 +373,7 @@
 	[self.proxy replaceValue:text forKey:@"value" notification:NO];
 	
 	//No need to setValue, because it's already been set.
-	if ([self.proxy _hasListeners:@"blur"  checkParent:NO])
+	if ([[self viewProxy] _hasListeners:@"blur"  checkParent:NO])
 	{
 		[self.proxy fireEvent:@"blur" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
 	}

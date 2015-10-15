@@ -6,6 +6,8 @@
  */
 package ti.modules.titanium.ui.widget.tableview;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -51,7 +53,7 @@ public class TiTableViewHeaderItem extends TiBaseTableViewItem
 			setPadding(0, 0, 0, 0);
 			setMinimumHeight((int) TiUIHelper.getRawDIPSize(18, context));
 			setVerticalFadingEdgeEnabled(false);
-			TiUIHelper.styleText(textView, "", "10dp", "normal"); // TODO font
+			TiUIHelper.styleText(textView, (HashMap)null); // TODO font
 			textView.setBackgroundColor(Color.DKGRAY);
 			textView.setTextColor(Color.LTGRAY);
 			TiUIHelper.setTextViewDIPPadding(textView, 4, 2);

@@ -31,7 +31,6 @@ public final class ${config['classname']}Application extends TiApplication
 		super.onCreate();
 
 		appInfo = new ${config['classname']}AppInfo(this);
-		postAppInfo();
 
 		% if config['compile_js']:
 		    KrollAssetHelper.setAssetCrypt(new AssetCryptImpl());
@@ -51,6 +50,7 @@ public final class ${config['classname']}Application extends TiApplication
 		% endif
 		% endfor
 
+		postAppInfo();
 		KrollRuntime.init(this, runtime);
 
 		stylesheet = new ApplicationStylesheet();

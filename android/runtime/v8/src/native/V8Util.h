@@ -9,6 +9,8 @@
 
 #include <stdio.h>
 #include <v8.h>
+#include <jni.h>
+
 
 #define ENTER_V8(context) \
 	v8::HandleScope scope;

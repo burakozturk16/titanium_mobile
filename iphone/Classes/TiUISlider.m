@@ -30,12 +30,18 @@
     [sliderView setFrame:[self bounds]];
 }
 
+- (void) initialize
+{
+    [super initialize];
+    //by default do not mask to bounds to show the thumb shadow
+    self.layer.masksToBounds = NO;
+}
+
 -(UISlider*)sliderView
 {
 	if (sliderView==nil)
 	{
 		sliderView = [[UISlider alloc] initWithFrame:[self bounds]];
-		
 		// We have to do this to force the slider subviews to appear, in the case where value<=min==0.
 		// If the slider doesn't register a value change (or already have its subviews drawn in a nib) then
 		// it will NEVER draw them.
@@ -83,7 +89,7 @@
         return;
     }
     
-    UIImage* ret = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:rightTrackLeftCap topCap:rightTrackTopCap];
+    UIImage* ret = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withCap:rightTrackCap];
 
     [[self sliderView] setMaximumTrackImage:ret forState:state];
 }
@@ -97,8 +103,7 @@
         return;
     }
     
-    UIImage* ret = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftTrackLeftCap topCap:leftTrackTopCap];
-
+    UIImage* ret = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withCap:leftTrackCap];
 
     [[self sliderView] setMinimumTrackImage:ret forState:state];
 }
@@ -207,21 +212,15 @@
 	rightTrackImageState = rightTrackImageState | UIControlStateDisabled;
 }
 
--(void)setLeftTrackLeftCap_:(id)value
+
+-(void)setLeftTrackCap_:(id)arg
 {
-	leftTrackLeftCap = TiDimensionFromObject(value);
+    leftTrackCap = [TiUtils capValue:arg def:TiCapUndefined];
 }
--(void)setLeftTrackTopCap_:(id)value
+
+-(void)setRightTrackCap_:(id)arg
 {
-	leftTrackTopCap = TiDimensionFromObject(value);
-}
--(void)setRightTrackLeftCap_:(id)value
-{
-    rightTrackLeftCap = TiDimensionFromObject(value);
-}
--(void)setRightTrackTopCap_:(id)value
-{
-	rightTrackTopCap = TiDimensionFromObject(value);
+    rightTrackCap = [TiUtils capValue:arg def:TiCapUndefined];
 }
 
 -(void)setMin_:(id)value
@@ -258,15 +257,17 @@
 
 -(CGFloat)verifyHeight:(CGFloat)suggestedHeight
 {
-    CGFloat result = [[self sliderView] sizeThatFits:CGSizeZero].height;
-    
-    //IOS7 DP3 sizeThatFits always returns zero for regular slider
-    if ((result == 0) && ([TiUtils isIOS7OrGreater])) {
-        result = 30.0;
+    if (suggestedHeight == 0) {
+        CGFloat result = [[self sliderView] sizeThatFits:CGSizeZero].height;
+        
+        //IOS7 DP3 sizeThatFits always returns zero for regular slider
+        if (result == 0) {
+            result = 30.0;
+        }
+        return result;
     }
-    return result;
+    return suggestedHeight;
 }
-
 USE_PROXY_FOR_VERIFY_AUTORESIZING
 
 #pragma mark Delegates 
@@ -280,9 +281,7 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
     if ((current != newValue) && ![current isEqual:newValue])
 	{
         [self.proxy replaceValue:newValue forKey:@"value" notification:NO];
-        if ([self.proxy.eventOverrideDelegate respondsToSelector:@selector(viewProxy:updatedValue:forType:)]) {
-            [self.proxy.eventOverrideDelegate viewProxy:self.proxy updatedValue:newValue forType:@"value"];
-        }
+        
         
         if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
         {
@@ -294,13 +293,13 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 -(IBAction)sliderBegin:(id)sender
 {
     NSNumber * newValue = [NSNumber numberWithFloat:[(UISlider*)sender value]];
-    if ([[self proxy] _hasListeners:@"touchstart"])
+    if ([[self viewProxy] _hasListeners:@"touchstart" checkParent:YES])
     {
-        [[self proxy] fireEvent:@"touchstart" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"]];
+        [[self proxy] fireEvent:@"touchstart" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:YES checkForListener:NO];
     }
-    if ([[self proxy] _hasListeners:@"start"])
+    if ([[self viewProxy] _hasListeners:@"start" checkParent:NO])
     {
-        [[self proxy] fireEvent:@"start" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO reportSuccess:NO errorCode:0 message:nil];
+        [[self proxy] fireEvent:@"start" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
     }
 }
 
@@ -314,13 +313,13 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
     NSTimeInterval currentTimeInterval = [now timeIntervalSinceDate:lastTouchUp];
     if (!(lastTimeInterval < 0.1 && currentTimeInterval < 0.1)) {
         NSNumber * newValue = [NSNumber numberWithFloat:[(UISlider*)sender value]];
-        if ([[self proxy] _hasListeners:@"touchend"])
+        if ([[self viewProxy] _hasListeners:@"touchend" checkParent:YES])
         {
-            [[self proxy] fireEvent:@"touchend" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"]];
+            [[self proxy] fireEvent:@"touchend" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:YES checkForListener:NO];
         }
-        if ([[self proxy] _hasListeners:@"stop"])
+        if ([[self viewProxy] _hasListeners:@"stop" checkParent:NO])
         {
-            [[self proxy] fireEvent:@"stop" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [[self proxy] fireEvent:@"stop" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
         }
     }
     lastTimeInterval = currentTimeInterval;

@@ -33,7 +33,7 @@ public class TiNinePatchHelper
 			if (b != null) {
 				if (isNinePatch(b)) {
 			        byte[] newChunk = createChunk(b);
-			        nd = new NinePatchDrawable(TiApplication.getInstance().getResources(), cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
+			        nd = new TiNinePatchDrawable(TiApplication.getInstance().getResources(), cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
 				}
 			}
 		}
@@ -48,7 +48,7 @@ public class TiNinePatchHelper
 		if (b != null) {
 			if (isNinePatch(b)) {
 		        byte[] newChunk = createChunk(b);
-		        nd = new NinePatchDrawable(TiApplication.getInstance().getResources(), cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
+		        nd = new TiNinePatchDrawable(TiApplication.getInstance().getResources(), cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
 			} else {
 				nd = new BitmapDrawable(TiApplication.getInstance().getResources(), b);
 			}

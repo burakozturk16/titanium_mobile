@@ -14,38 +14,12 @@ static char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz012
 
 +(NSString *)base64encode:(NSData *)plainText
 {
-    int encodedLength = (int)((4 * (([plainText length] / 3) + (1 - (3 - ([plainText length] % 3)) / 3))) + 1);
-    unsigned char *outputBuffer = malloc(encodedLength);
-    unsigned char *inputBuffer = (unsigned char *)[plainText bytes];
-    
-    int i;
-    NSInteger j = 0;
-    int remain;
-    int len = (int)[plainText length];
-    for(i = 0; i < len; i += 3) {
-        remain = len - i;
-        
-        outputBuffer[j++] = alphabet[(inputBuffer[i] & 0xFC) >> 2];
-        outputBuffer[j++] = alphabet[((inputBuffer[i] & 0x03) << 4) |
-                                     ((remain > 1) ? ((inputBuffer[i + 1] & 0xF0) >> 4): 0)];
-        
-        if(remain > 1)
-            outputBuffer[j++] = alphabet[((inputBuffer[i + 1] & 0x0F) << 2)
-                                         | ((remain > 2) ? ((inputBuffer[i + 2] & 0xC0) >> 6) : 0)];
-        else
-            outputBuffer[j++] = '=';
-        
-        if(remain > 2)
-            outputBuffer[j++] = alphabet[inputBuffer[i + 2] & 0x3F];
-        else
-            outputBuffer[j++] = '=';
+    NSString* result = nil;
+    if ([plainText respondsToSelector:@selector(base64EncodedStringWithOptions:)]) {
+        return [plainText base64EncodedStringWithOptions:0];
+    } else {
+        return [plainText base64Encoding];
     }
-    
-    outputBuffer[j] = 0;
-    NSString *result = [NSString stringWithUTF8String:(const char*)outputBuffer];
-    free(outputBuffer);
-    
-    return result;
 }
 
 

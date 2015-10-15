@@ -66,13 +66,12 @@
 
 -(void)updatePositioning
 {
-    CGSize size = [[_item view] bounds].size;
     CGPoint center = [[_item view] center];
-    CGPoint anchor = [[[_item view] layer] anchorPoint];
-    
+#ifndef TI_USE_AUTOLAYOUT
     LayoutConstraint* constraint = [_item layoutProperties];
     constraint->centerX = TiDimensionDip(center.x);
     constraint->centerY = TiDimensionDip(center.y);
+#endif
 }
 
 #pragma mark - Public API

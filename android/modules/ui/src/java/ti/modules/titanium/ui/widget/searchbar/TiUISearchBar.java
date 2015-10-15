@@ -6,8 +6,6 @@
  */
 package ti.modules.titanium.ui.widget.searchbar;
 
-import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
@@ -25,6 +23,7 @@ import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
+@SuppressWarnings("deprecation")
 public class TiUISearchBar extends TiUIText
 {
 	protected ImageButton cancelBtn;
@@ -107,49 +106,36 @@ public class TiUISearchBar extends TiUIText
 		}
 		super.onTextChanged(s, start, before, count);
 	}
-
+	
 	@Override
-	public void processProperties(KrollDict d)
-	{
-		super.processProperties(d);
-
-		if (d.containsKey(TiC.PROPERTY_SHOW_CANCEL)) {
-			boolean showCancel = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_CANCEL, false);
-			if (showCancel)
-				fullTv.showRightView();
-			else
-				fullTv.hideRightView();
-		} else if (d.containsKey(TiC.PROPERTY_BAR_COLOR)) {
-			nativeView.setBackgroundColor(TiConvert.toColor(d, TiC.PROPERTY_BAR_COLOR));
-		}
-		if (d.containsKey(TiC.PROPERTY_BAR_COLOR)) {
-			nativeView.setBackgroundColor(TiConvert.toColor(d, TiC.PROPERTY_BAR_COLOR));
-		}
-		if (d.containsKey(TiC.PROPERTY_PROMPT)) {
-			String strPrompt = TiConvert.toString(d, TiC.PROPERTY_PROMPT);
-			promptText.setText(strPrompt);
-		}
-	}
-
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
-	{
-		if (key.equals(TiC.PROPERTY_SHOW_CANCEL)) {
-			boolean showCancel = TiConvert.toBoolean(newValue);
-			if (showCancel)
-				fullTv.showRightView();
-			else
-				fullTv.hideRightView();
-		} else if (key.equals(TiC.PROPERTY_BAR_COLOR)) {
-			nativeView.setBackgroundColor(TiConvert.toColor(TiConvert.toString(newValue)));
-		} else if (key.equals(TiC.PROPERTY_PROMPT)) {
-			String strPrompt = TiConvert.toString(newValue);
-			promptText.setText(strPrompt);
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
-	}
-
+	public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_SHOW_CANCEL:
+            boolean showCancel = TiConvert.toBoolean(newValue, false);
+            if (showCancel)
+                fullTv.showRightView();
+            else
+                fullTv.hideRightView();
+            break;
+        case TiC.PROPERTY_BAR_COLOR:
+            nativeView.setBackgroundColor(TiConvert.toColor(newValue));
+            break;
+        case TiC.PROPERTY_PROMPT:
+            promptText.setText(TiConvert.toString(newValue));
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
+	
+    @Override
+    public void release()
+    {
+        searchChangeListener = null;
+        super.release();
+    }
 
 	public void setOnSearchChangeListener(OnSearchChangeListener listener) {
 		this.searchChangeListener = listener;

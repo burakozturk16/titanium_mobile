@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 
 /**
@@ -19,7 +18,6 @@ import org.appcelerator.titanium.TiApplication;
  * strings at runtime.
  */
 public class TiRHelper {
-	private static final String TAG = "TiRHelper";
 	
 	private static Map<String, Class<?>> clsCache = Collections.synchronizedMap(new HashMap<String, Class<?>>());
 	private static Map<String, Integer> valCache = Collections.synchronizedMap(new HashMap<String, Integer>());
@@ -76,7 +74,7 @@ public class TiRHelper {
 		try {
 			i = getClass(prefix + classAndFieldNames[0]).getDeclaredField(classAndFieldNames[1]).getInt(null);
 		} catch (Exception e) {
-			Log.d(TAG, "Error looking up resource: " + e.getMessage(), e, Log.DEBUG_MODE);
+//			Log.d(TAG, "Error looking up resource: " + e.getMessage(), e, Log.DEBUG_MODE);
 			valCache.put(path, 0);
 			return 0;
 //			throw new ResourceNotFoundException(path);
@@ -108,6 +106,25 @@ public class TiRHelper {
 			}
 			return resid;
 	}
+	
+	public static int getResource(Object obj, final String prefix, boolean includeSystemResources) {
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
+        } else {
+            String objString = TiConvert.toString(obj);
+            if (objString == null) {
+                return 0;
+            }
+            try {
+                if (objString.contains(prefix)) {
+                    return TiRHelper.getResource(objString, includeSystemResources);
+                }
+                return TiRHelper.getResource(prefix + "." + objString, includeSystemResources);
+            } catch (ResourceNotFoundException e) {
+                return 0;
+            }
+        }
+    }
 
 	/**
 	 * Searches for an Android compiled resource given its path. Refer to {@link #getResource(String, boolean)} for more details.

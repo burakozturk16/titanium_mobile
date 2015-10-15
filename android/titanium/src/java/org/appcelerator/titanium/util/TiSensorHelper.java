@@ -72,6 +72,7 @@ public class TiSensorHelper
 		SensorManager sensorManager = getSensorManager();
 		if (sensorManager == null) {
 			Log.w(TAG, "UnregisterListener failed, no sensor manager found.", Log.DEBUG_MODE);
+			return;
 		}
 
 		Sensor sensor = sensorManager.getDefaultSensor(type);
@@ -80,6 +81,23 @@ public class TiSensorHelper
 			sensorManager.unregisterListener(listener, sensor);
 		}
 	}
+	
+	
+	/**
+     * Attempts to unregister the listener for all sensors.
+     * @param listener the sensor listener.
+     */
+    public static void unregisterListener(SensorEventListener listener)
+    {
+        SensorManager sensorManager = getSensorManager();
+        if (sensorManager == null) {
+            Log.w(TAG, "UnregisterListener failed, no sensor manager found.", Log.DEBUG_MODE);
+            return;
+        }
+
+        sensorManager.unregisterListener(listener);
+    }
+
 
 	/**
 	 * @param activity the referenced activity.

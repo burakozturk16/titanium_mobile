@@ -20,4 +20,5 @@
 +(NSString*)applicationDataDirectory;
 +(NSString*)applicationCacheDirectory;
 +(NSString*)tempDirectory;
++(NSString*)directoryForSuite:(NSString*)suitePath;
 @end

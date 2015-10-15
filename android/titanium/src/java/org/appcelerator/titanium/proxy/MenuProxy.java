@@ -17,13 +17,11 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiUIView;
 
+import android.app.Activity;
 import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
 @Kroll.proxy
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -44,8 +42,10 @@ public class MenuProxy extends KrollProxy
 	protected Menu menu;
 	protected HashMap<MenuItem, MenuItemProxy> menuMap;
 
-	public MenuProxy(Menu menu) 
+	public MenuProxy(Menu menu, final Activity activity) 
 	{
+	    super();
+	    setActivity(activity);
 		this.menu = menu;
 		menuMap = new HashMap<MenuItem,MenuItemProxy>();
 	}
@@ -137,49 +137,48 @@ public class MenuProxy extends KrollProxy
 		}
 		
 		MenuItem item = menu.add(groupId, itemId, order, title);
-		mip = new MenuItemProxy(item);
+		mip = new MenuItemProxy(item, getActivity());
 		mip.setProperties(d); //apply to actually update properties
 		synchronized(menuMap) {
 			menuMap.put(item, mip);
 		}
 		
-		if (d.containsKey(TiC.PROPERTY_ACTION_VIEW)) {
-			//check if view has a parent. If not, add it as action view. Otherwise, log error.
-			Object viewProxy = d.get(TiC.PROPERTY_ACTION_VIEW);
-			if (viewProxy instanceof TiViewProxy) {
-				TiUIView view = ((TiViewProxy) viewProxy).getOrCreateView();
-				if (view != null) {
-					View nativeView = view.getNativeView();
-					ViewGroup viewParent = (ViewGroup)nativeView.getParent();
-					if (viewParent != null) {
-						Log.e(TAG, "View already has a parent. Can't add it as an action view");
-					} else {
-						mip.setActionView(viewProxy);
-					}
-				}
-			}
-		}
-		if (d.containsKey(TiC.PROPERTY_CHECKABLE)) {
-			mip.setCheckable(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKABLE));
-		}
-		if (d.containsKey(TiC.PROPERTY_CHECKED)) {
-			mip.setChecked(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKED));
-		}
-		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
-			mip.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED));
-		}
-		if (d.containsKey(TiC.PROPERTY_ICON)) {
-			mip.setIcon(d.get(TiC.PROPERTY_ICON));
-		}
-		if (d.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
-			mip.setShowAsAction(TiConvert.toInt(d, TiC.PROPERTY_SHOW_AS_ACTION));
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_CONDENSED)) {
-			mip.setTitleCondensed(TiConvert.toString(d, TiC.PROPERTY_TITLE_CONDENSED));
-		}
-		if (d.containsKey(TiC.PROPERTY_VISIBLE)) {
-			mip.setVisible(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE));
-		}
+//		if (d.containsKey(TiC.PROPERTY_ACTION_VIEW)) {
+//			//check if view has a parent. If not, add it as action view. Otherwise, log error.
+//			Object viewProxy = d.get(TiC.PROPERTY_ACTION_VIEW);
+//			if (viewProxy instanceof TiViewProxy) {
+//				TiUIView view = ((TiViewProxy) viewProxy).getOrCreateView();
+//				if (view != null) {
+//					View nativeView = view.getNativeView();
+//					ViewGroup viewParent = (ViewGroup)nativeView.getParent();
+//					if (viewParent != null) {
+//						viewParent.removeView(nativeView);
+//					}
+//					mip.setActionView(viewProxy);
+//				}
+//			}
+//		}
+//		if (d.containsKey(TiC.PROPERTY_CHECKABLE)) {
+//			mip.setCheckable(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKABLE));
+//		}
+//		if (d.containsKey(TiC.PROPERTY_CHECKED)) {
+//			mip.setChecked(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKED));
+//		}
+//		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
+//			mip.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED));
+//		}
+//		if (d.containsKey(TiC.PROPERTY_ICON)) {
+//			mip.setIcon(d.get(TiC.PROPERTY_ICON));
+//		}
+//		if (d.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
+//			mip.setShowAsAction(TiConvert.toInt(d, TiC.PROPERTY_SHOW_AS_ACTION));
+//		}
+//		if (d.containsKey(TiC.PROPERTY_TITLE_CONDENSED)) {
+//			mip.setTitleCondensed(TiConvert.toString(d, TiC.PROPERTY_TITLE_CONDENSED));
+//		}
+//		if (d.containsKey(TiC.PROPERTY_VISIBLE)) {
+//			mip.setVisible(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE));
+//		}
 		return mip;
 	}
 

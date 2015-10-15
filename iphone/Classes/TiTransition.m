@@ -10,12 +10,39 @@
 #import "TiBase.h"
 
 @implementation TiTransition
+{
+    TiAnimation* _inAnimation;
+    TiAnimation* _outAnimation;
+}
 @synthesize adTransition = _adTransition;
 @synthesize orientation;
+@synthesize custom;
+
+-(TiTransition*)initCustomTransitionWithDict:(NSDictionary*)options {
+    if (self = [super init]) {
+        custom = YES;
+        id defaultDuration = [options objectForKey:@"duration"]?[options objectForKey:@"duration"]:@(0);
+        id defaultCurve = [options objectForKey:@"curve"]?[options objectForKey:@"curve"]:[NSNull null];
+        BOOL reversed =  [TiUtils boolValue:@"reverse" properties:options def:NO];
+        NSDictionary* from = [options objectForKey:@"from"];
+        NSDictionary* to = [options objectForKey:@"to"];
+        _inAnimation = [[TiAnimation alloc] initWithDictionary:@{
+                                                                @"from":from,
+                                                                @"duration":[from objectForKey:@"duration"]?[from objectForKey:@"duration"]:defaultDuration,
+                                                                @"curve":[from objectForKey:@"curve"]?[from objectForKey:@"curve"]:defaultDuration,
+                                                                } context:[self executionContext] callback:nil];
+        _outAnimation = [[TiAnimation alloc] initWithDictionary:@{
+                                                                 @"to":to,
+                                                                 @"duration":[to objectForKey:@"duration"]?[to objectForKey:@"duration"]:defaultDuration,
+                                                                 @"curve":[from objectForKey:@"curve"]?[to objectForKey:@"curve"]:defaultDuration,
+                                                                 } context:[self executionContext] callback:nil];
+    }
+    return self;
+}
 -(id)init
 {
     if (self = [super init]) {
-        
+        custom = NO;
     }
     return self;
 }
@@ -28,6 +55,7 @@
 {
     if (self = [super init]) {
         _adTransition = [[[self adTransitionClass] alloc] initWithDuration:duration orientation:_orientation sourceRect:sourceRect reversed:reversed];
+        self.duration = duration;
     }
     return self;
 }
@@ -35,6 +63,8 @@
 -(void)dealloc
 {
     [super dealloc];
+    RELEASE_TO_NIL(_inAnimation);
+    RELEASE_TO_NIL(_outAnimation);
     RELEASE_TO_NIL(_adTransition);
 }
 - (id)initWithADTransition:(ADTransition*)transition
@@ -44,20 +74,15 @@
     }
     return self;
 }
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size;
-{
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust
-{
-    [self transformView:view withPosition:position adjustTranslation:adjust size:view.bounds.size];
-}
+
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position size:(CGSize)size
 {
-    [self transformView:view withPosition:position adjustTranslation:NO size:size];
+    view.layer.hidden = YES;
+    view.layer.transform = CATransform3DIdentity;
 }
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position
 {
-    [self transformView:view withPosition:position adjustTranslation:NO size:view.bounds.size];
+    [self transformView:view withPosition:position size:view.bounds.size];
 }
 -(BOOL)needsReverseDrawOrder{
     return NO;

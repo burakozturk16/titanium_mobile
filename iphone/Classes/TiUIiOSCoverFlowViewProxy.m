@@ -34,7 +34,7 @@ DEFINE_DEF_INT_PROP(selected, 0);
 {
 	ENSURE_ARG_COUNT(args,2);
 	ENSURE_UI_THREAD(setImage,args);
-	int index = [TiUtils intValue:[args objectAtIndex:0]];
+	NSInteger index = [TiUtils intValue:[args objectAtIndex:0]];
 	id image = [args objectAtIndex:1];
 	[(TiUIiOSCoverFlowView*)[self view] setImage:image forIndex:index];
 }

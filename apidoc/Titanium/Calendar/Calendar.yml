@@ -8,7 +8,7 @@ description: |
 
     Currently, on Android, calendar permissions must be explicitly configured in `tiapp.xml` in order to access the
     calendar. See "Common Requirements" in
-    [tiapp.xml and timodule.xml Reference](http://docs.appcelerator.com/titanium/latest/#!/guide/tiapp.xml_and_timodule.xml_Reference).
+    [tiapp.xml and timodule.xml Reference](http://docs.appcelerator.com/platform/latest/#!/guide/tiapp.xml_and_timodule.xml_Reference).
 
 extends: Titanium.Module
 platforms: [android, iphone, ipad]
@@ -40,7 +40,31 @@ methods:
         type: String
     platforms: [android, iphone, ipad]
 
+  - name: hasCalendarPermissions
+    summary: Returns `true` if the app has calendar access
+    returns:
+        type: Boolean 
+    platforms: [iphone, ipad, android]
+    since: "5.1.0"  
+
+  - name: requestCalendarPermissions
+    summary: Requests for calendar access
+    description: |
+        This method allows the app to request for calendar access.
+        On Android, the request view will show if the permission is not accepted by user, and user did
+        not check the box "Never ask again" when denying the request. If user checks the box "Never ask again",
+        the user has to manually enable the permission in device settings.
+    parameters:
+      - name: callback
+        summary: Function to call upon user decision to grant calendar access.
+        type: Callback<EventsAuthorizationResponse>
+    platforms: [iphone, ipad, android]
+    since: "5.1.0"
+
   - name: requestEventsAuthorization
+    deprecated:
+        since: "5.1.0"
+        notes: Please use [requestCalendarPermissions] <Titanium.Calendar.requestCalendarPermissions>.
     summary: If authorization is unknown, will bring up a dialog requesting permission.
     description: |
         Note that the callback may be synchronous or asynchronous. That is, it may be called
@@ -812,7 +836,7 @@ examples:
                 })
                 var allAlerts = new Array(alert1,alert2);
                 event1.alerts = allAlerts;
-                var newRule = event1.createRecurenceRule({
+                var newRule = event1.createRecurrenceRule({
                                     frequency: Ti.Calendar.RECURRENCEFREQUENCY_MONTHLY,
                                     interval: 1,
                                     daysOfTheWeek: [{dayOfWeek:1,week:2},{dayOfWeek:2}],

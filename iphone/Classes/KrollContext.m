@@ -1,10 +1,9 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#import "TiBase.h"
 #import "KrollContext.h"
 #import "KrollObject.h"
 #import "KrollTimer.h"
@@ -13,14 +12,17 @@
 #import "TiLocale.h"
 
 #include <pthread.h>
-#import "TiDebugger.h"
 #import "TiExceptionHandler.h"
-#import "TiProfiler.h"
 
 #import "TiUIAlertDialogProxy.h"
 
 #ifdef KROLL_COVERAGE
 # import "KrollCoverage.h"
+#endif
+
+#ifndef USE_JSCORE_FRAMEWORK
+#import "TiDebugger.h"
+#import "TiProfiler/TiProfiler.h"
 #endif
 
 static unsigned short KrollContextIdCounter = 0;
@@ -239,6 +241,7 @@ static TiValueRef SetTimeoutCallback (TiContextRef jsContext, TiObjectRef jsFunc
 static TiValueRef CommonJSRequireCallback (TiContextRef jsContext, TiObjectRef jsFunction, TiObjectRef jsThis, size_t argCount,
 									  const TiValueRef args[], TiValueRef* exception)
 {
+    
 #ifdef KROLL_COVERAGE
 	[KrollCoverageObject incrementTopLevelFunctionCall:TOP_LEVEL name:@"require"];
 #endif
@@ -323,7 +326,71 @@ static TiValueRef StringFormatCallback (TiContextRef jsContext, TiObjectRef jsFu
 	
 	KrollContext *ctx = GetKrollContext(jsContext);
 	NSString* format = [KrollObject toID:ctx value:args[0]];
-	
+#if TARGET_IPHONE_SIMULATOR
+    // convert string references to objects
+    format = [format stringByReplacingOccurrencesOfString:@"%@" withString:@"%@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%s" withString:@"%@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%1$s" withString:@"%1$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%2$s" withString:@"%2$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%3$s" withString:@"%3$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%4$s" withString:@"%4$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%5$s" withString:@"%5$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%6$s" withString:@"%6$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%7$s" withString:@"%7$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%8$s" withString:@"%8$@_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%9$s" withString:@"%9$@_TIDELIMITER_"];
+    // we're dealing with double, so convert so that it formats right
+    format = [format stringByReplacingOccurrencesOfString:@"%d" withString:@"%1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%1$d" withString:@"%1$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%2$d" withString:@"%2$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%3$d" withString:@"%3$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%4$d" withString:@"%4$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%5$d" withString:@"%5$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%6$d" withString:@"%6$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%7$d" withString:@"%7$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%8$d" withString:@"%8$1.0f_TIDELIMITER_"];
+    format = [format stringByReplacingOccurrencesOfString:@"%9$d" withString:@"%9$1.0f_TIDELIMITER_"];
+    
+    NSArray* formatArray = [format componentsSeparatedByString:@"_TIDELIMITER_"];
+    NSUInteger formatCount = [formatArray count];
+    NSMutableString* result = [[NSMutableString alloc] init];
+    size_t lastArgIndex = 0;
+    @try {
+        for (size_t x=1; (x < argCount) && (x <= formatCount); x++)
+        {
+            NSString* theFormat = [formatArray objectAtIndex:(x-1)];
+            TiValueRef valueRef = args[x];
+            if (TiValueIsString(jsContext,valueRef)||TiValueIsObject(jsContext, valueRef))
+            {
+                id theResult = [KrollObject toID:ctx value:valueRef];
+                [result appendString:[NSString stringWithFormat:theFormat,theResult]];
+            }
+            else if (TiValueIsNumber(jsContext, valueRef))
+            {
+                double theResult = TiValueToNumber(jsContext, valueRef, NULL);
+                [result appendString:[NSString stringWithFormat:theFormat,theResult]];
+            }
+            else if (TiValueIsBoolean(jsContext, valueRef))
+            {
+                bool theResult = TiValueToBoolean(jsContext,valueRef);
+                [result appendString:[NSString stringWithFormat:theFormat,theResult]];
+            }
+            lastArgIndex = x;
+        }
+        if (lastArgIndex < formatCount) {
+            // Append any remaining format components
+            [result appendString:[[formatArray subarrayWithRange: NSMakeRange(lastArgIndex, formatCount-lastArgIndex)] componentsJoinedByString:@""]];
+        }
+        TiValueRef value = [KrollObject toValue:ctx value:result];
+        [result release];
+        return value;
+        
+    }
+    @catch (NSException *e) {
+        return ThrowException(jsContext, [e reason], exception);
+    }
+    
+#else
 	// convert string references to objects
 	format = [format stringByReplacingOccurrencesOfString:@"%s" withString:@"%@"];
 	format = [format stringByReplacingOccurrencesOfString:@"%1$s" withString:@"%1$@"];
@@ -367,8 +434,8 @@ static TiValueRef StringFormatCallback (TiContextRef jsContext, TiObjectRef jsFu
 				size+=sizeof(bool);
 			}
 		}
-		char* argList = (char *)malloc(size);
-		char* bm = argList; // copy pointer since we move the other forward
+		void* argList = malloc(size);
+		void* bm = argList; // copy pointer since we move the other forward
 		for (size_t x = 1; x < argCount; x++)
 		{
 			TiValueRef valueRef = args[x];
@@ -398,6 +465,7 @@ static TiValueRef StringFormatCallback (TiContextRef jsContext, TiObjectRef jsFu
 	{
 		return ThrowException(jsContext, [e reason], exception);
 	}
+#endif
 }	
 
 static TiValueRef StringFormatDateCallback (TiContextRef jsContext, TiObjectRef jsFunction, TiObjectRef jsThis, size_t argCount,
@@ -430,6 +498,10 @@ static TiValueRef StringFormatDateCallback (TiContextRef jsContext, TiObjectRef 
 		else if ([s isEqualToString:@"long"])
 		{
 			style = NSDateFormatterLongStyle;
+		}
+		else if ([s isEqualToString:@"full"])
+		{
+			style = NSDateFormatterFullStyle;
 		}
 	}
 	
@@ -503,10 +575,22 @@ static TiValueRef StringFormatCurrencyCallback (TiContextRef jsContext, TiObject
 	}
 	
 	KrollContext *ctx = GetKrollContext(jsContext);
+    NSString* locale = nil;
 	NSNumber* number = [KrollObject toID:ctx value:args[0]];
+    if (argCount >= 2) {
+        locale = [KrollObject toID:ctx value:args[1]];
+    }
 	
 	@try 
 	{
+        if (locale) {
+            NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+            [numberFormatter setLocale:[NSLocale localeWithLocaleIdentifier:locale]];
+            [numberFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+            TiValueRef value = [KrollObject toValue:ctx value:[numberFormatter stringFromNumber:number]];
+            [numberFormatter release];
+            return value;
+        }
 		NSString* result = [NSNumberFormatter localizedStringFromNumber:number numberStyle:NSNumberFormatterCurrencyStyle];
 		TiValueRef value = [KrollObject toValue:ctx value:result];
 		return value;
@@ -626,7 +710,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	}
 	TiObjectRef global = TiContextGetGlobalObject([context context]);
 	
-	TiValueRef result = TiEvalScript([context context], jsCode, global, jsURL, startingLineNo, exceptionPointer);
+	TiValueRef result = TiEvalScript([context context], jsCode, global, jsURL, (int)startingLineNo, exceptionPointer);
 		
 	TiStringRelease(jsCode);
 	if (jsURL != NULL) {
@@ -718,7 +802,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 
 	if(callback != nil)
 	{
-		[callback call:[NSArray arrayWithObject:eventObject] thisObject:thisObject];
+        [callback call:eventObject?[NSArray arrayWithObject:eventObject]:nil thisObject:thisObject];
 	}
     pthread_mutex_unlock(&KrollEntryLock);
 }
@@ -740,11 +824,12 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	}
 }
 
+#ifdef TI_USE_KROLL_THREAD
 -(NSString*)threadName
 {
 	return [NSString stringWithFormat:@"KrollContext<%@>",contextId];
 }
-
+#endif
 -(id)init
 {
 	if (self = [super init])
@@ -752,20 +837,25 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 #if CONTEXT_MEMORY_DEBUG==1
 		NSLog(@"[DEBUG] INIT: %@",self);
 #endif
+#ifdef TI_USE_KROLL_THREAD
 		contextId = [[NSString stringWithFormat:@"kroll$%d",++KrollContextIdCounter] copy];
 		condition = [[NSCondition alloc] init];
 		queue = [[NSMutableArray alloc] init];
-		timerLock = [[NSRecursiveLock alloc] init];
-		[timerLock setName:[NSString stringWithFormat:@"%@ Timer Lock",[self threadName]]];
 		lock = [[NSRecursiveLock alloc] init];
 		[lock setName:[NSString stringWithFormat:@"%@ Lock",[self threadName]]];
+        timerLock = [[NSRecursiveLock alloc] init];
+        NSString* timerName = [NSString stringWithFormat:@"%@ Timer Lock",[self threadName]];
+        [timerLock setName:timerName];
+#endif
 		stopped = YES;
 		KrollContextCount++;
         debugger = NULL;
 		
 		WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
+#ifdef TI_USE_KROLL_THREAD
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(suspend:) name:kTiSuspendNotification object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resume:) name:kTiResumeNotification object:nil];
+#endif
 	}
 	return self;
 }
@@ -776,6 +866,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	NSLog(@"[DEBUG] DESTROY: %@",self);
 #endif
 	[self stop];
+#ifdef TI_USE_KROLL_THREAD
 	RELEASE_TO_NIL(condition);
 	if (queue!=nil)
 	{
@@ -783,6 +874,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	}		
 	RELEASE_TO_NIL(queue);
 	RELEASE_TO_NIL(contextId);
+	RELEASE_TO_NIL(lock);
 	if (timerLock!=nil)
 	{
 		[timerLock lock];
@@ -792,9 +884,14 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 		}
 		[timerLock unlock];
 	}
+    RELEASE_TO_NIL(timerLock);
+#else
+    if (timers!=nil)
+    {
+        [timers removeAllObjects];
+    }
+#endif
 	RELEASE_TO_NIL(timers);
-	RELEASE_TO_NIL(lock);
-	RELEASE_TO_NIL(timerLock);
 }
 
 #if CONTEXT_MEMORY_DEBUG==1
@@ -828,26 +925,33 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	[super dealloc];
 }
 
+#ifdef TI_USE_KROLL_THREAD
 -(NSString*)contextId
 {
 	return [[contextId retain] autorelease];
 }
-
+#endif
 -(void)registerTimer:(id)timer timerId:(double)timerId
 {
+#ifdef TI_USE_KROLL_THREAD
 	[timerLock lock];
+#endif
 	if (timers==nil)
 	{
 		timers = [[NSMutableDictionary alloc] init];
 	}
 	NSString *key = [[NSNumber numberWithDouble:timerId] stringValue];
 	[timers setObject:timer forKey:key];
+#ifdef TI_USE_KROLL_THREAD
 	[timerLock unlock];
+#endif
 }
 
 -(void)unregisterTimer:(double)timerId
 {
+#ifdef TI_USE_KROLL_THREAD
 	[timerLock lock];
+#endif
 	if (timers!=nil)
 	{
 		NSString *timer = [[NSNumber numberWithDouble:timerId] stringValue];
@@ -864,7 +968,9 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 			RELEASE_TO_NIL(timers);
 		}
 	}
+#ifdef TI_USE_KROLL_THREAD
 	[timerLock unlock];
+#endif
 }
 
 -(void)start
@@ -876,26 +982,37 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 									 userInfo:nil];
 	}
 	stopped = NO;
-	[NSThread detachNewThreadSelector:@selector(main) toTarget:self withObject:nil];
+#ifdef TI_USE_KROLL_THREAD
+    [NSThread detachNewThreadSelector:@selector(main) toTarget:self withObject:nil];
+#else
+    TiThreadPerformOnMainThread(^{[self main];}, NO);
+#endif
 }
 
 -(void)stop
 {
 	if (stopped == NO)
 	{
+#ifdef TI_USE_KROLL_THREAD
 		[condition lock];
+#endif
 		stopped = YES;
 		if (debugger!=NULL)
 		{
 			TiObjectRef globalRef = TiContextGetGlobalObject(context);
+#ifndef USE_JSCORE_FRAMEWORK
 			TiDebuggerDestroy(self,globalRef,debugger);
-			debugger = NULL;
+#endif
+            debugger = NULL;
 		}
+#ifdef TI_USE_KROLL_THREAD
 		[condition signal];
 		[condition unlock];
+#endif
 	}
 }
 
+#ifdef TI_USE_KROLL_THREAD
 - (void)suspend:(id)note
 {
 	[condition lock];
@@ -914,6 +1031,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	[condition signal];
 	[condition unlock];
 }
+#endif
 
 -(BOOL)running
 {
@@ -926,20 +1044,21 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 }
 
 #ifdef DEBUG
--(int)queueCount
+#ifdef TI_USE_KROLL_THREAD
+-(NSUInteger)queueCount
 {
 	return [queue count];
 }
+#endif
 #endif
 
 
 -(BOOL)isKJSThread
 {
-#if 1
+#ifdef TI_USE_KROLL_THREAD
 	return (cachedThreadId == [NSThread currentThread] ? YES : NO);
 #else
-	NSString *name = [[NSThread currentThread] name];
-	return [name isEqualToString:[self threadName]];
+    return [[NSThread currentThread] isEqual:[NSThread mainThread]];
 #endif
 }
 
@@ -959,6 +1078,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 
 -(void)enqueue:(id)obj
 {
+#ifdef TI_USE_KROLL_THREAD
 	[condition lock];
 
 	BOOL mythread = [self isKJSThread];
@@ -977,26 +1097,35 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	}
 	
 	[condition unlock];
+#else
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self invoke:obj];
+    });
+#endif
 }
 
 -(void)evalJS:(NSString*)code
 {
 	KrollEval *eval = [[[KrollEval alloc] initWithCode:code] autorelease];
+#ifdef TI_USE_KROLL_THREAD
 	if ([self isKJSThread])
 	{	
 		[eval invoke:self];
 		return;
 	}
+#endif
 	[self enqueue:eval];
 }
 
 -(id)evalJSAndWait:(NSString*)code
 {
+#ifdef TI_USE_KROLL_THREAD
 	if (![self isKJSThread])
 	{
 		DeveloperLog(@"[ERROR] attempted to evaluate JS and not on correct Thread! Aborting!");
 		@throw @"Invalid Thread Access";
 	}
+#endif
 	KrollEval *eval = [[[KrollEval alloc] initWithCode:code] autorelease];
 	return [eval invokeWithResult:self];
 }
@@ -1004,35 +1133,45 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 -(void)invokeOnThread:(id)callback_ method:(SEL)method_ withObject:(id)obj condition:(NSCondition*)condition_
 {
 	KrollInvocation *invocation = [[[KrollInvocation alloc] initWithTarget:callback_ method:method_ withObject:obj condition:condition_] autorelease];
+#ifdef TI_USE_KROLL_THREAD
 	if ([self isKJSThread])
 	{
 		[invocation invoke:self];
 		return;
 	}
-	[self enqueue:invocation];
+    [self enqueue:invocation];
+#else
+    [self invoke:invocation];
+#endif
 }
 
 -(void)invokeOnThread:(id)callback_ method:(SEL)method_ withObject:(id)obj callback:(id)callback selector:(SEL)selector_
 {
 	KrollInvocation *invocation = [[[KrollInvocation alloc] initWithTarget:callback_ method:method_ withObject:obj callback:callback selector:selector_] autorelease];
+#ifdef TI_USE_KROLL_THREAD
 	if ([self isKJSThread])
 	{
 		[invocation invoke:self];
 		return;
 	}
-	[self enqueue:invocation];
+    [self enqueue:invocation];
+#else
+    [self invoke:invocation];
+#endif
 }
 
 -(void)invokeBlockOnThread:(void (^)())block
 {
-    if ([self isKJSThread]) {
-        pthread_mutex_lock(&KrollEntryLock);
-        block();
-        pthread_mutex_unlock(&KrollEntryLock);
+#ifdef TI_USE_KROLL_THREAD
+    if (![self isKJSThread]) {
+        NSBlockOperation* blockOp = [NSBlockOperation blockOperationWithBlock:block];
+        [self enqueue:blockOp];
         return;
     }
-    NSBlockOperation* blockOp = [NSBlockOperation blockOperationWithBlock:block];
-    [self enqueue:blockOp];
+#endif
+    pthread_mutex_lock(&KrollEntryLock);
+    block();
+    pthread_mutex_unlock(&KrollEntryLock);
 }
 
 + (void)invokeBlock:(void (^)())block
@@ -1063,6 +1202,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	// don't worry about locking, not that important
 	gcrequest = YES;
 	
+#ifdef TI_USE_KROLL_THREAD
 	// signal the waiting thread to wake up - since this
 	// is called on a possible low memory condition, we 
 	// need to immediately force the thread to wake up
@@ -1070,35 +1210,42 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	[condition lock];
 	[condition signal];
 	[condition unlock];
+#endif
 }
 
 -(int)forceGarbageCollectNow
 {
-	NSAutoreleasePool * garbagePool = [[NSAutoreleasePool alloc] init];
+#ifdef USE_JSCORE_FRAMEWORK
+    gcrequest = NO;
+    loopCount = 0;
+#else
+    NSAutoreleasePool * garbagePool = [[NSAutoreleasePool alloc] init];
 #if CONTEXT_DEBUG == 1	
 	NSLog(@"[DEBUG] CONTEXT<%@>: forced garbage collection requested",self);
 #endif
+
 	pthread_mutex_lock(&KrollEntryLock);
 	TiGarbageCollect(context);
 	pthread_mutex_unlock(&KrollEntryLock);
 	gcrequest = NO;
 	loopCount = 0;
 	[garbagePool drain];
+#endif
 	return 0;
 }
 
 -(void)main
 {
-
+#ifdef TI_USE_KROLL_THREAD
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	[[NSThread currentThread] setName:[self threadName]];
 	cachedThreadId = [NSThread currentThread];
+    incrementKrollCounter();
+#endif
 	pthread_mutex_lock(&KrollEntryLock);
-//	context = TiGlobalContextCreateInGroup([TiApp contextGroup],NULL);
-	context = TiGlobalContextCreate(NULL);
+    context = TiGlobalContextCreate(NULL);
 	TiObjectRef globalRef = TiContextGetGlobalObject(context);
 	
-    incrementKrollCounter();
 
 	if (appJsKrollContext == nil) {
 		appJsKrollContext = self;
@@ -1107,12 +1254,14 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	
     // TODO: We might want to be smarter than this, and do some KVO on the delegate's
     // 'debugMode' property or something... and start/stop the debugger as necessary.
+#ifndef USE_JSCORE_FRAMEWORK
     if ([[self delegate] shouldDebugContext]) {
         debugger = TiDebuggerCreate(self,globalRef);
-    } else if ([[self delegate] shouldProfileContext]) {
-		TiProfilerEnable(globalRef);
-	}
-	
+    }
+    if ([[self delegate] shouldProfileContext]) {
+        TiProfilerEnable(globalRef,context);
+    }
+#endif
 	// we register an empty kroll string that allows us to pluck out this instance
 	KrollObject *kroll = [[KrollObject alloc] initWithTarget:nil context:self];
 	TiValueRef krollRef = [KrollObject toValue:self value:kroll];
@@ -1209,8 +1358,9 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	}
 	pthread_mutex_unlock(&KrollEntryLock);
 	
-	BOOL exit_after_flush = NO;
 	
+#ifdef TI_USE_KROLL_THREAD
+    BOOL exit_after_flush = NO;
 	while(1)
 	{
 		NSAutoreleasePool *innerpool = [[NSAutoreleasePool alloc] init];
@@ -1243,7 +1393,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 		{
             [condition unlock];
 			exit_after_flush = YES;
-			int queue_count = 0;
+			NSUInteger queue_count = 0;
 			
 			[lock lock];
 			queue_count = [queue count];
@@ -1351,7 +1501,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 		
 		[condition lock];
 		[lock lock];
-		int queue_count = [queue count];
+		NSUInteger queue_count = [queue count];
 		[lock unlock];
 		if ((queue_count == 0) && !suspended)
 		{
@@ -1369,8 +1519,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 		
 		RELEASE_TO_NIL(innerpool);
 	}
-
-#if CONTEXT_DEBUG == 1	
+#if CONTEXT_DEBUG == 1
 	NSLog(@"[DEBUG] CONTEXT<%@>: is shutting down",self);
 #endif
 	
@@ -1379,8 +1528,9 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 	{
 		[delegate performSelector:@selector(willStopNewContext:) withObject:self];
 	}
-	
+#ifdef TI_USE_KROLL_THREAD
 	[timerLock lock];
+#endif
 	// stop any running timers
 	if (timers!=nil && [timers count]>0)
 	{
@@ -1391,8 +1541,9 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 		}
 		[timers removeAllObjects];
 	}
-	[timerLock unlock]; 
-	
+#ifdef TI_USE_KROLL_THREAD
+	[timerLock unlock];
+#endif
 	[KrollCallback shutdownContext:self];
 	
 	// now we can notify listeners we're done
@@ -1426,6 +1577,7 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 
 	[kroll autorelease];
 	[pool release];
+#endif
 }
 
 -(void*)debugger
@@ -1474,10 +1626,23 @@ static TiValueRef StringFormatDecimalCallback (TiContextRef jsContext, TiObjectR
 
 -(void)main
 {
-	IMP ourFunction = [invocationTarget methodForSelector:invocationSelector];
-	id result = ourFunction(invocationTarget,invocationSelector,
-		invocationArg1,invocationArg2,invocationArg3,invocationArg4);
-
+    NSMethodSignature* msignature = [invocationTarget methodSignatureForSelector:invocationSelector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:msignature];
+    NSUInteger argCount = [msignature numberOfArguments];
+    if (argCount >= 3) {
+        [invocation setArgument:&invocationArg1 atIndex:2];
+    }
+    if (argCount >= 4) {
+        [invocation setArgument:&invocationArg2 atIndex:3];
+    }
+    if (argCount >= 5) {
+        [invocation setArgument:&invocationArg3 atIndex:4];
+    }
+    if (argCount >= 6) {
+        [invocation setArgument:&invocationArg4 atIndex:5];
+    }
+    [invocation setSelector:invocationSelector];
+    [invocation invokeWithTarget:invocationTarget];
 }
 
 - (void) dealloc

@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -53,10 +53,9 @@
 -(void)parseString:(NSString*)xml
 {
 	NSError *error = nil;
-	GDataXMLDocument * ourDocument = [[GDataXMLDocument alloc] initWithXMLString:xml options:0 error:&error];
+	GDataXMLDocument * ourDocument = [[[GDataXMLDocument alloc] initWithXMLString:xml options:0 error:&error] autorelease];
 	if (error!=nil)
 	{
-		[ourDocument release];
 		[self throwException:[error description] subreason:nil location:CODELOCATION];
         return;
 	}
@@ -64,7 +63,6 @@
 	[self setDocument:ourDocument];
     xmlDocPtr docPtr = [ourDocument docNode];
     [TiDOMNodeProxy setNode:self forXMLNode:(xmlNodePtr)docPtr];
-	[ourDocument release];
 }
 
 #pragma mark Public APIs

@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "TiUIListView.h"
 #import "TiUIListItemProxy.h"
+#import "MGSwipeTableCell.h"
 
 enum {
 	TiUIListItemTemplateStyleCustom = -1
@@ -23,14 +24,15 @@ typedef enum
 } TiGroupedListItemPosition;
 
 
-@interface TiUIListItem : UITableViewCell<TiProxyDelegate>
+@interface TiUIListItem : MGSwipeTableCell<TiProxyDelegate>
 {
 }
 
 @property (nonatomic, readonly) NSInteger templateStyle;
 @property (nonatomic, readonly) TiUIListItemProxy *proxy;
-@property (nonatomic, readonly) TiUIView *viewHolder;
+@property (nonatomic, retain) TiUIView *viewHolder;
 @property (nonatomic, readwrite, retain) NSDictionary *dataItem;
+@property(nonatomic) BOOL delaysContentTouches;
 
 - (id)initWithStyle:(UITableViewCellStyle)style position:(int)position grouped:(BOOL)grouped reuseIdentifier:(NSString *)reuseIdentifier proxy:(TiUIListItemProxy *)proxy;
 - (id)initWithProxy:(TiUIListItemProxy *)proxy position:(int)position grouped:(BOOL)grouped reuseIdentifier:(NSString *)reuseIdentifier;
@@ -39,6 +41,9 @@ typedef enum
 - (void)setPosition:(int)position isGrouped:(BOOL)grouped;
 -(void)configurationStart;
 -(void)configurationSet;
+- (void) ensureVisibleSelectorWithTableView:(UITableView*)tableView;
+-(BOOL)canSwipeLeft;
+-(BOOL)canSwipeRight;
 @end
 
 #endif

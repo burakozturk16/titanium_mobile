@@ -42,7 +42,7 @@
 - (id)reverseAnimationStep
 {
     TiHLSAnimationStep *reverseAnimationStep = [super reverseAnimationStep];
-    reverseAnimationStep.curve = [TiAnimation reverseCurve:self.curve];
+    reverseAnimationStep.curve = [TiAnimation inverseFunction:self.curve];
 
     return reverseAnimationStep;
 }

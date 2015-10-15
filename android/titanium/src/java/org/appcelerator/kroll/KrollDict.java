@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.TiC;
@@ -39,7 +38,6 @@ public class KrollDict
 		this(INITIAL_SIZE);
 	}
 
-	@SuppressWarnings("unchecked")
 	public KrollDict(JSONObject object) throws JSONException {
 		for (Iterator<String> iter = object.keys(); iter.hasNext();) {
 			String key = iter.next();
@@ -47,6 +45,10 @@ public class KrollDict
 			Object json = fromJSON(value);
 			put(key, json);
 		}
+	}
+	
+	public KrollDict(final String jsonString) throws JSONException {
+	    this(new JSONObject(jsonString));
 	}
 		
 	public static Object fromJSON(Object value) {
@@ -126,7 +128,7 @@ public class KrollDict
 	public boolean equalsKrollDict(KrollDict otherDict)
 	{
 		if (otherDict.size() != size()) return false;
-		for(Entry<String, Object> e: entrySet()){
+		for(Map.Entry<String, Object> e: entrySet()){
 			String key = e.getKey();
 			Object newvalue = e.getValue();
 			if (!otherDict.containsKeyWithValue(key, newvalue))
@@ -281,7 +283,7 @@ public class KrollDict
 	public Number[] getNumberArray(String key) {
 		return TiConvert.toNumberArray((Object[])get(key));
 	}
-
+	
 	public Number[] optIntArray(String key, Number[] defaultValue) {
 		Number[] result = defaultValue;
 
@@ -290,18 +292,39 @@ public class KrollDict
 		}
 		return result;
 	}
+	
+	public Object[] getArray(String key) {
+	    Object result = get(key);
+	    if (result instanceof Object[]) {
+	        return (Object[]) result;
+	    }
+        return null;
+    }
 
-	@SuppressWarnings("unchecked")
+	public Object[] optArray(String key, Object[] defaultValue) {
+	    Object[] result = defaultValue;
+
+        if (containsKey(key)) {
+            result = getArray(key);
+        }
+        return result;
+    }
+
 	public KrollDict getKrollDict(String key) {
-		Object value = get(key);
-		if (value instanceof KrollDict) {
-			return (KrollDict) value;
-		} else if (value instanceof HashMap) {
-			return new KrollDict((HashMap<String, Object>) value);
-		} else {
-			return null;
-		}
+	    return TiConvert.toKrollDict(get(key));
 	}
+	
+	@SuppressWarnings("unchecked")
+    public HashMap getHashMap(String key) {
+        Object value = get(key);
+        if (value instanceof KrollDict) {
+            return (KrollDict) value;
+        } else if (value instanceof HashMap) {
+            return (HashMap<String, Object>) value;
+        } else {
+            return null;
+        }
+    }
 
 	public boolean isNull(String key) {
 		return (get(key) == null);

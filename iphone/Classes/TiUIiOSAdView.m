@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2010-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -11,7 +11,7 @@
 
 #ifdef USE_TI_UIIOSADVIEW
 
-extern NSString * const TI_APPLICATION_ANALYTICS;
+extern BOOL const TI_APPLICATION_ANALYTICS;
 
 @implementation TiUIiOSAdView
 
@@ -25,8 +25,7 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 {
 	if (adview == nil)
 	{
-		adview = [[ADBannerView alloc] initWithFrame:CGRectZero];
-		adview.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+		adview = [[ADBannerView alloc] initWithAdType:ADAdTypeBanner];
 		adview.delegate = self;
 		[self addSubview:adview];
 	}
@@ -41,7 +40,8 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 -(CGSize)contentSizeForSize:(CGSize)size
 {
 	ADBannerView *view = [self adview];
-    return [ADBannerView sizeFromBannerContentSizeIdentifier:view.currentContentSizeIdentifier];
+	CGSize refSize = [[UIScreen mainScreen] bounds].size;
+    return [view sizeThatFits:refSize];
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -51,11 +51,6 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 		[TiUtils setView:[self adview] positionRect:bounds];
 	}
     [super frameSizeChanged:frame bounds:bounds];
-}
-
--(void)setAdSize:(NSString*)sizeName
-{
-    [self adview].currentContentSizeIdentifier = sizeName;
 }
 
 #pragma mark Public APIs
@@ -75,7 +70,7 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
     [self.proxy replaceValue:NUMBOOL(YES) forKey:@"visible" notification:YES];
 	if (TI_APPLICATION_ANALYTICS)
 	{
-		NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:[banner currentContentSizeIdentifier],@"size",nil];
+		NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:NSStringFromCGSize(banner.bounds.size),@"size",nil];
         APSAnalytics *sharedAnalytics = [APSAnalytics sharedInstance];
         SEL aSelector = NSSelectorFromString(@"sendCustomEvent:withEventType:payload:");
         if([sharedAnalytics respondsToSelector:aSelector]) {
@@ -96,7 +91,7 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 {
 	if (TI_APPLICATION_ANALYTICS)
 	{
-		NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:[banner currentContentSizeIdentifier],@"size",nil];
+		NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:NSStringFromCGSize(banner.bounds.size),@"size",nil];
         APSAnalytics *sharedAnalytics = [APSAnalytics sharedInstance];
         SEL aSelector = NSSelectorFromString(@"sendCustomEvent:withEventType:payload:");
         if([sharedAnalytics respondsToSelector:aSelector]) {
@@ -111,10 +106,10 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
         }
 
 	}
-	if ([self.proxy _hasListeners:@"action"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"action" checkParent:NO])
 	{
 		NSMutableDictionary *event = [NSMutableDictionary dictionary];
-		[self.proxy fireEvent:@"action" withObject:event];
+		[self.proxy fireEvent:@"action" withObject:event withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
 	}
 }
 
@@ -125,15 +120,15 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 
 - (void)bannerView:(ADBannerView *)banner didFailToReceiveAdWithError:(NSError *)error
 {
-	TiProxy * selfProxy = [self proxy];
+	TiViewProxy * selfProxy = (TiViewProxy*)[self proxy];
 	// per Apple, we must hide the banner view if there's no ad
 	[selfProxy replaceValue:NUMBOOL(NO) forKey:@"visible" notification:YES];
 	
-	if ([selfProxy _hasListeners:@"error"])
+	if ([selfProxy _hasListeners:@"error" checkParent:NO])
 	{
 		NSString * message = [TiUtils messageFromError:error];
 		NSDictionary *event = [NSDictionary dictionaryWithObject:message forKey:@"message"];
-		[selfProxy fireEvent:@"error" withObject:event errorCode:[error code] message:message];
+		[selfProxy fireEvent:@"error" withObject:event propagate:NO reportSuccess:YES errorCode:[error code] message:message];
 	}
 }
 

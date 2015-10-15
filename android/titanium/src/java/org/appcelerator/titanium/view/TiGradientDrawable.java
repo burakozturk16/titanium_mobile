@@ -63,11 +63,11 @@ public class TiGradientDrawable extends ShapeDrawable {
 		}
 		
 		if (properties.containsKey("startPoint")) {
-			startPoint = new TiPoint((HashMap) properties.get("startPoint"));
+			startPoint = TiConvert.toPoint(properties.get("startPoint"));
 		}
 		
 		if (properties.containsKey("endPoint")) {
-			endPoint = new TiPoint((HashMap) properties.get("endPoint"));
+		    endPoint = TiConvert.toPoint(properties.get("endPoint"));
 		}
 		if (properties.containsKey("startRadius")) {
 			startRadius = TiConvert.toTiDimension(properties, "startRadius", TiDimension.TYPE_WIDTH);
@@ -78,13 +78,13 @@ public class TiGradientDrawable extends ShapeDrawable {
 		if (properties.containsKey("tileMode")) {
 			String mode = TiConvert.toString(properties, "tileMode");
 			if (mode.equalsIgnoreCase("repeat")){
-				tileMode = tileMode.REPEAT;
+				tileMode = TileMode.REPEAT;
 			}
 			else if(mode.equalsIgnoreCase("mirror")){
-				tileMode = tileMode.MIRROR;
+				tileMode = TileMode.MIRROR;
 			}
 			else {
-				tileMode = tileMode.CLAMP;
+				tileMode = TileMode.CLAMP;
 			}
 		}
 
@@ -156,10 +156,10 @@ public class TiGradientDrawable extends ShapeDrawable {
 			{
 				mCachedWidth = height;
 				mCachedheight = height;
-				float x0 = startPoint.getX().getAsPixels(null, width, height);
-				float y0 = startPoint.getY().getAsPixels(null, width, height);
-				float x1 = endPoint.getX().getAsPixels(null, width, height);
-				float y1 = endPoint.getY().getAsPixels(null, width, height);
+				float x0 = startPoint.getX().getAsPixels(width, height);
+				float y0 = startPoint.getY().getAsPixels( width, height);
+				float x1 = endPoint.getX().getAsPixels(width, height);
+				float y1 = endPoint.getY().getAsPixels(width, height);
 	
 				switch (gradientType) {
 					case LINEAR_GRADIENT:
@@ -167,7 +167,7 @@ public class TiGradientDrawable extends ShapeDrawable {
 						break;
 					case RADIAL_GRADIENT:
 						startRadius.setValueType((width>height)?TiDimension.TYPE_HEIGHT:TiDimension.TYPE_WIDTH);
-						float radius0 = startRadius.getAsPixels(null, width, height);
+						float radius0 = startRadius.getAsPixels(width, height);
 						mCachedShader = (radius0 > 0)?(new RadialGradient(x0, y0, radius0, colors, offsets, tileMode)):null;
 						break;
 					case SWEEP_GRADIENT:

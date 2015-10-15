@@ -23,8 +23,9 @@ import android.os.Build;
 public class TiColorHelper
 {
 	static Pattern shortHexPattern = Pattern.compile("#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f]?)");
-	static Pattern rgbPattern = Pattern.compile("rgb\\(([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})\\)");
-	static Pattern argbPattern = Pattern.compile("rgba\\(([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})\\)");
+	static Pattern rgbPattern = Pattern.compile("(rgb|rgba)\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*(\\d+(?:\\.\\d+)?))?\\)");
+	
+	
 
 	private static final String TAG = "TiColorHelper";
 	private static HashMap<String, Integer> colorTable;
@@ -42,28 +43,37 @@ public class TiColorHelper
 			String lowval = value.trim().toLowerCase();
 
 			Matcher m = null;
-			if ((m = shortHexPattern.matcher(lowval)).matches()) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("#");
-				for(int i = 1; i <= m.groupCount(); i++) {
-					String s = m.group(i);
-					sb.append(s).append(s);
-				}
-				String newColor = sb.toString();
-				color = Color.parseColor(newColor);
-			} else if ((m = rgbPattern.matcher(lowval)).matches()) {
-				color = Color.rgb(
-					Integer.valueOf(m.group(1)),
-					Integer.valueOf(m.group(2)),
-					Integer.valueOf(m.group(3))
-					);
-			} else if ((m = argbPattern.matcher(lowval)).matches()) {
-				color = Color.argb(
-						Integer.valueOf(m.group(4)),
-						Integer.valueOf(m.group(1)),
-						Integer.valueOf(m.group(2)),
-						Integer.valueOf(m.group(3))
-						);
+			if (lowval.startsWith("#")) {
+			    if (lowval.length() == 4) {
+			        StringBuilder sb = new StringBuilder();
+	                sb.append("#");
+	                for(int i = 1; i < lowval.length(); i++) {
+	                    char s = lowval.charAt(i);
+	                    sb.append(s).append(s);
+	                }
+	                String newColor = sb.toString();
+	                color = Color.parseColor(newColor);
+			    } else {
+                    color = Color.parseColor(lowval);
+			    }
+				
+			} else if (lowval.startsWith("rgb") && (m = rgbPattern.matcher(lowval)).matches()) {
+			    String first = m.group(1);
+			    if (first.equalsIgnoreCase("rgba")) {
+			        color = Color.argb(
+                            (int) (Float.valueOf(m.group(5))*255.0f),
+		                    Integer.valueOf(m.group(2)),
+		                    Integer.valueOf(m.group(3)),
+		                    Integer.valueOf(m.group(4))
+		                    );
+			    } else {
+                    color = Color.rgb(
+                            Integer.valueOf(m.group(2)),
+                            Integer.valueOf(m.group(3)),
+                            Integer.valueOf(m.group(4))
+                            );
+                }
+				
 			} else {
 				// Try the parser, will throw illegalArgument if it can't parse it.
 				try {
@@ -119,5 +129,13 @@ public class TiColorHelper
 			colorTable.put("teal", Color.rgb(0x0, 0x80, 0x80));
 			colorTable.put("brown", Color.rgb(0x99, 0x66, 0x33));
 		}
+	}
+	
+	public static String toHexString(final int color) {
+	    int alpha = Color.alpha(color);
+	    if (alpha != 255) {
+	        return '#' + Integer.toHexString(color);
+	    }
+	    return '#' + Integer.toHexString(color).substring(2);
 	}
 }

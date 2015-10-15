@@ -7,14 +7,13 @@
 package org.appcelerator.kroll;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
+import org.appcelerator.titanium.proxy.ReusableProxy;
 
 import android.app.Activity;
 
@@ -22,7 +21,7 @@ import android.app.Activity;
  * This is the parent class for all modules. All modules must extend this class.
  */
 @Kroll.module(name="KrollModule")
-public class KrollModule extends KrollProxy
+public class KrollModule extends ReusableProxy
 	implements KrollProxyListener, OnLifecycleEvent
 {
 	@Deprecated
@@ -47,7 +46,6 @@ public class KrollModule extends KrollProxy
 	public KrollModule()
 	{
 		super();
-		modelListener = this;
 	}
 
 	/**
@@ -136,58 +134,10 @@ public class KrollModule extends KrollProxy
 	public void onStop(Activity activity) {	
 	}
 
-	/**
-	 * Subclasses can override this method to be notified when an event listener
-	 * for a specific <code>type</code> has been added.
-	 * 
-	 * @param type the event type
-	 * @param count the count of event listeners for the event
-	 * @param proxy the proxy instance that the event listener was added to
-	 * @module.api
-	 */
-	public void listenerAdded(String type, int count, KrollProxy proxy) {
-	}
-
-	/**
-	 * Subclasses can override this method to be notified when an event listener
-	 * for a specific <code>type</code> has been removed.
-	 * 
-	 * @param type the event type
-	 * @param count the count of event listeners for the event
-	 * @param proxy the proxy instance that the event listener was removed from
-	 * @module.api
-	 */
-	public void listenerRemoved(String type, int count, KrollProxy proxy) {
-	}
-
-	/**
-	 * Implementing classes can use this method to examine the properties passed into the proxy when it's first created.
-	 * @param properties  a set of properties to process.
-	 * @module.api
-	 */
-	public void processProperties(KrollDict properties) {
-	}
-
-	/**
-	 * A place holder for subclasses to extend. Its purpose is to be notified when an existing property is changed.
-	 * @param key  the key of the property.
-	 * @param oldValue  the property's old value.
-	 * @param newValue  the property's new value.
-	 * @param proxy     the associated proxy.
-	 * @module.api
-	 */
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
-	}
-
-	public void propertiesChanged(List<KrollPropertyChange> changes, KrollProxy proxy) {
-		for (KrollPropertyChange change : changes) {
-			propertyChanged(change.getName(), change.getOldValue(), change.getNewValue(), proxy);
-		}
-	}
-
 	@Override
 	public String getApiName()
 	{
 		return "Ti.Module";
 	}
+
 }

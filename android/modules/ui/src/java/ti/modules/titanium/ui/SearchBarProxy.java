@@ -17,9 +17,9 @@ import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
 import android.app.Activity;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors = {
-	"prompt", "promptid",
-	"hintText", "hinttextid",
-	"showCancel", "barColor",
+    TiC.PROPERTY_PROMPT, "promptid",
+    TiC.PROPERTY_HINT_TEXT, "hinttextid",
+    TiC.PROPERTY_SHOW_CANCEL, TiC.PROPERTY_BAR_COLOR,
 	TiC.PROPERTY_VALUE
 })
 public class SearchBarProxy extends ViewProxy
@@ -43,8 +43,8 @@ public class SearchBarProxy extends ViewProxy
 	@Override
 	protected KrollDict getLangConversionTable() {
 		KrollDict table = new KrollDict();
-		table.put("prompt", "promptid");
-		table.put("hintText", "hinttextid");
+		table.put(TiC.PROPERTY_PROMPT, "promptid");
+		table.put(TiC.PROPERTY_HINT_TEXT, "hinttextid");
 		return table;
 	}
 

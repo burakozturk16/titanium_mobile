@@ -22,9 +22,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.net.ConnectivityManager;
 import android.net.DhcpInfo;
-import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
@@ -32,6 +30,7 @@ import android.util.DisplayMetrics;
 
 import com.appcelerator.analytics.APSAnalyticsHelper;
 
+@SuppressWarnings("deprecation")
 public class TiPlatformHelper extends APSAnalyticsHelper
 {
 	public static final String TAG = "TiPlatformHelper";
@@ -247,36 +246,36 @@ public class TiPlatformHelper extends APSAnalyticsHelper
 //		return networkTypeToTypeName(getNetworkType());
 //	}
 
-	private static int getNetworkType() {
-		int type = -1;
+//	private static int getNetworkType() {
+//		int type = -1;
+//
+//		ConnectivityManager connectivityManager = (ConnectivityManager)
+//			TiApplication.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
+//		if (connectivityManager != null) {
+//			try {
+//				NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
+//				if(ni != null && ni.isAvailable() && ni.isConnected()) {
+//					type = ni.getType();
+//				} else {
+//					type = -2 /*None*/;
+//				}
+//			} catch (SecurityException e) {
+//				Log.w(TAG, "Permission has been removed. Cannot determine network type: " + e.getMessage());
+//			}
+//		}
+//
+//		return type;
+//	}
 
-		ConnectivityManager connectivityManager = (ConnectivityManager)
-			TiApplication.getInstance().getSystemService(Context.CONNECTIVITY_SERVICE);
-		if (connectivityManager != null) {
-			try {
-				NetworkInfo ni = connectivityManager.getActiveNetworkInfo();
-				if(ni != null && ni.isAvailable() && ni.isConnected()) {
-					type = ni.getType();
-				} else {
-					type = -2 /*None*/;
-				}
-			} catch (SecurityException e) {
-				Log.w(TAG, "Permission has been removed. Cannot determine network type: " + e.getMessage());
-			}
-		}
-
-		return type;
-	}
-
-	private static String networkTypeToTypeName(int type)
-	{
-		switch(type)
-		{
-			case -2 : return "NONE";
-			case ConnectivityManager.TYPE_WIFI : return "WIFI";
-			case ConnectivityManager.TYPE_MOBILE : return "MOBILE";
-			case 3 : return "LAN";
-			default : return "UNKNOWN";
-		}
-	}
+//	private static String networkTypeToTypeName(int type)
+//	{
+//		switch(type)
+//		{
+//			case -2 : return "NONE";
+//			case ConnectivityManager.TYPE_WIFI : return "WIFI";
+//			case ConnectivityManager.TYPE_MOBILE : return "MOBILE";
+//			case 3 : return "LAN";
+//			default : return "UNKNOWN";
+//		}
+//	}
 }

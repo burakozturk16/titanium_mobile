@@ -6,6 +6,7 @@
  */
 #import "Ti2DMatrix.h"
 #import "TiPoint.h"
+#import "TiBase.h"
 
 #define NUMBER_REGEX_1 @"[0-9]*"
 #define NUMBER_REGEX_2 @"[-+]?" NUMBER_REGEX_1

@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.transition;
 
+import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.RotationProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
@@ -14,6 +16,7 @@ import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.view.ViewHelper;
 
 public class TransitionFlip extends Transition {
+    private static float CAMERA_DISTANCE = 10000;
     public TransitionFlip(int subtype, boolean isOut, int duration) {
         super(subtype, isOut, duration, 300);
     }
@@ -68,23 +71,23 @@ public class TransitionFlip extends Transition {
     }
 
     @Override
-    public void transformView(View view, float position, boolean adjustScroll) {
+    public void transformView(View view, float position) {
         boolean out = (position < 0);
-        float multiplier = -1;
         if (!TransitionHelper.isPushSubType(subType)) {
-            multiplier = 1;
             out = !out;
         }
-        float dest = multiplier * position * (adjustScroll ? 1 : 0);
+        
         float alpha = (Math.abs(position) > 0.5) ? 0 : 1;
         ViewHelper.setAlpha(view, alpha);
         float rot = 180 * position;
+        view.setVisibility((Math.abs(rot) >= 180)?View.INVISIBLE:View.VISIBLE);
         TiViewHelper.setPivotFloat(view, 0.5f, 0.5f);
+        if (TiC.ICS_OR_GREATER) {
+            view.setCameraDistance(CAMERA_DISTANCE * TiApplication.getAppDensity());
+        }
         if (TransitionHelper.isVerticalSubType(subType)) {
-            TiViewHelper.setTranslationRelativeY(view, dest);
             ViewHelper.setRotationX(view, rot);
         } else {
-            TiViewHelper.setTranslationRelativeX(view, dest);
             ViewHelper.setRotationY(view, rot);
         }
     }

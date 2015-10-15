@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -13,15 +13,17 @@
 	#import "XHRBridge.h"
 #endif
 #import "TiRootViewController.h"
-#import <TiCore/TiContextRef.h>
+#import "TiToJS.h"
 
 extern BOOL applicationInMemoryPanic;
 
 TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run on main thread, or else there is a risk of deadlock!
 {
+#ifdef TI_USE_KROLL_THREAD
     while (applicationInMemoryPanic) {
         [NSThread sleepForTimeInterval:0.01];
     }
+#endif
 }
 
 /**
@@ -54,6 +56,7 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 	id remoteNotificationDelegate;
 	NSDictionary* remoteNotification;
 	NSMutableDictionary* pendingCompletionHandlers;
+    NSMutableDictionary* pendingReplyHandlers;
     NSMutableDictionary* backgroundTransferCompletionHandlers;
     BOOL _appBooted;
     
@@ -63,6 +66,9 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 	NSMutableArray *backgroundServices;
 	NSMutableArray *runningServices;
 	NSDictionary *localNotification;
+#if IS_XCODE_7
+    UIApplicationShortcutItem *launchedShortcutItem;
+#endif
 }
 
 @property (nonatomic) BOOL forceSplashAsSnapshot;
@@ -132,6 +138,7 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 
 -(UIView *) topMostView;
 -(UIWindow *) topMostWindow;
+-(UIView *)viewForKeyboardAccessory;
 
 -(void)attachXHRBridgeIfRequired;
 
@@ -150,8 +157,9 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  */
 -(NSString*)remoteDeviceUUID;
 
--(void)showModalError:(NSString*)message;
-
+#ifndef TI_DEPLOY_TYPE_PRODUCTION
+-(void)showModalError:(TiScriptError*)error;
+#endif
 /**
  Tells application to display modal view controller.
  
@@ -182,8 +190,6 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  */
 -(NSString*)sessionId;
 
--(KrollBridge*)krollBridge;
-
 -(void)beginBackgrounding;
 -(void)endBackgrounding;
 
@@ -201,5 +207,10 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 //if you override it make sure to undef NSLog 
 +(void)TiNSLog:(NSString*) message;
 
+//only valid if network module loaded
+@property (nonatomic, readonly) BOOL networkConnected;
+
+-(void)clearRemoteNotification;
+-(void)watchKitExtensionRequestHandler:(id)key withUserInfo:(NSDictionary*)userInfo;
 @end
 

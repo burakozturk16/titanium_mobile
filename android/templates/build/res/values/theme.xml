@@ -1,50 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<style name="Theme.Titanium.Fullscreen" parent="Theme.Titanium">
-		<item name="android:windowFullscreen">true</item>
-	</style>
-
-    <style name="BaseTheme" parent="@style/Theme.AppCompat">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="actionBarStyle">@style/Widget.AppCompat.ActionBar</item>
-        <!-- <item name="android:actionBarStyle">@style/Widget.AppCompat.ActionBar</item> -->
+    <style name="Theme.Titanium.Fullscreen" parent="Theme.Titanium">
+        <item name="android:windowFullscreen">true</item>
     </style>
 
-	
-	<style name="Theme.Titanium" parent="<%- baseTheme %>">
-	</style>
+    <!-- root theme, inheriting AppCompat -->
+    <style name="BaseTheme" parent="@style/Theme.AppCompat">
+    </style>
 
+    <style name="Theme.Titanium" parent="<%- baseTheme %>">
+    </style>
+
+    <!-- base theme, using tiapp.xml flags -->
     <style name="Theme" parent="<%- flags %>">
     </style>
-	<style name="Theme.Titanium.NoActionBar" parent="Theme.Titanium">
-		<!-- <item name="android:windowActionBar">false</item> -->
-		<item name="android:windowNoTitle">true</item>
+
+    <!-- ActionBar Overlay Themes -->
+    <style name="Theme.Titanium.Overlay" parent="Theme.Titanium">
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+    <style name="Theme.Titanium.TranslucentActionBar.Overlay" parent="Theme.Titanium.Overlay">
+        <item name="android:actionBarStyle">@style/TransparentActionBar</item>
+    </style>
+
+    <!-- ACTION BAR STYLES -->
+    <style name="TransparentActionBar" parent="@style/Widget.AppCompat.ActionBar">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:backgroundStacked">@android:color/transparent</item>
+    </style>
+    
+    <!-- SplashScreen theme -->
+    <style name="Theme.Titanium.SplashScreen" parent="Theme.Titanium.NoActionBar">
+        <item name="android:windowBackground">@drawable/background</item>
+    </style>
+
+    <style name="Theme.Titanium.Fullscreen" parent="Theme.Titanium">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Translucent themes: transparent background -->
+    <style name="Theme.Titanium.Translucent" parent="Theme.Titanium">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:background">#00000000</item>
+    </style>
+
+    <style name="Theme.Titanium.Translucent.Fullscreen" parent="Theme.Titanium.Translucent">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Translucent with ActionBar Overlay -->
+    <style name="Theme.Titanium.Translucent.Overlay" parent="Theme.Titanium.Translucent">
+        <item name="windowActionBarOverlay">true</item>
+    </style>
+    <style name="Theme.Titanium.Translucent.TranslucentActionBar.Overlay" parent="Theme.Titanium.Translucent.Overlay">
+        <item name="android:actionBarStyle">@style/TransparentActionBar</item>
+    </style>
+
+    <!-- No ActionBar themes -->
+    <style name="Theme.Titanium.NoActionBar" parent="Theme.Titanium">
         <item name="windowActionBar">false</item>
-	</style>
-	<style name="Theme.Titanium.NoActionBar.Fullscreen" parent="Theme.Titanium.NoActionBar">
-		<item name="android:windowFullscreen">true</item>
-		<item name="android:windowContentOverlay">@null</item>
-	</style>
-	
-	<style name="Theme.Titanium.SplashScreen" parent="Theme.Titanium.NoActionBar">
-		<item name="android:windowBackground">@drawable/background</item>
-	</style>
-	<style name="Theme.Titanium.Translucent" parent="Theme.Titanium">
-		<item name="android:windowBackground">@android:color/transparent</item>
-		<item name="android:colorBackgroundCacheHint">@null</item>
-		<item name="android:windowIsTranslucent">true</item>
-		<item name="android:background">#00000000</item>
-	</style>
-	
-	<style name="Theme.Titanium.Translucent.NoTitleBar" parent="Theme.Titanium.Translucent">
-		<item name="android:windowNoTitle">true</item>
-		<item name="android:windowContentOverlay">@null</item>
-		<!-- <item name="android:windowActionBar">false</item> -->
-		<!-- AppCompat Compatibility -->
-		<item name="windowActionBar">false</item>
-	</style>
-	
-	<style name="Theme.Titanium.Translucent.NoTitleBar.Fullscreen" parent="Theme.Titanium.Translucent.NoTitleBar">
-		<item name="android:windowFullscreen">true</item>
-	</style>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Titanium.NoActionBar.Fullscreen" parent="Theme.Titanium.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="Theme.Titanium.NoActionBar.Translucent" parent="Theme.Titanium.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:background">#00000000</item>
+    </style>
+    
+    <style name="Theme.Titanium.NoActionBar.Translucent.Fullscreen" parent="Theme.Titanium.NoActionBar.Translucent">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
 </resources>

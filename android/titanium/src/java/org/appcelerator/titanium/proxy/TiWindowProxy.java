@@ -22,12 +22,14 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.animation.TiAnimation;
 import org.appcelerator.titanium.animation.TiAnimator;
-import org.appcelerator.titanium.animation.TiAnimatorSet;
+import org.appcelerator.titanium.util.TiActivityHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiUtils;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.util.TiWeakList;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -55,6 +57,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
 	private static WeakReference<TiWindowProxy> waitingForOpen;
+	private TiWeakList<KrollProxy> proxiesWaitingForActivity = new TiWeakList<KrollProxy>();
 
 	protected boolean opened, opening, closing;
 	protected boolean focused;
@@ -65,7 +68,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected PostOpenListener postOpenListener;
 	protected boolean windowActivityCreated = false;
 	
-	private TiWindowManager winManager = null;
+	protected TiWindowManager winManager = null;
 	
 	protected boolean customHandleOpenEvent = false;
 	
@@ -185,6 +188,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	@Kroll.method
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
+	    if (closing ||!opened) return;
         closing = true;
 		if (winManager != null && winManager.handleClose(this, arg)) {
 			return;
@@ -221,26 +225,17 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_CLOSE), options);
 	}
-	
-	@Override
-    public void releaseViews(boolean activityFinishing)
-    {
-        super.releaseViews(activityFinishing);
-        closeFromActivity(activityFinishing);
-    }
-    
 
 	public void closeFromActivity(boolean activityIsFinishing)
 	{
 		if (!opened) { return; }
 		closing = false;
 		opened = false;
-        activity = null;
-        parent = null;
 
 		KrollDict data = null;
 		if (activityIsFinishing) {
 			releaseViews(true);
+	        setParent(null);
 		} else {
 			// If the activity is forced to destroy by Android OS due to lack of memory or 
 			// enabling "Don't keep activities" (TIMOB-12939), we will not release the
@@ -249,12 +244,15 @@ public abstract class TiWindowProxy extends TiViewProxy
 			data = new KrollDict();
 			data.put("_closeFromActivityForcedToDestroy", true);
 		}
-		
 
 		// Once the window's activity is destroyed we will fire the close event.
 		// And it will dispose the handler of the window in the JS if the activity
 		// is not forced to destroy.
 		fireSyncEvent(TiC.EVENT_CLOSE, data, false);
+	}
+
+	public void addProxyWaitingForActivity(KrollProxy waitingProxy) {
+		proxiesWaitingForActivity.add(new WeakReference<KrollProxy>(waitingProxy));
 	}
 
 	protected void releaseViewsForActivityForcedToDestroy()
@@ -328,6 +326,17 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void onWindowActivityCreated()
 	{
 		windowActivityCreated = true;
+
+		synchronized (proxiesWaitingForActivity.synchronizedList()) {
+			for (KrollProxy proxy : proxiesWaitingForActivity.nonNull()) {
+				try {
+					proxy.attachActivityLifecycle(getActivity());
+				} catch (Throwable t) {
+					Log.e(TAG, "Error attaching activity to proxy: " + t.getMessage(), t);
+				}
+			}
+		}
+
 		updateOrientationModes();
 	}
 
@@ -481,6 +490,22 @@ public abstract class TiWindowProxy extends TiViewProxy
 		return super.getActivityProxy();
 	}
 
+	@Kroll.method(name = "_getWindowActivityProxy")
+	public ActivityProxy getWindowActivityProxy()
+	{
+		if (opened) {
+			return super.getActivityProxy();
+		} else {
+			return null;
+		}
+	}
+	
+    @Kroll.method
+    @Kroll.getProperty
+    public double getBarHeight() {
+        return TiActivityHelper.getActionBarHeight(getActivity());
+    }
+
 	protected abstract void handleOpen(KrollDict options);
 	protected abstract void handleClose(KrollDict options);
 	protected abstract Activity getWindowActivity();
@@ -535,12 +560,22 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 		if (activity != null)
 		{
-			return TiOrientationHelper.convertConfigToTiOrientationMode(activity.getResources().getConfiguration().orientation);
+			return TiOrientationHelper.convertRotationToTiOrientationMode(activity.getWindowManager().getDefaultDisplay().getRotation());
 		}
 
 		Log.e(TAG, "Unable to get orientation, activity not found for window", Log.DEBUG_MODE);
 		return TiOrientationHelper.ORIENTATION_UNKNOWN;
 	}
+	
+	   @Kroll.method @Kroll.getProperty
+	    public ActionBarProxy getActionBar()
+	    {
+	       ActivityProxy activityProxy = super.getActivityProxy();
+	       if (activityProxy != null) {
+	           return activityProxy.getActionBar();
+	       }
+	       return null;
+	    }
 
 	@Override
 	public KrollProxy getParentForBubbling()
@@ -599,7 +634,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 		if (scaleValue != 1.0f) {
 			bitmap = TiImageHelper.imageScaled(bitmap, scaleValue);
 		}
-		return TiBlob.blobFromImage(bitmap);
+		return TiBlob.blobFromObject(bitmap);
 	}
 	
 	
@@ -615,4 +650,31 @@ public abstract class TiWindowProxy extends TiViewProxy
 			view.checkUpEventSent(event);
 		}
 	}
+	
+	public KrollDict getActivityProperties(KrollDict properties) {
+	    
+        KrollDict actionBarDict = null;
+        if (properties != null) {
+            actionBarDict = properties.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+        }
+        KrollDict windowProperties = getProperties();
+        for (String key : ActionBarProxy.windowProps()) {
+            if (windowProperties.containsKey(key)) {
+                String realKey = TiUtils.mapGetOrDefault(ActionBarProxy.propsToReplace(), key, key);
+                if (actionBarDict == null || !actionBarDict.containsKey(realKey)) {
+                    if (actionBarDict == null) {
+                        actionBarDict = new KrollDict(); 
+                    }
+                    actionBarDict.put(realKey, windowProperties.get(key));
+                }
+            }
+        }
+        if (actionBarDict != null) {
+            if (properties == null) {
+                properties = new KrollDict();
+            }
+            properties.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
+        }
+        return properties;
+    }	    
 }

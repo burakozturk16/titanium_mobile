@@ -214,6 +214,15 @@ public class IntentProxy extends KrollProxy
 		} else if (data != null) {
 			intent.setData(Uri.parse(data));
 		}
+		if (dict.containsKey("categories")) {
+		    Object obj = dict.get("categories");
+		    if (obj instanceof Object[]) {
+		        Object[] array = (Object[])obj;
+		        for (int i = 0; i < array.length; i++) {
+                    intent.addCategory(TiConvert.toString(array[i]));
+                }
+		    }
+        }
 		if (dict.containsKey("html")) {
 		    putExtraHTML(Intent.EXTRA_TEXT, dict.get("html"));
 		}
@@ -286,6 +295,9 @@ public class IntentProxy extends KrollProxy
 	@Kroll.method
 	public IntentProxy putExtra(String key, Object value)
 	{
+		if (value == null) {
+			return this;
+		}
 		if (value instanceof String) {
 	        intent.putExtra(key, (String) value);
 		} else if (value instanceof Boolean) {
@@ -305,7 +317,6 @@ public class IntentProxy extends KrollProxy
 				Log.e(TAG, "Error unimplemented put conversion ", ex.getMessage());
 			}
 		} else {
-			Log.w(TAG, "Warning unimplemented put conversion for " + value.getClass().getCanonicalName() + " trying String");
 			intent.putExtra(key, TiConvert.toString(value));
 		}
 		return this;
@@ -411,11 +422,11 @@ public class IntentProxy extends KrollProxy
 				}
 				buf = bos.toByteArray();
 
-				return TiBlob.blobFromData(buf);
+				return TiBlob.blobFromObject(buf);
 			} else if (returnData instanceof Bitmap) {
 
 				Bitmap returnBitmapData = (Bitmap) returnData;
-				return TiBlob.blobFromImage(returnBitmapData);
+				return TiBlob.blobFromObject(returnBitmapData);
 			}
 
 		} catch (Exception e) {

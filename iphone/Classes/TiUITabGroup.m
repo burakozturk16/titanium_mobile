@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -93,12 +93,30 @@ DEFINE_EXCEPTIONS
         return;
     }
     
-	NSMutableDictionary * event = [NSMutableDictionary dictionaryWithCapacity:4];
+    NSMutableDictionary * event = [NSMutableDictionary dictionaryWithCapacity:4];
 
-	NSArray * tabArray = [controller viewControllers];
+    NSArray * tabArray = [controller viewControllers];
+   
+    NSInteger previousIndex = 0;
+    NSInteger index = 0;
+    
+    if ([self.proxy valueForKey:@"index"] > 0) {
+        index = -1;
+    }
+    
+    if ([self.proxy valueForKey:@"previousIndex"] > 0) {
+        previousIndex = -1;
+    }
+    
+    if (focusedTabProxy != nil) {
+        [event setObject:focusedTabProxy forKey:@"previousTab"];
+        previousIndex = [tabArray indexOfObject:[(TiUITabProxy *)focusedTabProxy controller]];
+    }
 
-	int previousIndex = -1;
-	int index = -1;
+    if (newFocus != nil) {
+        [event setObject:newFocus forKey:@"tab"];
+        index = [tabArray indexOfObject:[(TiUITabProxy *)newFocus controller]];
+    }
 
 	if (focusedTabProxy != nil)
 	{
@@ -112,10 +130,16 @@ DEFINE_EXCEPTIONS
 		index = [tabArray indexOfObject:[(TiUITabProxy *)newFocus controller]];
 	}
 
-	[event setObject:NUMINT(previousIndex) forKey:@"previousIndex"];
-	[event setObject:NUMINT(index) forKey:@"index"];
-
-	[self.proxy fireEvent:@"blur" withObject:event];
+	[event setObject:NUMINTEGER(previousIndex) forKey:@"previousIndex"];
+	[event setObject:NUMINTEGER(index) forKey:@"index"];
+	
+	if ([self.proxy _hasListeners:@"unselected"]) {
+        [self.proxy fireEvent:@"unselected" withObject:event];
+    }
+	if ([self.proxy _hasListeners:@"blur"]) {
+        DEPRECATED_REPLACED(@"UI.TabGroup.Event.blur" ,@"5.1.0",@"UI.TabGroup.Event.unselected")
+        [self.proxy fireEvent:@"blur" withObject:event];
+    }
 	[focusedTabProxy handleDidBlur:event];
     [focusedTabProxy replaceValue:@NO forKey:@"active" notification:NO];
 	
@@ -124,36 +148,37 @@ DEFINE_EXCEPTIONS
 	[self.proxy replaceValue:focusedTabProxy forKey:@"activeTab" notification:NO];
     [focusedTabProxy replaceValue:@YES forKey:@"active" notification:NO];
 
-    // If we're in the middle of opening, the focus happens once the tabgroup is opened
-    if (![(TiWindowProxy*)[self proxy] opening]) {
-        [self.proxy fireEvent:@"focus" withObject:event];
-    }
-    //TIMOB-15187. Dont fire focus of tabs if proxy does not have focus
-    if ([(TiUITabGroupProxy*)[self proxy] canFocusTabs]) {
+	// If we're in the middle of opening, the focus happens once the tabgroup is opened
+     if (![(TiWindowProxy*)[self proxy] opening]){
+        if ([self.proxy _hasListeners:@"selected"]){
+            [self.proxy fireEvent:@"selected" withObject:event];
+        }
+        
+        if ([self.proxy _hasListeners:@"focus"]){
+            DEPRECATED_REPLACED(@"UI.TabGroup.Event.focus" ,@"5.1.0",@"UI.TabGroup.Event.selected")
+            [self.proxy fireEvent:@"focus" withObject:event];
+        }
+	}
+	//TIMOB-15187. Dont fire focus of tabs if proxy does not have focus
+	if ([(TiUITabGroupProxy*)[self proxy] canFocusTabs]) {
         [focusedTabProxy handleDidFocus:event];
-    }
+	}
 }
 
-
 #pragma mark More tab delegate
-
 
 -(void)updateMoreBar:(UINavigationController *)moreController
 {
     UIColor * theColor = [TiUtils barColorForColor:barColor];
     UIColor * nTintColor = [navTintColor color];
-    BOOL translucent = [TiUtils boolValue:[self.proxy valueForUndefinedKey:@"translucent"] def:[TiUtils isIOS7OrGreater]];
+    BOOL translucent = [TiUtils boolValue:[self.proxy valueForUndefinedKey:@"translucent"] def:YES];
     UIBarStyle navBarStyle = [TiUtils intValue:[self.proxy valueForUndefinedKey:@"barStyle"] def:[TiUtils barStyleForColor:barColor]];
     
     //Update the UINavigationBar appearance.
     [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setBarStyle:navBarStyle];
     [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setTitleTextAttributes:theAttributes];
-    if ([TiUtils isIOS7OrGreater]) {
-        [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setBarTintColor:theColor];
-        [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setTintColor:nTintColor];
-    } else {
-        [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setTintColor:theColor];
-    }
+    [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setBarTintColor:theColor];
+    [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setTintColor:nTintColor];
 
     if ([[moreController viewControllers] count] != 1) {
         return;
@@ -163,12 +188,8 @@ DEFINE_EXCEPTIONS
     [navBar setBarStyle:navBarStyle];
     [navBar setTitleTextAttributes:theAttributes];
     [navBar setTranslucent:translucent];
-    if([TiUtils isIOS7OrGreater]) {
-        [navBar performSelector:@selector(setBarTintColor:) withObject:theColor];
-        [navBar setTintColor:nTintColor];
-    } else {
-        [navBar setTintColor:theColor];
-    }
+    [navBar setBarTintColor:theColor];
+    [navBar setTintColor:nTintColor];
 }
 
 -(void)setEditButton:(UINavigationController*)moreController
@@ -216,7 +237,7 @@ DEFINE_EXCEPTIONS
 -(void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated	
 {
     NSArray * moreViewControllerStack = [navigationController viewControllers];
-    int stackHeight = [moreViewControllerStack count];
+    NSUInteger stackHeight = [moreViewControllerStack count];
     if (stackHeight > 1) {
         UIViewController * rootController = [moreViewControllerStack objectAtIndex:1];
         if ([rootController respondsToSelector:@selector(proxy)]) {
@@ -247,15 +268,13 @@ DEFINE_EXCEPTIONS
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
     NSArray * moreViewControllerStack = [navigationController viewControllers];
-    int stackHeight = [moreViewControllerStack count];
+    NSUInteger stackHeight = [moreViewControllerStack count];
     if (stackHeight < 2) { //No more faux roots.
         if (focusedTabProxy != nil) {
             [self handleDidShowTab:nil];
         }
         //Ensure that the moreController has only top edge extended
-        if ([TiUtils isIOS7OrGreater]) {
-            [TiUtils configureController:viewController withObject:[NSDictionary dictionaryWithObject:NUMINT(1) forKey:@"extendEdges"]];
-        }
+        [TiUtils configureController:viewController withObject:[NSDictionary dictionaryWithObject:NUMINT(1) forKey:@"extendEdges"]];
         return;
     }
 
@@ -323,7 +342,7 @@ DEFINE_EXCEPTIONS
 			[(UINavigationController *)viewController setDelegate:self];
 		}
 		NSArray * moreViewControllerStack = [(UINavigationController *)viewController viewControllers];
-		int stackCount = [moreViewControllerStack count];
+		NSUInteger stackCount = [moreViewControllerStack count];
 		if (stackCount>1)
 		{
 			viewController = [moreViewControllerStack objectAtIndex:1];
@@ -362,21 +381,15 @@ DEFINE_EXCEPTIONS
 {
     TiColor* color = [TiUtils colorValue:value];
     UITabBar* tabBar = [controller tabBar];
-	//A nil tintColor is fine, too.
-    if([TiUtils isIOS7OrGreater]) {
-        [tabBar performSelector:@selector(setBarTintColor:) withObject:[color color]];
-    } else {
-        tabBar.tintColor = [color color];
-    }
+    //A nil tintColor is fine, too.
+    [tabBar setBarTintColor:[color color]];
 }
 
 -(void)setTabsTintColor_:(id)value
 {
-    if ([TiUtils isIOS7OrGreater]) {
-        TiColor* color = [TiUtils colorValue:value];
-        UITabBar* tabBar = [controller tabBar];
-        tabBar.tintColor = [color color];
-    }
+    TiColor* color = [TiUtils colorValue:value];
+    UITabBar* tabBar = [controller tabBar];
+    tabBar.tintColor = [color color];
 }
 
 -(void)setTabsBackgroundImage_:(id)value
@@ -391,10 +404,6 @@ DEFINE_EXCEPTIONS
 
 -(void)setShadowImage_:(id)value
 {
-    if (![TiUtils isIOS6OrGreater]) {
-		NSLog(@"[WARN] activeTabBackgroundImage is only supported in iOS 6 or above.");
-		return;
-	}
 	//Because we still support XCode 4.3, we cannot use the shadowImage property
 	[controller.tabBar setShadowImage:[self loadImage:value]];
 }
@@ -403,7 +412,12 @@ DEFINE_EXCEPTIONS
 {
 	TiColor* color = [TiUtils colorValue:value];
 	//A nil tintColor is fine, too.
-	controller.tabBar.selectedImageTintColor = color.color;
+	if ([TiUtils isIOS8OrGreater]) {
+		controller.tabBar.tintColor = color.color;
+	}
+	else {
+		controller.tabBar.selectedImageTintColor = color.color; //deprecated for >= ios8
+	}
 }
 
 #pragma mark Public APIs
@@ -425,7 +439,6 @@ DEFINE_EXCEPTIONS
 
 -(void)setTranslucent_:(id)value
 {
-    [[self proxy] replaceValue:value forKey:@"translucent" notification:NO];
     [self updateMoreBar:[controller moreNavigationController]];
 }
 
@@ -433,48 +446,37 @@ DEFINE_EXCEPTIONS
 {
 	[barColor release];
 	barColor = [[TiUtils colorValue:value] retain];
-	[self.proxy replaceValue:value forKey:@"barColor" notification:NO];
 	[self updateMoreBar:[controller moreNavigationController]];
 }
 
 -(void)setBarStyle_:(id)value
 {
-	[[self proxy] replaceValue:value forKey:@"barStyle" notification:NO];
     [self updateMoreBar:[controller moreNavigationController]];
 }
 
 -(void)setTitleAttributes_:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSDictionary);
-    [self.proxy replaceValue:args forKey:@"titleAttributes" notification:NO];
     RELEASE_TO_NIL(theAttributes)
     if (args != nil) {
         theAttributes = [[NSMutableDictionary dictionary] retain];
         if ([args objectForKey:@"color"] != nil) {
             UIColor* theColor = [[TiUtils colorValue:@"color" properties:args] _color];
             if (theColor != nil) {
-                [theAttributes setObject:theColor forKey:([TiUtils isIOS7OrGreater] ? NSForegroundColorAttributeName : UITextAttributeTextColor)];
+                [theAttributes setObject:theColor forKey: NSForegroundColorAttributeName];
             }
         }
         if ([args objectForKey:@"shadow"] != nil) {
             NSShadow* shadow = [TiUtils shadowValue:[args objectForKey:@"shadow"]];
             if (shadow != nil) {
-                if ([TiUtils isIOS7OrGreater]) {
-                    [theAttributes setObject:shadow forKey:NSShadowAttributeName];
-                } else {
-                    if (shadow.shadowColor != nil) {
-                        [theAttributes setObject:shadow.shadowColor forKey:UITextAttributeTextShadowColor];
-                    }
-                    NSValue *theValue = [NSValue valueWithUIOffset:UIOffsetMake(shadow.shadowOffset.width, shadow.shadowOffset.height)];
-                    [theAttributes setObject:theValue forKey:UITextAttributeTextShadowOffset];
-                }
+                [theAttributes setObject:shadow forKey:NSShadowAttributeName];
             }
         }
         
         if ([args objectForKey:@"font"] != nil) {
             UIFont* theFont = [[TiUtils fontValue:[args objectForKey:@"font"] def:nil] font];
             if (theFont != nil) {
-                [theAttributes setObject:theFont forKey:([TiUtils isIOS7OrGreater] ? NSFontAttributeName : UITextAttributeFont)];
+                [theAttributes setObject:theFont forKey: NSFontAttributeName];
             }
         }
         
@@ -490,7 +492,6 @@ DEFINE_EXCEPTIONS
 {
     [navTintColor release];
     navTintColor = [[TiUtils colorValue:value] retain];
-    [self.proxy replaceValue:value forKey:@"navTintColor" notification:NO];
     [self updateMoreBar:[controller moreNavigationController]];
 }
 
@@ -518,7 +519,7 @@ DEFINE_EXCEPTIONS
 	}
 	else if (value != nil)
 	{
-		int index = [TiUtils intValue:value];
+		NSInteger index = [TiUtils intValue:value];
 		if (index >= 0 && index < [[self tabController].viewControllers count])
 		{
 			active = [[self tabController].viewControllers objectAtIndex:index];
@@ -567,7 +568,7 @@ DEFINE_EXCEPTIONS
         
         if (thisTab != nil && thisTab != [NSNull null]) {
             if (![thisTab isKindOfClass:[TiUITabProxy class]]) {
-                int index = [TiUtils intValue:thisTab];
+                NSInteger index = [TiUtils intValue:thisTab];
                 if (index < [tabs count]) {
                     theActiveTab = [tabs objectAtIndex:index];
                 }
@@ -594,6 +595,7 @@ DEFINE_EXCEPTIONS
 
         [self tabController].viewControllers = nil;
         [self tabController].viewControllers = controllers;
+        
         if ( focusedTabProxy != nil && ![tabs containsObject:focusedTabProxy]) {
             if (theActiveTab != nil) {
                 [self setActiveTab_:theActiveTab];
@@ -623,13 +625,20 @@ DEFINE_EXCEPTIONS
 
 	// on an open, make sure we send the focus event to focused tab
     NSArray * tabArray = [controller viewControllers];
-    int index = 0;
+    NSInteger index = 0;
     if (focusedTabProxy != nil)
 	{
 		index = [tabArray indexOfObject:[(TiUITabProxy *)focusedTabProxy controller]];
 	}
-	NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:focusedTabProxy,@"tab",NUMINT(index),@"index",NUMINT(-1),@"previousIndex",[NSNull null],@"previousTab",nil];
-	[self.proxy fireEvent:@"focus" withObject:event];
+	NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:focusedTabProxy,@"tab",NUMINTEGER(index),@"index",NUMINT(-1),@"previousIndex",[NSNull null],@"previousTab",nil];
+    if ([self.proxy _hasListeners:@"selected"]){
+        [self.proxy fireEvent:@"selected" withObject:event];
+    }
+
+    if ([self.proxy _hasListeners:@"focus"]){
+        DEPRECATED_REPLACED(@"UI.TabGroup.Event.focus" ,@"5.1.0",@"UI.TabGroup.Event.selected")
+        [self.proxy fireEvent:@"focus" withObject:event];
+    }
     
     // Tab has already been focused by the tab controller delegate
 	//[focused handleDidFocus:event];

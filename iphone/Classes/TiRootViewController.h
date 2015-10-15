@@ -12,23 +12,11 @@
     //Default background properties
     UIColor* bgColor;
     UIImage* bgImage;
+    UIView* hostView;
+    NSInteger curTransformAngle;
+    BOOL forceLayout;
     UIImageView* defaultImageView;
-    
-    //Keyboard stuff
-    BOOL updatingAccessoryView;
-    UIView * enteringAccessoryView;	//View that will enter.
-    UIView * accessoryView;			//View that is onscreen.
-    UIView * leavingAccessoryView;	//View that is leaving the screen.
-    TiViewProxy<TiKeyboardFocusableView> * keyboardFocusedProxy; //View whose becoming key affects things.
-	
-    CGRect startFrame;		//Where the keyboard was before the handling
-    CGRect targetedFrame;	//The keyboard place relative to where the accessoryView is moving;
-    CGRect endFrame;		//Where the keyboard will be after the handling
-    BOOL keyboardVisible;	//If false, use enterCurve. If true, use leaveCurve.
-    UIViewAnimationCurve enterCurve;
-    CGFloat enterDuration;
-    UIViewAnimationCurve leaveCurve;
-    CGFloat leaveDuration;
+
     
     //Orientation Stuff
     UIInterfaceOrientation orientationHistory[4];
@@ -38,6 +26,7 @@
     NSMutableArray* containedWindows;
     NSMutableArray* modalWindows;
     BOOL forcingRotation;
+//    BOOL forcedOrientation;
     BOOL statusBarInitiallyHidden;
     BOOL viewControllerControlsStatusBar;
     UIStatusBarStyle defaultStatusBarStyle;
@@ -46,6 +35,7 @@
     
     BOOL statusBarIsHidden;
     BOOL statusBarVisibilityChanged;
+    NSInteger activeAlertControllerCount;
 }
 
 //Titanium Support
@@ -53,18 +43,27 @@
 -(void)repositionSubviews;
 -(UIView *)topWindowProxyView;
 -(NSUInteger)supportedOrientationsForAppDelegate;
--(void)updateStatusBar;
+-(void)incrementActiveAlertControllerCount;
+-(void)decrementActiveAlertControllerCount;
+-(UIViewController*)topPresentedController;
+-(UIInterfaceOrientation) lastValidOrientation:(TiOrientationFlags)orientationFlags;
+-(void)updateStatusBar:(BOOL)animated;
+-(void) updateStatusBar:(BOOL)animated withStyle:(UIStatusBarAnimation)style;
 @property (nonatomic, readonly) BOOL statusBarInitiallyHidden;
 @property (nonatomic, readonly) UIStatusBarStyle defaultStatusBarStyle;
 @property (nonatomic, readonly) BOOL statusBarVisibilityChanged;
-@property (nonatomic, readonly) CGRect currentKeyboardFrame;
+@property (nonatomic, readonly) UIView* keyboardActiveInput;
+@property (nonatomic, readonly) CGFloat keyboardHeight;
+-(CGRect)getAbsRect:(CGRect)rect fromView:(UIView*)view;
+-(CGRect)getKeyboardFrameInView:(UIView*)view;
+-(UIView *)viewForKeyboardAccessory;
 
 @property(nonatomic,readonly) TiViewProxy<TiKeyboardFocusableView> * keyboardFocusedProxy;
 #if defined(DEBUG) || defined(DEVELOPER)
 -(void)shutdownUi:(id)arg;
-- (void) updateStatusBar;
 #endif
 - (UIImage*)defaultImageForOrientation:(UIDeviceOrientation) orientation resultingOrientation:(UIDeviceOrientation *)imageOrientation idiom:(UIUserInterfaceIdiom*) imageIdiom;
 
+-(void) handleNewNewKeyboardStatus;
 
 @end

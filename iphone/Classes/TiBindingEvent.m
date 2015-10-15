@@ -8,13 +8,16 @@
 
 #import "TiBindingEvent.h"
 #include <libkern/OSAtomic.h>
-#include "Ti.h"
+#include "TiToJS.h"
 #import "KrollObject.h"
 #import "TiBindingTiValue.h"
 #import "TiBindingRunLoop.h"
-#import "TiBase.h"
 #import "TiExceptionHandler.h"
 #import "TiUtils.h"
+
+@interface TiProxy()
+-(void)checkForListenerOnce:(NSString *)type withListener:(TiObjectRef)callbackFunction;
+@end
 
 extern TiStringRef kTiStringLength;
 
@@ -48,7 +51,7 @@ struct TiBindingEventOpaque{
 	bool bubbles;	//Immutable
 	bool cancelBubble;	//Mutable, set to true
 	bool reportError;		//Immutable
-	int errorCode;			//Immutable
+	NSInteger errorCode;			//Immutable
 //Objective C version
 	TiProxy * targetProxy;	//Immutable in-event, mutable for bubbling.
 	TiProxy * sourceProxy;	//Immutable
@@ -125,7 +128,7 @@ TiProxy * TiBindingEventNextBubbleTargetProxy(TiBindingEvent event, TiProxy * cu
         //TIMOB-11691. Ensure that tableviewrowproxy modifies the event object before passing it along.
         if ([currentTarget respondsToSelector:@selector(createEventObject:)]) {
             NSDictionary *curPayload = event->payloadDictionary;
-            NSDictionary *modifiedPayload = [currentTarget createEventObject:curPayload];
+            NSDictionary *modifiedPayload = [currentTarget performSelector:@selector(createEventObject:) withObject:curPayload];
             event->payloadDictionary = [modifiedPayload copy];
             [curPayload release];
         }
@@ -133,7 +136,7 @@ TiProxy * TiBindingEventNextBubbleTargetProxy(TiBindingEvent event, TiProxy * cu
 	return currentTarget;
 }
 
-void TiBindingEventSetErrorCode(TiBindingEvent event, int code)
+void TiBindingEventSetErrorCode(TiBindingEvent event, NSInteger code)
 {
 	event->reportError = true;
 	event->errorCode = code;
@@ -172,8 +175,7 @@ void TiBindingEventFire(TiBindingEvent event)
     
     if ([targetProxy respondsToSelector:@selector(createEventObject:)]) {
         NSDictionary *curPayload = event->payloadDictionary;
-        NSDictionary *modifiedPayload = [targetProxy createEventObject:curPayload];
-        event->payloadDictionary = [modifiedPayload copy];
+        NSDictionary *modifiedPayload = [targetProxy performSelector:@selector(createEventObject:) withObject:curPayload];
         [curPayload release];
     }
 	
@@ -189,7 +191,7 @@ void TiBindingEventFire(TiBindingEvent event)
 		event->targetProxy = [targetProxy retain];
 	}
 	event->pendingEvents = runloopcount;
-	if (runloopcount == 1) { //Main case: One run loop.
+	if (runloopcount <= 1) { //Main case: One run loop (or zero meaning it will come).
 		TiBindingRunLoop ourRunLoop = [targetProxy primaryBindingRunLoop];
 		if (ourRunLoop != nil) { // It's possible that the one remaining runloop
 			//Was not the primaryBindingRunLoop. In which case, we flow to the
@@ -240,22 +242,24 @@ void TiBindingEventProcess(TiBindingRunLoop runloop, void * payload)
 		//Convert to TIobjectrefs
 		if(eventObjectRef == NULL) {
 			eventObjectRef = TiBindingTiValueFromNSDictionary(context, event->payloadDictionary);
+            eventSourceRef = TiObjectGetProperty(context, eventObjectRef, jsEventSourceStringRef, NULL);
+            eventStringRef = TiObjectGetProperty(context, eventObjectRef, jsEventTypeStringRef, NULL);
 		}
 		if (eventTargetRef == NULL) {
 			eventTargetRef = TiBindingTiValueFromProxy(context, event->targetProxy);
 		}
 		if (eventSourceRef == NULL) {
 			eventSourceRef = TiBindingTiValueFromProxy(context, event->sourceProxy);
+            TiObjectSetProperty(context, eventObjectRef, jsEventSourceStringRef, eventSourceRef, kTiPropertyAttributeReadOnly, NULL);
 		}
 		if (eventStringRef == NULL) {
 			eventStringRef = TiValueMakeString(context, event->eventStringRef);
+            TiObjectSetProperty(context, eventObjectRef, jsEventTypeStringRef, eventStringRef, kTiPropertyAttributeReadOnly, NULL);
 		}
 		TiValueRef bubblesValue = TiValueMakeBoolean(context, event->bubbles);
 		TiValueRef cancelBubbleValue = TiValueMakeBoolean(context, false);
 		
 		TiObjectSetProperty(context, eventObjectRef, jsEventBubblesStringRef, bubblesValue, kTiPropertyAttributeReadOnly, NULL);
-		TiObjectSetProperty(context, eventObjectRef, jsEventTypeStringRef, eventStringRef, kTiPropertyAttributeReadOnly, NULL);
-		TiObjectSetProperty(context, eventObjectRef, jsEventSourceStringRef, eventSourceRef, kTiPropertyAttributeReadOnly, NULL);
 		
 		//Error reporting
 		if (event->reportError) {
@@ -267,7 +271,7 @@ void TiBindingEventProcess(TiBindingRunLoop runloop, void * payload)
 		}
 
 		if (event->errorMessageStringRef != NULL) {
-			TiValueRef eventStringValueRef = TiValueMakeString(context, event->eventStringRef);
+			TiValueRef eventStringValueRef = TiValueMakeString(context, event->errorMessageStringRef);
 			TiObjectSetProperty(context, eventObjectRef, jsEventErrorMessageStringRef, eventStringValueRef, kTiPropertyAttributeReadOnly, NULL);
 		}
 		
@@ -294,6 +298,9 @@ void TiBindingEventProcess(TiBindingRunLoop runloop, void * payload)
 			if(TiValueToBoolean(context,cancelBubbleValue)){
 				event->cancelBubble = true; //Because we only set true, not read nor set false, there's no race condition?
 			}
+            if (event->targetProxy) {
+                [event->targetProxy checkForListenerOnce:event->eventString withListener:(TiObjectRef)currentCallback];
+            }
 		}
 	}
 	

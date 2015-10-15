@@ -19,6 +19,7 @@
 #import "TiLayoutQueue.h"
 #import <libkern/OSAtomic.h>
 #import "TiLayoutQueue.h"
+#import "TableView_Categories.h"
 
 static NSInteger const kRowContainerTag = 100;
 NSString * const defaultRowTableClass = @"_default_";
@@ -160,8 +161,15 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 -(void)_destroy
 {
 	RELEASE_TO_NIL(tableClass);
+#ifdef TI_USE_KROLL_THREAD
 	TiThreadRemoveFromSuperviewOnMainThread(view, NO);
 	TiThreadReleaseOnMainThread(view, NO);
+#else
+    TiThreadPerformOnMainThread(^{
+        [view removeFromSuperview];
+        RELEASE_TO_NIL(view);
+    }, YES);
+#endif
 	view = nil;
 	[callbackCell setProxy:nil];
 	callbackCell = nil;
@@ -310,7 +318,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
         }
     }
     
-    if (updateForiOS7 && [TiUtils isIOS7OrGreater]) {
+    if (updateForiOS7) {
         width -= IOS7_ACCESSORY_EXTRA_OFFSET;
     }
 	
@@ -325,6 +333,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 		return height.value;
 	}
 	CGFloat result = 0;
+#ifndef TI_USE_AUTOLAYOUT
 	if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height))
 	{
 		result = [self minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height;
@@ -332,6 +341,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
     if (TiDimensionIsPercent(height) && [self table] != nil) {
         result = TiDimensionCalculateValue(height, [self table].bounds.size.height);
     }
+#endif
 	return (result == 0) ? [table tableRowHeight:0] : result;
 }
 
@@ -482,11 +492,11 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
                 case UITableViewCellSelectionStyleGray:theColor = [Webcolor webColorNamed:@"#bbb"];break;
                 case UITableViewCellSelectionStyleNone:theColor = [UIColor clearColor];break;
                 case UITableViewCellSelectionStyleBlue:theColor = [Webcolor webColorNamed:@"#0272ed"];break;
-                default:theColor = [TiUtils isIOS7OrGreater] ? [Webcolor webColorNamed:@"#e0e0e0"] : [Webcolor webColorNamed:@"#0272ed"];break;
+                default:theColor = [Webcolor webColorNamed:@"#e0e0e0"];break;
             }
         }
         selectedBGView.fillColor = theColor;
-        int count = [section rowCount];
+        NSInteger count = [section rowCount];
         if (count == 1) {
             selectedBGView.position = TiCellBackgroundViewPositionSingleLine;
         }
@@ -589,7 +599,9 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
         return;
     }
     modifyingRow = YES;
+#ifndef TI_USE_AUTOLAYOUT
     [TiLayoutQueue layoutProxy:self];
+#endif
     modifyingRow = NO;
     
 }
@@ -641,10 +653,10 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 //	[destroyLock unlock];
 //}
 
-- (void)didReceiveMemoryWarning:(NSNotification *)notification
-{
-    [super didReceiveMemoryWarning:notification];
-}
+//- (void)didReceiveMemoryWarning:(NSNotification *)notification
+//{
+//    [super didReceiveMemoryWarning:notification];
+//}
 
 
 -(void)configureChildren:(UITableViewCell*)cell
@@ -659,19 +671,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	{
 		UIView *contentView = cell.contentView;
 		CGRect rect = [contentView bounds];
-        CGSize cellSize = [(TiUITableViewCell*)cell computeCellSize];
-		CGFloat rowWidth = cellSize.width;
-		CGFloat rowHeight = cellSize.height;
-		if (rowHeight < rect.size.height || rowWidth < rect.size.width)
-		{
-			rect.size.height = rowHeight;
-			rect.size.width = rowWidth;
-			contentView.frame = rect;
-		}
-        else if (CGSizeEqualToSize(rect.size, CGSizeZero)) {
-            rect.size = CGSizeMake(rowWidth, rowHeight);
-            [contentView setFrame:rect];
-        }
 		rect.origin = CGPointZero;
 		if (self.reusable || (view == nil)) {
             TiUITableViewRowContainer* newcontainer = nil;
@@ -792,17 +791,15 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(void)configureTintColor:(UITableViewCell*)cell
 {
-    if ([TiUtils isIOS7OrGreater]) {
-        UIColor* theTint = nil;
-        id theColor = [self valueForUndefinedKey:@"tintColor"];
-        if (theColor != nil) {
-            theTint = [[TiUtils colorValue:theColor] color];
-        }
-        if (theTint == nil) {
-            theTint = [[table tableView] tintColor];
-        }
-        [cell performSelector:@selector(setTintColor:) withObject:theTint];
+    UIColor* theTint = nil;
+    id theColor = [self valueForUndefinedKey:@"tintColor"];
+    if (theColor != nil) {
+        theTint = [[TiUtils colorValue:theColor] color];
     }
+    if (theTint == nil) {
+        theTint = [[table tableView] tintColor];
+    }
+    [cell setTintColor:theTint];
 }
 
 -(void)initializeTableViewCell:(UITableViewCell*)cell
@@ -960,7 +957,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 		dict = [NSMutableDictionary dictionaryWithDictionary:initialObject];
 	}
 	NSInteger index = [table indexForRow:self];
-	[dict setObject:NUMINT(index) forKey:@"index"];
+	[dict setObject:NUMINTEGER(index) forKey:@"index"];
     // TODO: We really need to ensure that a row's section is set upon creation - even if this means changing how tables work.
     if (section != nil) {
         [dict setObject:section forKey:@"section"];
@@ -973,10 +970,15 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	return dict;
 }
 
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(NSInteger)code message:(NSString*)message checkForListener:(BOOL)checkForListener
 {
+	// merge in any row level properties for the event
+	if (source!=self)
+	{
+		obj = [self createEventObject:obj];
+	}
 	[callbackCell handleEvent:type];
-	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message];
+    [super fireEvent:type withObject:obj withSource:source propagate:propagate reportSuccess:report errorCode:code message:message checkForListener:checkForListener];
 }
 
 -(void)configureAccessibility:(UITableViewCell*)cell

@@ -5,21 +5,24 @@
  * Please see the LICENSE included with this distribution for details.
  */
 #ifdef USE_TI_UIPICKER
-#import "TiProxy.h"
+#import "TiViewProxy.h"
 
-@interface TiUIPickerColumnProxy : TiProxy {
+@class TiUIPickerRowProxy;
+//we inherit TiViewProxy not to duplicate code, especially for windowWillOpen ...
+@interface TiUIPickerColumnProxy : TiViewProxy {
 @private
-	NSMutableArray *rows;
+//	NSMutableArray *rows;
 	NSInteger column;
 }
 
-@property(nonatomic,readonly) NSMutableArray *rows;
-@property(nonatomic,readonly) NSInteger rowCount;
+//@property(nonatomic,readonly) NSMutableArray *rows;
+//@property(nonatomic,readonly) NSInteger rowCount;
 @property(nonatomic,readwrite,assign) NSInteger column;
+-(TiUIPickerRowProxy*)rowAt:(NSUInteger)index;
 
--(NSNumber*)addRow:(id)row;
--(void)removeRow:(id)row;
--(id)rowAt:(NSInteger)row;
+//-(NSNumber*)addRow:(id)row;
+//-(void)removeRow:(id)row;
+//-(id)rowAt:(NSInteger)row;
 
 @end
 #endif

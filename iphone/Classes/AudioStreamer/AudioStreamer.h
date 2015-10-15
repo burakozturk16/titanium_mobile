@@ -22,7 +22,7 @@
 // namespaces is a recurring problem, and we can thank Objective-C for it.
 // - SPT
 
-#ifdef USE_TI_MEDIA
+#ifdef USE_TI_AUDIO
 
 #define LOG_QUEUED_BUFFERS 0
 
@@ -102,6 +102,7 @@ extern NSString * const ASStatusChangedNotification;
 
 @protocol AudioStreamerDelegate<NSObject>
 -(void)playbackStateChanged:(id)sender;
+-(void)errorReceived:(id)sender;
 @end
 
 
@@ -113,7 +114,7 @@ extern NSString * const ASStatusChangedNotification;
 @property (readwrite) UInt32 bitRate;
 @property (readwrite) double volume;
 @property (readwrite,assign) id<AudioStreamerDelegate> delegate;
-@property (nonatomic,readwrite,assign) NSUInteger bufferSize;
+@property (nonatomic,readwrite,assign) UInt32 bufferSize;
 
 - (void)start;
 - (void)stop;

@@ -20,5 +20,6 @@ public interface ITiAppInfo
 	public String getGUID();
 	public boolean isFullscreen();
 	public String getDeployType();
-	public String getBuildType();
+    public String getBuildType();
+    public long getBuildDate();
 }

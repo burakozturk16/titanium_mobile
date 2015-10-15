@@ -44,7 +44,6 @@ public class ScrollViewProxy extends ViewProxy
 	{
 		super();
 		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
-		
 		KrollDict offset = new KrollDict();
 		offset.put(TiC.EVENT_PROPERTY_X, 0);
 		offset.put(TiC.EVENT_PROPERTY_Y, 0);
@@ -77,18 +76,7 @@ public class ScrollViewProxy extends ViewProxy
 			handleScrollTo(x,y);
 		}
 	}
-	
-	@Kroll.setProperty @Kroll.method
-	public void setScrollingEnabled(Object enabled)
-	{
-		getScrollView().setScrollingEnabled(enabled);
-	}
 
-	@Kroll.getProperty @Kroll.method
-	public boolean getScrollingEnabled()
-	{
-		return getScrollView().getScrollingEnabled();
-	}
 	
 	@Kroll.method
 	public void setContentOffset(Object offset, @Kroll.argument(optional = true) Object obj)
@@ -114,6 +102,9 @@ public class ScrollViewProxy extends ViewProxy
 	@Kroll.getProperty @Kroll.method
 	public Object getContentOffset()
 	{
+	    if (peekView() != null) {
+	        return getScrollView().getContentOffset();
+	    }
 		return getProperty(TiC.PROPERTY_CONTENT_OFFSET);
 	}
 

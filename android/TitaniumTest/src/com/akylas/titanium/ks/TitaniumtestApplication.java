@@ -17,74 +17,88 @@ import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollModuleInfo;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiProperties;
 import org.appcelerator.titanium.TiRootActivity;
 
+public final class TitaniumtestApplication extends TiApplication {
+    private static final String TAG = "TitaniumtestApplication";
 
-public final class TitaniumtestApplication extends TiApplication
-{
-	private static final String TAG = "TitaniumtestApplication";
+    @SuppressWarnings("static-access")
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        TiConfig.DEBUG = TiConfig.LOGD = true;
+        appInfo = new TitaniumtestAppInfo(this);
 
-	@SuppressWarnings("static-access")
-	@Override
-	public void onCreate()
-	{
-		super.onCreate();
+        HashMap<String, Class[]> modules = new HashMap<String, Class[]>() {
+            {
+                put("akylas.shapes", new Class[] {
+                        akylas.shapes.AkylasShapesBootstrap.class,
+                        akylas.shapes.AkylasShapesModule.class });
+                put("akylas.commonjs", new Class[] {
+                        akylas.commonjs.AkylasCommonjsBootstrap.class,
+                        akylas.commonjs.AkylasCommonjsModule.class });
+                put("akylas.slidemenu", new Class[] {
+                        akylas.slidemenu.AkylasSlidemenuBootstrap.class,
+                        akylas.slidemenu.AkylasSlidemenuModule.class });
+                put("akylas.charts", new Class[] {
+                        akylas.charts.AkylasChartsBootstrap.class,
+                        akylas.charts.AkylasChartsModule.class });
+                put("akylas.bluetooth", new Class[] {
+                        akylas.bluetooth.AkylasBluetoothBootstrap.class,
+                        akylas.bluetooth.AkylasBluetoothModule.class });
+            }
+        };
+        V8Runtime runtime = new V8Runtime();
 
-		appInfo = new TitaniumtestAppInfo(this);
-		postAppInfo();
-		
-		HashMap<String,Class[]> modules = new HashMap<String, Class[]>() {
-		     {
-			      put("akylas.shapes", new Class[]{akylas.shapes.AkylasShapesBootstrap.class, akylas.shapes.AkylasShapesModule.class});
-			      put("akylas.commonjs", new Class[]{akylas.commonjs.AkylasCommonjsBootstrap.class, akylas.commonjs.AkylasCommonjsModule.class});
-			      put("akylas.slidemenu", new Class[]{akylas.slidemenu.AkylasSlidemenuBootstrap.class, akylas.slidemenu.AkylasSlidemenuModule.class});
-                  put("akylas.map", new Class[]{akylas.map.AkylasMapBootstrap.class, akylas.map.AkylasMapModule.class});
-                  put("akylas.charts", new Class[]{akylas.charts.AkylasChartsBootstrap.class, akylas.charts.AkylasChartsModule.class});
-                  put("akylas.location", new Class[]{akylas.location.AkylasLocationBootstrap.class, akylas.location.AkylasLocationModule.class});
-//                  put("facebook", new Class[]{facebook.FacebookBootstrap.class, facebook.FacebookModule.class});
-//                  put("akylas.millenoki.vpn", new Class[]{akylas.millenoki.vpn.MillenokiVpnBootstrap.class, akylas.millenoki.vpn.MillenokiVpnModule.class});
-//                  put("akylas.millenoki.location", new Class[]{akylas.millenoki.location.MillenokiLocationModuleBootstrap.class, akylas.millenoki.location.MillenokiLocationModule.class});
-		     }
-		 };
+        Iterator it = modules.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry) it.next();
+            runtime.addExternalModule((String) pairs.getKey(),
+                    (Class<? extends KrollExternalModule>) (((Class[]) (pairs
+                            .getValue()))[0]));
+        }
+        runtime.addExternalCommonJsModule("akylas.commonjs",
+                akylas.commonjs.CommonJsSourceProvider.class);
+        // Custom modules
+        KrollModuleInfo moduleInfo;
 
-		V8Runtime runtime = new V8Runtime();
-		Iterator it = modules.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry pairs = (Map.Entry)it.next();
-	        runtime.addExternalModule((String) pairs.getKey(),
-					(Class<? extends KrollExternalModule>) (((Class[])(pairs.getValue()))[0]));
-	    }
-		runtime.addExternalCommonJsModule("akylas.commonjs", akylas.commonjs.CommonJsSourceProvider.class);
+        try {
+            it = modules.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pairs = (Map.Entry) it.next();
 
-		
+                Method method = ((((Class[]) (pairs.getValue()))[1]))
+                        .getMethod("onAppCreate", TiApplication.class);
+                method.invoke(null, this);
+                moduleInfo = new KrollModuleInfo((String) pairs.getKey(),
+                        (String) pairs.getKey(), "", "", "", "", "", "");
+                KrollModule.addCustomModuleInfo(moduleInfo);
+            }
+        } catch (Exception e) {
+        }
 
-		KrollRuntime.init(this, runtime);
-		
+        postAppInfo();
+        KrollRuntime.init(this, runtime);
+        postOnCreate();
 
-		// stylesheet = new ApplicationStylesheet();
-		postOnCreate();
-		TiConfig.DEBUG = TiConfig.LOGD = true;
+    }
 
-		// Custom modules
-		KrollModuleInfo moduleInfo;
+    // @Override
+    // public void postOnCreate() {
+    // {
+    // TiProperties properties = getSystemProperties();
+    // TiProperties appProperties = getAppProperties();
+    //
+    // properties.setString("ti.ui.defaultunit", "dp");
+    // appProperties.setString("ti.ui.defaultunit", "dp");
+    // properties.setBool("ti.android.bug2373.finishfalseroot", true);
+    // appProperties.setBool("ti.android.bug2373.finishfalseroot", true);
+    // properties.setBool("ti.android.fastdev", false);
+    // appProperties.setBool("ti.android.fastdev", false);
+    // }
 
-		try {
-			it = modules.entrySet().iterator();
-		    while (it.hasNext()) {
-		        Map.Entry pairs = (Map.Entry)it.next();
-		        
-		        Method method = ((((Class[])(pairs.getValue()))[1])).getMethod("onAppCreate", TiApplication.class);
-		        method.invoke(null,this);
-		        moduleInfo = new KrollModuleInfo((String) pairs.getKey(),(String) pairs.getKey(), "","", "", "","", "");
-				KrollModule.addCustomModuleInfo(moduleInfo);
-		    }
-		} catch (Exception e) {
-		}
-	}
-
-	
-	@Override
-	public void verifyCustomModules(TiRootActivity rootActivity)
-	{
-	}
+    @Override
+    public void verifyCustomModules(TiRootActivity rootActivity) {
+    }
 }

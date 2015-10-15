@@ -10,7 +10,7 @@
     return [ADSlideTransition class];
 }
 
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
+-(void)transformView:(UIView*)view withPosition:(CGFloat)position size:(CGSize)size
 {
     if (position >1 || position < -1) {
         view.alpha = 0;
@@ -68,14 +68,14 @@
 
     translateX *= multiplier;
     translateY *= multiplier;
-    if (adjust) {
-        if ([self isTransitionVertical]) {
-                translateY += position;
-        }
-        else {
-                translateX += -position;
-        }
-    }
+//    if (adjust) {
+//        if ([self isTransitionVertical]) {
+//                translateY += position;
+//        }
+//        else {
+//                translateX += -position;
+//        }
+//    }
     translateX *= size.width;
     translateY *= size.height;
     transform = CATransform3DTranslate(transform, translateX, translateY, 0);

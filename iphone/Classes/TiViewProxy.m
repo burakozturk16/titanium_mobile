@@ -15,18 +15,25 @@
 #import "TiLocale.h"
 #import "TiUIView.h"
 #import "TiTransition.h"
+#import "TiWindowProxy.h"
 #import "TiApp.h"
 #import "TiViewAnimation+Friend.h"
 #import "TiViewAnimationStep.h"
 #import "TiTransitionAnimation+Friend.h"
 #import "TiTransitionAnimationStep.h"
 
+#import "TiUIiOSPreviewContextProxy.h"
+#import "TiPreviewingDelegate.h"
 #import <QuartzCore/QuartzCore.h>
 #import <libkern/OSAtomic.h>
 #import <pthread.h>
 #import "TiViewController.h"
 #import "TiWindowProxy.h"
 
+BOOL TiCGRectIsEmpty(CGRect rect)
+{
+    return (rect.size.width == 0 && rect.size.height == 0);
+}
 
 @interface TiFakeAnimation : TiViewAnimationStep
 
@@ -40,9 +47,11 @@
 {
     BOOL needsContentChange;
     BOOL allowContentChange;
+    BOOL instantUpdates;
 	unsigned int animationDelayGuard;
     BOOL _transitioning;
     id _pendingTransition;
+    BOOL needsFocusOnAttach;
 }
 @end
 
@@ -52,23 +61,36 @@
 
 @synthesize controller = controller;
 
-static NSArray* layoutProps = nil;
-static NSSet* transferableProps = nil;
+
 
 #pragma mark public API
 
 @synthesize vzIndex, parentVisible, preventListViewSelection;
--(void)setVzIndex:(int)newZindex
+-(void)setVzIndex:(NSInteger)newZindex
 {
-	if(newZindex == vzIndex)
-	{
-		return;
-	}
-
-	vzIndex = newZindex;
-	[self replaceValue:NUMINT(vzIndex) forKey:@"vzIndex" notification:NO];
-	[self willChangeZIndex];
+    if(newZindex == vzIndex)
+    {
+        return;
+    }
+    
+    vzIndex = newZindex;
+    [self replaceValue:@(vzIndex) forKey:@"vzIndex" notification:NO];
+    [self willChangeZIndex];
 }
+
+-(void)setInstantUpdates:(BOOL)value
+{
+    if(value == instantUpdates)
+    {
+        return;
+    }
+    
+    instantUpdates = value;
+    [self replaceValue:NUMBOOL(instantUpdates) forKey:@"instantUpdates" notification:NO];
+}
+
+
+
 
 -(NSString*)apiName
 {
@@ -94,15 +116,20 @@ static NSSet* transferableProps = nil;
     if (recursive)
     {
         pthread_rwlock_rdlock(&childrenLock);
-        NSArray* subproxies = onlyVisible?[self visibleChildren]:[self viewChildren];
-        for (TiViewProxy * thisChildProxy in subproxies)
-        {
-            block(thisChildProxy);
-            [thisChildProxy runBlock:block onlyVisible:onlyVisible recursive:recursive];
-        }
+        [children enumerateObjectsUsingBlock:^(TiProxy* child, NSUInteger idx, BOOL * _Nonnull stop) {
+            if(IS_OF_CLASS(child, TiViewProxy) && (!onlyVisible || !((TiViewProxy*)child).isHidden)) {
+                block((TiViewProxy*)child);
+                [(TiViewProxy*)child runBlock:block onlyVisible:onlyVisible recursive:recursive];
+            }
+        }];
+//        NSArray* subproxies = onlyVisible?[self visibleChildren]:[self viewChildren];
         pthread_rwlock_unlock(&childrenLock);
+//        for (TiViewProxy * thisChildProxy in subproxies)
+//        {
+//            block(thisChildProxy);
+//            [thisChildProxy runBlock:block onlyVisible:onlyVisible recursive:recursive];
+//        }
     }
-//    block(self);
 }
 
 -(void)makeChildrenPerformSelector:(SEL)selector withObject:(id)object
@@ -110,10 +137,10 @@ static NSSet* transferableProps = nil;
     [[self viewChildren] makeObjectsPerformSelector:selector withObject:object];
 }
 
--(void)makeVisibleChildrenPerformSelector:(SEL)selector withObject:(id)object
-{
-    [[self visibleChildren] makeObjectsPerformSelector:selector withObject:object];
-}
+//-(void)makeVisibleChildrenPerformSelector:(SEL)selector withObject:(id)object
+//{
+//    [[self visibleChildren] makeObjectsPerformSelector:selector withObject:object];
+//}
 
 -(void)setVisible:(NSNumber *)newVisible
 {
@@ -155,11 +182,27 @@ static NSSet* transferableProps = nil;
 
 -(void)applyProperties:(id)args
 {
-    ENSURE_UI_THREAD_1_ARG(args)
-    [self configurationStart];
-    [super applyProperties:args];
-    [self configurationSet];
-    [self refreshViewOrParent];
+    id data = nil;
+    BOOL wait = NO;
+    if (IS_OF_CLASS(args, NSDictionary)) {
+        data = args;
+    } else if (args){
+        NSNumber* waitArg = nil;
+        ENSURE_ARG_AT_INDEX(data, args, 0, NSObject);
+        ENSURE_ARG_OR_NIL_AT_INDEX(waitArg, args, 1, NSNumber);
+        if (waitArg != nil) {
+            wait = [waitArg boolValue];
+        }
+        
+    }
+    
+    TiThreadPerformBlockOnMainThread(^{
+        [self configurationStart];
+        [super applyProperties:data?@[data]:nil];
+        [self configurationSet];
+        [self refreshViewOrParent];
+        [self handlePendingAnimation];
+    }, wait);
 }
 
 -(void)startLayout:(id)arg
@@ -226,10 +269,9 @@ static NSSet* transferableProps = nil;
     return nil;
 }
 
--(void)handlePendingAnimation
+-(BOOL)readyToAnimate
 {
-    if (![self viewInitialized] || !allowContentChange)return;
-    [super handlePendingAnimation];
+    return [self viewInitialized] && allowContentChange;
 }
 
 -(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
@@ -265,6 +307,14 @@ static NSSet* transferableProps = nil;
     
 }
 
+-(void)setFakeApplyProperties:(BOOL)newValue
+{
+    _fakeApplyProperties = newValue;
+    if (!_fakeApplyProperties) {
+        [self refreshViewOrParent];
+    }
+}
+
 -(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
 {
     TiHLSAnimationStep* step;
@@ -293,29 +343,38 @@ static NSSet* transferableProps = nil;
     return [HLSAnimation animationWithAnimationStep:step];
 }
 
+-(void)handleAnimation:(TiAnimation*)animation witDelegate:(id)delegate
+{
+    TiThreadPerformBlockOnMainThread(^{
+        [super handleAnimation:animation witDelegate:delegate];
+    }, NO);
+}
 -(void)playAnimation:(HLSAnimation*)animation withRepeatCount:(NSUInteger)repeatCount afterDelay:(double)delay
 {
-    TiThreadPerformOnMainThread(^{
+//    TiThreadPerformBlockOnMainThread(^{
+        [self refreshViewOrParent];
         [self aboutToBeAnimated];
         [animation playWithRepeatCount:repeatCount afterDelay:delay];
-	}, YES);
+//	}, YES);
 }
 
 //override
 -(void)animationDidComplete:(TiAnimation *)animation
 {
-	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
-	[self willEnqueue];
+    OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
+    [self willEnqueue];
     [super animationDidComplete:animation];
 }
 
 -(void)resetProxyPropertiesForAnimation:(TiAnimation*)animation
 {
-    TiThreadPerformOnMainThread(^{
+    TiThreadPerformBlockOnMainThread(^{
         [super resetProxyPropertiesForAnimation:animation];
 		[[self viewParent] layoutChildren:NO];
     }, YES);
 }
+
+#ifndef TI_USE_AUTOLAYOUT
 
 #define CHECK_LAYOUT_UPDATE(layoutName,value) \
 if (ENFORCE_BATCH_UPDATE) { \
@@ -355,6 +414,9 @@ if (ENFORCE_BATCH_UPDATE) { \
     postaction; \
 }
 
+#define TO_BOOL(value) [TiUtils boolValue:value];
+#define TO_FLOAT(value) [TiUtils floatValue:value];
+
 #define LAYOUTFLAGS_SETTER(methodName,layoutName,flagName,postaction)	\
 -(void)methodName:(id)value	\
 {	\
@@ -373,44 +435,28 @@ LAYOUTPROPERTIES_SETTER_IGNORES_AUTO(setRight,right,TiDimensionFromObject,[self 
 LAYOUTPROPERTIES_SETTER(setWidth,width,TiDimensionFromObject,[self willChangeSize])
 LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeSize])
 
--(void)setFullscreen:(id)value
-{
-    CHECK_LAYOUT_UPDATE(layoutName,value)
-    layoutProperties.fullscreen = [TiUtils boolValue:value def:NO];
-    [self replaceValue:value forKey:@"fullscreen" notification:YES];
-    [self willChangeSize];
-    [self willChangePosition];
-}
+//-(void)setFullscreen:(id)value
+//{
+//    CHECK_LAYOUT_UPDATE(layoutName,value)
+//    layoutProperties.fullscreen = [TiUtils boolValue:value def:NO];
+//    [self replaceValue:value forKey:@"fullscreen" notification:YES];
+//    [self willChangeSize];
+//    [self willChangePosition];
+//}
 
--(id)getFullscreen
-{
-    return NUMBOOL(layoutProperties.fullscreen);
-}
 
-+(NSArray*)layoutProperties
-{
-    if (layoutProps == nil) {
-        layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", @"fullscreen", @"minWidth", @"minHeight", @"maxWidth", @"maxHeight", nil];
-    }
-    return layoutProps;
-}
-
-+(NSSet*)transferableProperties
-{
-    if (transferableProps == nil) {
-        transferableProps = [[NSSet alloc] initWithObjects:@"imageCap",@"visible", @"backgroundImage", @"backgroundGradient", @"backgroundColor", @"backgroundSelectedImage", @"backgroundSelectedGradient", @"backgroundSelectedColor", @"backgroundDisabledImage", @"backgroundDisabledGradient", @"backgroundDisabledColor", @"backgroundRepeat",@"focusable", @"touchEnabled", @"viewShadow", @"viewMask", @"accessibilityLabel", @"accessibilityValue", @"accessibilityHint", @"accessibilityHidden",
-            @"opacity", @"borderWidth", @"borderColor", @"borderRadius", @"tileBackground",
-            @"transform", @"center", @"anchorPoint", @"clipChildren", @"touchPassThrough", @"transform", nil];
-    }
-    return transferableProps;
-}
+//-(id)getFullscreen
+//{
+//    return NUMBOOL(layoutProperties.fullscreen);
+//}
+//
 
 -(NSArray *)keySequence
 {
 	static NSArray *keySequence = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		keySequence = [@[@"visible", @"clipChildren"] retain];
+		keySequence = [@[@"visible", @"clipChildren", @"backgroundOpacity", @"imageCap"] retain];
 	});
 	return keySequence;
 }
@@ -422,6 +468,9 @@ LAYOUTPROPERTIES_SETTER(setMinWidth,minimumWidth,TiDimensionFromObject,[self wil
 LAYOUTPROPERTIES_SETTER(setMinHeight,minimumHeight,TiDimensionFromObject,[self willChangeSize])
 LAYOUTPROPERTIES_SETTER(setMaxWidth,maximumWidth,TiDimensionFromObject,[self willChangeSize])
 LAYOUTPROPERTIES_SETTER(setMaxHeight,maximumHeight,TiDimensionFromObject,[self willChangeSize])
+LAYOUTPROPERTIES_SETTER(setLayoutFullscreen,fullscreen,TO_BOOL,[self willChange])
+LAYOUTPROPERTIES_SETTER(setSizeRatio,sizeRatio,TO_FLOAT,[self willChangeSize])
+LAYOUTPROPERTIES_SETTER(setWeight,weight,TO_FLOAT,[self willChangeSize])
 
 LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willChangeLayout])
 
@@ -448,7 +497,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     [super setValue:value forUndefinedKey:key];
 }
 
-
+#endif
 NSString * GetterStringForKrollProperty(NSString * key)
 {
     return [NSString stringWithFormat:@"%@_", key];
@@ -470,7 +519,7 @@ SEL GetterForKrollProperty(NSString * key)
     return [super valueForKey:key];
 }
 
--(TiRect*)size
+-(id)size
 {
 	TiRect *rect = [[TiRect alloc] init];
     if ([self viewAttached]) {
@@ -483,39 +532,42 @@ SEL GetterForKrollProperty(NSString * key)
     else {
         [rect setRect:CGRectZero];
     }
-    
-    return [rect autorelease];
+    NSDictionary* result = [rect toJSON];
+    [rect release];
+    return result;
 }
 
 -(id)rect
 {
-    TiRect *rect = [[TiRect alloc] init];
-	if ([self viewAttached]) {
-        __block CGRect viewRect;
-        __block CGPoint viewPosition;
-        __block CGAffineTransform viewTransform;
-        __block CGPoint viewAnchor;
-        TiThreadPerformOnMainThread(^{
-            TiUIView * ourView = [self view];
-            viewRect = [ourView bounds];
-            viewPosition = [ourView center];
-            viewTransform = [ourView transform];
-            viewAnchor = [[ourView layer] anchorPoint];
-        }, YES);
-        viewRect.origin = CGPointMake(-viewAnchor.x*viewRect.size.width, -viewAnchor.y*viewRect.size.height);
-        viewRect = CGRectApplyAffineTransform(viewRect, viewTransform);
-        viewRect.origin.x += viewPosition.x;
-        viewRect.origin.y += viewPosition.y;
-        [rect setRect:viewRect];
-        
-        id defaultUnit = [TiApp defaultUnit];
-        if ([defaultUnit isKindOfClass:[NSString class]]) {
-            [rect convertToUnit:defaultUnit];
-        }       
-    }
-    else {
-        [rect setRect:CGRectZero];
-    }
+    __block TiRect *rect = [[TiRect alloc] init];
+    TiThreadPerformBlockOnMainThread(^{
+        if ([self viewLayedOut]) {
+            //        CGPoint viewAnchor = [[ourView layer] anchorPoint];
+            CGRect viewRect = self.view.frame;
+            //        __block CGRect viewRect;
+            //        __block CGPoint viewPosition;
+            //        __block CGAffineTransform viewTransform;
+            //        __block CGPoint viewAnchor;
+            //            TiUIView * ourView = [self view];
+            //            viewRect = [ourView bounds];
+            //            viewPosition = [ourView center];
+            //            viewTransform = [ourView transform];
+            //            viewAnchor = [[ourView layer] anchorPoint];
+            //        viewRect.origin = CGPointMake(-viewAnchor.x*viewRect.size.width, -viewAnchor.y*viewRect.size.height);
+            //        viewRect = CGRectApplyAffineTransform(viewRect, viewTransform);
+            //        viewRect.origin.x += viewPosition.x;
+            //        viewRect.origin.y += viewPosition.y;
+            [rect setRect:viewRect];
+            
+            id defaultUnit = [TiApp defaultUnit];
+            if ([defaultUnit isKindOfClass:[NSString class]]) {
+                [rect convertToUnit:defaultUnit];
+            }       
+        }
+        else {
+            [rect setRect:CGRectZero];
+        }
+    }, YES);
     NSDictionary* result = [rect toJSON];
     [rect release];
     return result;
@@ -564,18 +616,15 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(id)zIndex
 {
-    return [self valueForUndefinedKey:@"zindex_"];
+    return [self valueForUndefinedKey:@"vzIndex"];
 }
 
 -(void)setZIndex:(id)value
 {
-    CHECK_LAYOUT_UPDATE(zIndex, value);
-    
-    if ([value respondsToSelector:@selector(intValue)]) {
-        [self setVzIndex:[TiUtils intValue:value]];
-        [self replaceValue:value forKey:@"zindex_" notification:NO];
-    }
+    [self setVzIndex:[TiUtils intValue:value def:0]];
+//    }
 }
+
 
 -(NSMutableDictionary*)center
 {
@@ -595,50 +644,16 @@ SEL GetterForKrollProperty(NSString * key)
     return nil;
 }
 
+#ifndef TI_USE_AUTOLAYOUT
 -(void)setCenter:(id)value
 {
     CHECK_LAYOUT_UPDATE(center, value);
-
-    
-	if ([value isKindOfClass:[NSDictionary class]])
-	{
-        TiDimension result;
-        id obj = [value objectForKey:@"x"];
-        if (obj != nil) {
-            [self replaceValue:obj forKey:@"centerX_" notification:NO];
-            result = TiDimensionFromObject(obj);
-            if ( TiDimensionIsDip(result) || TiDimensionIsPercent(result) ) {
-                layoutProperties.centerX = result;
-            }
-            else {
-                layoutProperties.centerX = TiDimensionUndefined;
-            }
-        }
-        obj = [value objectForKey:@"y"];
-        if (obj != nil) {
-            [self replaceValue:obj forKey:@"centerY_" notification:NO];
-            result = TiDimensionFromObject(obj);
-            if ( TiDimensionIsDip(result) || TiDimensionIsPercent(result) ) {
-                layoutProperties.centerY = result;
-            }
-            else {
-                layoutProperties.centerY = TiDimensionUndefined;
-            }
-        }
-        
-        
-
-	} else if ([value isKindOfClass:[TiPoint class]]) {
-        CGPoint p = [value point];
-		layoutProperties.centerX = TiDimensionDip(p.x);
-		layoutProperties.centerY = TiDimensionDip(p.y);
-    } else {
-		layoutProperties.centerX = TiDimensionUndefined;
-		layoutProperties.centerY = TiDimensionUndefined;
-	}
-
-	[self willChangePosition];
+    TiPoint* p = [TiUtils tiPointValue:value];
+    layoutProperties.centerX = p.xDimension;
+    layoutProperties.centerY = p.yDimension;
+    [self willChangePosition];
 }
+#endif
 
 -(id)animatedCenter
 {
@@ -672,8 +687,7 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(UIImage*)toImageWithScale:(CGFloat)scale
 {
-    TiUIView *myview = [self getOrCreateView];
-    [self windowWillOpen];
+    TiUIView *myview = [self getAndPrepareViewForOpening];
     CGSize size = myview.bounds.size;
    
     if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
@@ -686,16 +700,11 @@ SEL GetterForKrollProperty(NSString * key)
         CGRect rect = CGRectMake(0, 0, size.width, size.height);
         [TiUtils setView:myview positionRect:rect];
     }
-    if ([TiUtils isRetinaDisplay])
-    {
-        scale*=2;
-        
-    }
+    scale *= [TiUtils screenScale];
     UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], scale);
-    CGContextRef context = UIGraphicsGetCurrentContext();
     float oldOpacity = myview.alpha;
     myview.alpha = 1;
-    [myview.layer renderInContext:context];
+    [myview.layer renderInContext:UIGraphicsGetCurrentContext()];
     myview.alpha = oldOpacity;
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
@@ -739,7 +748,7 @@ SEL GetterForKrollProperty(NSString * key)
 	return blob;
 }
 
--(TiPoint*)convertPointToView:(id)args
+-(id)convertPointToView:(id)args
 {
     id arg1 = nil;
     TiViewProxy* arg2 = nil;
@@ -753,16 +762,19 @@ SEL GetterForKrollProperty(NSString * key)
     
     __block BOOL validView = NO;
     __block CGPoint p;
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        if ([self viewAttached] && self.view.window && [arg2 viewAttached] && arg2.view.window) {
+    TiThreadPerformBlockOnMainThread(^{
+        if ([self viewLayedOut] && [arg2 viewLayedOut]) {
             validView = YES;
             p = [self.view convertPoint:oldPoint toView:arg2.view];
         }
-    });
+    }, YES);
     if (!validView) {
-        return (TiPoint*)[NSNull null];
+        return nil;
     }
-    return [[[TiPoint alloc] initWithPoint:p] autorelease];
+    return @{
+             @"x":@(p.x),
+             @"y":@(p.y)
+             };
 }
 
 
@@ -770,60 +782,80 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(void)childAdded:(TiProxy*)child atIndex:(NSInteger)position shouldRelayout:(BOOL)shouldRelayout
 {
-    if (![child isKindOfClass:[TiViewProxy class]]){
+    [super childAdded:child atIndex:position shouldRelayout:shouldRelayout];
+    if (!IS_OF_CLASS(child, TiViewProxy)){
         return;
     }
-    TiViewProxy* childViewProxy = (TiViewProxy*)child;
-    if ([NSThread isMainThread])
-	{
-        if (readyToCreateView)
-            [childViewProxy setReadyToCreateView:YES]; //tableview magic not to create view on proxy creation
-		
-        
-        if (!readyToCreateView || [childViewProxy isHidden]) return;
-        [childViewProxy performBlockWithoutLayout:^{
-            [childViewProxy getOrCreateView];
-        }];
-        if (!shouldRelayout) return;
-        
-        [self contentsWillChange];
-        if(parentVisible && !hidden)
-        {
-            [childViewProxy parentWillShow];
+    TiThreadPerformBlockOnMainThread(^{
+        TiViewProxy* childViewProxy = (TiViewProxy*)child;
+        [childViewProxy setReadyToCreateView:YES]; //tableview magic not to create view on proxy creation
+        if (!windowOpened || !shouldRelayout || !readyToCreateView)  {
+            return;
         }
+        if ([childViewProxy isHidden]) {
+            return;
+        }
+        [childViewProxy performBlockWithoutLayout:^{
+            [childViewProxy windowWillOpen];
+            [childViewProxy getOrCreateView];
+            [childViewProxy windowDidOpen];
+        }];
+        
+        //        [self contentsWillChange];
+//        if(parentVisible && !hidden)
+//        {
+//            [childViewProxy parentWillShow];
+//        }
         
         //If layout is non absolute push this into the layout queue
         //else just layout the child with current bounds
-        if (![self absoluteLayout]) {
-            [self contentsWillChange];
-        }
-        else {
-            [self layoutChild:childViewProxy optimize:NO withMeasuredBounds:[[self view] bounds]];
-        }
-    }
-    else if (windowOpened && shouldRelayout) {
-        TiThreadPerformOnMainThread(^{[self childAdded:child atIndex:position shouldRelayout:shouldRelayout];}, NO);
-        return;
-    }
+//        if (allowContentChange) {
+            if (![self absoluteLayout]) {
+                [self contentsWillChange];
+                if (parentVisible && allowContentChange) {
+                    [childViewProxy refreshViewOrParent];
+                }
+            }
+            else {
+                if (parentVisible && allowContentChange) {
+                    [self layoutChild:childViewProxy optimize:NO withMeasuredBounds:[[self view] bounds]];
+                } else {
+                    [self contentsWillChange];
+                }
+            }
+//        } else {
+//            [self parentContentWillChange];
+//        }
+
+    }, NO);
 }
 
--(void)childRemoved:(TiProxy*)child
+-(void)childRemoved:(TiProxy*)child wasChild:(BOOL)wasChild shouldDetach:(BOOL)shouldDetach
 {
-    if (![child isKindOfClass:[TiViewProxy class]]){
+    [super childRemoved:child wasChild:wasChild shouldDetach:shouldDetach];
+    if ([self destroyed] || ![child isKindOfClass:[TiViewProxy class]]){
         return;
     }
-    ENSURE_UI_THREAD_1_ARG(child);
+//    ENSURE_UI_THREAD_WAIT_1_ARG(child);
     TiViewProxy* childViewProxy = (TiViewProxy*)child;
-
-    [childViewProxy windowWillClose];
-    [childViewProxy setParentVisible:NO];
-    [childViewProxy windowDidClose]; //will call detach view
-    BOOL layoutNeedsRearranging = ![self absoluteLayout];
-    if (layoutNeedsRearranging)
-    {
-        [self willChangeLayout];
-    }
     
+    if (shouldDetach) {
+        [childViewProxy setProxyObserver:nil];
+        [childViewProxy windowWillClose];
+        [childViewProxy setParentVisible:NO];
+        [childViewProxy windowDidClose]; //will call detach view
+    } else {
+        [childViewProxy setParentVisible:NO];
+    }
+    if (!wasChild) return;
+    [self parentContentWillChange];
+//    BOOL layoutNeedsRearranging = ![self absoluteLayout];
+//    if (layoutNeedsRearranging)
+//    {
+//        [self willChangeLayout];
+//    } else {
+//        
+//    }
 }
 
 -(void)removeAllChildren:(id)arg
@@ -835,30 +867,28 @@ SEL GetterForKrollProperty(NSString * key)
     }];
 }
 
--(void)setParent:(TiParentingProxy*)parent_ checkForOpen:(BOOL)check
-{
-    [super setParent:parent_];
+//-(void)setParent:(TiParentingProxy*)parent_ checkForOpen:(BOOL)check
+//{
+//    [super setParent:parent_];
 	
-	if (check && parent!=nil && ([parent isKindOfClass:[TiViewProxy class]]) && [[self viewParent] windowHasOpened])
-	{
-		[self windowWillOpen];
-	}
-}
+//	if (check && parent!=nil && ([parent isKindOfClass:[TiViewProxy class]]) && [[self viewParent] windowHasOpened])
+//	{
+//		[self windowWillOpen];
+//	}
+//}
 
--(void)setParent:(TiParentingProxy*)parent_
-{
-	[super setParent:parent_];
-	
-	if (parent!=nil && ([parent isKindOfClass:[TiViewProxy class]]) && [[self viewParent] windowHasOpened])
-	{
-		[self windowWillOpen];
-	}
-}
+//-(void)setParent:(TiParentingProxy*)parent_
+//{
+//    [self setParent:parent_ checkForOpen:YES];
+//}
 
 
 -(TiViewProxy*)viewParent
 {
-    return (TiViewProxy*)parent;
+    if (IS_OF_CLASS(parent, TiViewProxy) && !isUsingBarButtonItem) {
+        return (TiViewProxy*)parent;
+    }
+    return nil;
 }
 
 -(NSArray*)viewChildren
@@ -879,6 +909,24 @@ SEL GetterForKrollProperty(NSString * key)
 	pthread_rwlock_unlock(&childrenLock);
 	return [copy autorelease];
 }
+-(void)makeViewChildrenPerformSelector:(SEL)selector withObject:(id)object
+{
+    [self performBlockOnViewChildren:^(TiViewProxy * child) {
+        [child performSelector:selector withObject:object];
+    }];
+}
+
+-(void)performBlockOnViewChildren:(void (^)(TiViewProxy* object))block
+{
+    pthread_rwlock_rdlock(&childrenLock);
+    [children enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if (IS_OF_CLASS(obj, TiViewProxy)) {
+            block(obj);
+        }
+    }];
+    pthread_rwlock_unlock(&childrenLock);
+}
+
 
 -(NSArray*)visibleChildren
 {
@@ -892,7 +940,11 @@ SEL GetterForKrollProperty(NSString * key)
 //    }
 	pthread_rwlock_rdlock(&childrenLock);
     NSArray* copy = [[children filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id object, NSDictionary *bindings) {
-        return [object isKindOfClass:[TiViewProxy class]] && ((TiViewProxy*)object).isHidden == FALSE;
+        if (IS_OF_CLASS(object, TiViewProxy)) {
+            TiViewProxy* viewProxy = object;
+            return !viewProxy.isHidden && !viewProxy.hiddenForLayout;
+        }
+        return NO;
     }]] retain];
     pthread_rwlock_unlock(&childrenLock);
 	return [copy autorelease];
@@ -903,16 +955,18 @@ SEL GetterForKrollProperty(NSString * key)
 
 @synthesize barButtonItem;
 
+#ifndef TI_USE_AUTOLAYOUT
 -(LayoutConstraint *)layoutProperties
 {
 	return &layoutProperties;
 }
+#endif
 
 @synthesize sandboxBounds = sandboxBounds;
 
 -(void)setSandboxBounds:(CGRect)rect
 {
-    if (!CGRectEqualToRect(rect, sandboxBounds))
+    if (!TiCGRectIsEmpty(rect) && !CGRectEqualToRect(rect, sandboxBounds))
     {
         sandboxBounds = rect;
 //        [self dirtyItAll];
@@ -921,7 +975,14 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(void)setHidden:(BOOL)newHidden withArgs:(id)args
 {
-	hidden = newHidden;
+    if (hidden != newHidden) {
+        hidden = newHidden;
+//            if (!hidden && !view && parent) {
+//                [parent childAdded:self atIndex:0 shouldRelayout:YES];
+//            }
+    }
+//	hidden = newHidden;
+
 }
 
 -(BOOL)isHidden
@@ -948,9 +1009,16 @@ SEL GetterForKrollProperty(NSString * key)
 
     return result;
 }
-
+#ifndef TI_USE_AUTOLAYOUT
 -(CGSize)autoSizeForSize:(CGSize)size
 {
+    return [self autoSizeForSize:size ignoreMinMax:NO];
+}
+-(CGSize)autoSizeForSize:(CGSize)size ignoreMinMax:(BOOL)ignoreMinMaxComputation
+{
+    if (!ignoreMinMaxComputation) {
+        size = minmaxSize(&layoutProperties, size, size);
+    }
     CGSize contentSize = CGSizeMake(-1, -1);
     if ([self respondsToSelector:@selector(contentSizeForSize:)]) {
         contentSize = [self contentSizeForSize:size];
@@ -1028,7 +1096,7 @@ SEL GetterForKrollProperty(NSString * key)
                 }
             }
             
-            int nbWidthAutoFill = [widthFillChildren count];
+            NSUInteger nbWidthAutoFill = [widthFillChildren count];
             if (nbWidthAutoFill > 0) {
                 CGFloat usableWidth = floorf((size.width - result.width) / nbWidthAutoFill);
                 CGRect usableRect = CGRectMake(0,0,usableWidth, size.height);
@@ -1046,7 +1114,7 @@ SEL GetterForKrollProperty(NSString * key)
                 }
             }
             
-            int nbHeightAutoFill = [heightFillChildren count];
+            NSUInteger nbHeightAutoFill = [heightFillChildren count];
             if (nbHeightAutoFill > 0) {
                 CGFloat usableHeight = floorf((size.height - result.height) / nbHeightAutoFill);
                 CGRect usableRect = CGRectMake(0,0,size.width, usableHeight);
@@ -1072,11 +1140,15 @@ SEL GetterForKrollProperty(NSString * key)
     if (result.height < contentSize.height) {
         result.height = contentSize.height;
     }
-    result = minmaxSize(&layoutProperties, result, size);
+//    if (!ignoreMinMaxComputation) {
+//        result = minmaxSize(&layoutProperties, result, size);
+//    }
 
 	return [self verifySize:result];
 }
+#endif
 
+#ifndef TI_USE_AUTOLAYOUT
 -(CGSize)sizeForAutoSize:(CGSize)size
 {
     if (layoutProperties.fullscreen == YES) return size;
@@ -1098,7 +1170,7 @@ SEL GetterForKrollProperty(NSString * key)
     {
         result.width =  TiDimensionCalculateValue(layoutProperties.width, suggestedWidth);
     }
-    else if (TiDimensionIsAutoFill(layoutProperties.width) || (TiDimensionIsAuto(layoutProperties.width) && followsFillWBehavior) )
+    else if (TiDimensionIsAutoFill(layoutProperties.width))
     {
         result.width = size.width;
         result.width -= offsetx;
@@ -1118,9 +1190,7 @@ SEL GetterForKrollProperty(NSString * key)
             result.width = size.width;
             result.width -= offsetx;
         }
-    }
-    else
-    {
+    } else {
         result.width = size.width;
         result.width -= offsetx;
     }
@@ -1128,7 +1198,7 @@ SEL GetterForKrollProperty(NSString * key)
     if (TiDimensionIsDip(layoutProperties.height) || TiDimensionIsPercent(layoutProperties.height))        {
         result.height = TiDimensionCalculateValue(layoutProperties.height, suggestedHeight);
     }
-    else if (TiDimensionIsAutoFill(layoutProperties.height) || (TiDimensionIsAuto(layoutProperties.height) && followsFillHBehavior) )
+    else if (TiDimensionIsAutoFill(layoutProperties.height))
     {
         result.height = size.height;
         result.height -= offsety;
@@ -1144,12 +1214,12 @@ SEL GetterForKrollProperty(NSString * key)
         else if (!TiDimensionIsUndefined(layoutProperties.centerY) && !TiDimensionIsUndefined(layoutProperties.bottom) ) {
             result.height = 2 * ( suggestedHeight - TiDimensionCalculateValue(layoutProperties.bottom, suggestedHeight) - TiDimensionCalculateValue(layoutProperties.centerY, suggestedHeight));
         }
-        else {
+        else{
             result.height = size.height;
             result.height -= offsety;
         }
-    }
-    else {
+    } else {
+        result.height = size.height;
         result.height -= offsety;
     }
     result = minmaxSize(&layoutProperties, result, size);
@@ -1157,6 +1227,24 @@ SEL GetterForKrollProperty(NSString * key)
 }
 
 -(CGSize)minimumParentSizeForSize:(CGSize)size
+{
+
+    CGFloat offsetx = TiDimensionCalculateValue(layoutProperties.left, size.width)
+    + TiDimensionCalculateValue(layoutProperties.right, size.width);
+    
+    CGFloat offsety = TiDimensionCalculateValue(layoutProperties.top, size.height)
+    + TiDimensionCalculateValue(layoutProperties.bottom, size.height);
+    
+    CGSize result = [self minimumParentSizeForSizeNoPadding:size];
+    result.width += offsetx;
+    result.height += offsety;
+    
+    return result;
+}
+#endif
+
+#ifndef TI_USE_AUTOLAYOUT
+-(CGSize)minimumParentSizeForSizeNoPadding:(CGSize)size
 {
     if (layoutProperties.fullscreen == YES) return size;
     
@@ -1170,13 +1258,7 @@ SEL GetterForKrollProperty(NSString * key)
     //    //Ensure that autoHeightForSize is called with the lowest limiting bound
     //    CGFloat desiredWidth = MIN([self minimumParentWidthForSize:size],size.width);
     
-    CGFloat offsetx = TiDimensionCalculateValue(layoutProperties.left, suggestedSize.width)
-    + TiDimensionCalculateValue(layoutProperties.right, suggestedSize.width);
-    
-    CGFloat offsety = TiDimensionCalculateValue(layoutProperties.top, suggestedSize.height)
-    + TiDimensionCalculateValue(layoutProperties.bottom, suggestedSize.height);
-    
-    CGSize result = CGSizeMake(offsetx, offsety);
+    CGSize result = CGSizeMake(0, 0);
 
 	if (TiDimensionIsDip(layoutProperties.width) || TiDimensionIsPercent(layoutProperties.width))
 	{
@@ -1199,9 +1281,9 @@ SEL GetterForKrollProperty(NSString * key)
         }
         else {
             recheckForFillW = followsFillWidthBehavior;
-            autoComputed = YES;
-            autoSize = [self autoSizeForSize:autoSize];
-            result.width += autoSize.width;
+//            autoComputed = YES;
+//            autoSize = [self autoSizeForSize:autoSize];
+            result.width = suggestedSize.width;
         }
     }
 	else
@@ -1240,11 +1322,12 @@ SEL GetterForKrollProperty(NSString * key)
         }
         else {
             recheckForFillH = followsFillHeightBehavior;
-            if (autoComputed == NO) {
-                autoComputed = YES;
-                autoSize = [self autoSizeForSize:autoSize];
-            }
-            result.height += autoSize.height;
+//            if (autoComputed == NO) {
+//                autoComputed = YES;
+//                autoSize = [self autoSizeForSize:autoSize];
+//            }
+            result.height = suggestedSize.height;
+//            result.height += autoSize.height;
         }
     }
 	else
@@ -1262,6 +1345,7 @@ SEL GetterForKrollProperty(NSString * key)
     
 	return result;
 }
+#endif
 
 
 -(UIBarButtonItem*)barButtonItemForController:(UINavigationController*)navController
@@ -1291,18 +1375,21 @@ SEL GetterForKrollProperty(NSString * key)
 
 - (TiUIView *)barButtonViewForRect:(CGRect)bounds
 {
+#ifndef TI_USE_AUTOLAYOUT
     self.canBeResizedByFrame = YES;
+    isUsingBarButtonItem = YES;
     //TODO: This logic should have a good place in case that refreshLayout is used.
-	LayoutConstraint barButtonLayout = layoutProperties;
-	if (TiDimensionIsUndefined(barButtonLayout.width))
+//	LayoutConstraint barButtonLayout = layoutProperties;
+	if (TiDimensionIsUndefined(layoutProperties.width))
 	{
-		barButtonLayout.width = TiDimensionAutoSize;
+		layoutProperties.width = TiDimensionAutoSize;
         
 	}
-	if (TiDimensionIsUndefined(barButtonLayout.height))
+	if (TiDimensionIsUndefined(layoutProperties.height))
 	{
-		barButtonLayout.height = TiDimensionAutoSize;
+		layoutProperties.height = TiDimensionAutoSize;
 	}
+#endif
     return [self getAndPrepareViewForOpening:bounds];
 }
 
@@ -1320,6 +1407,12 @@ SEL GetterForKrollProperty(NSString * key)
     defaultReadyToCreateView = readyToCreateView = ready;
 }
 
+
+-(void)setReadyToCreateViewNSNumber:(NSNumber*)ready
+{
+    [self setReadyToCreateView:[ready boolValue]];
+}
+
 -(void)setReadyToCreateView:(BOOL)ready
 {
     [self setReadyToCreateView:YES recursive:YES];
@@ -1329,8 +1422,7 @@ SEL GetterForKrollProperty(NSString * key)
 {
     readyToCreateView = ready;
     if (!recursive) return;
-    
-    [self makeChildrenPerformSelector:@selector(setReadyToCreateView:) withObject:ready];
+    [self makeViewChildrenPerformSelector:@selector(setReadyToCreateViewNSNumber:) withObject:@(ready)];
 }
 
 -(TiUIView*)getOrCreateView
@@ -1341,13 +1433,33 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds
 {
-    if([self viewAttached]) return view;
+    if([self viewAttached]) {
+        if (!CGRectEqualToRect(bounds, self.sandboxBounds)) {
+            [self setSandboxBounds:bounds];
+            if (!TiCGRectIsEmpty(sandboxBounds))
+            {
+                [self refreshView];
+                [self handlePendingAnimation];
+            }
+        }
+        
+        return view;
+    }
     [self setSandboxBounds:bounds];
     [self parentWillShow];
     [self windowWillOpen];
-    [self windowDidOpen];
-    TiUIView* tiview = [self getOrCreateView];
-    return tiview;
+    if (view) {
+        [self setSandboxBounds:bounds];
+        if (!TiCGRectIsEmpty(sandboxBounds))
+        {
+            [self refreshView];
+            [self handlePendingAnimation];
+        }
+    } else {
+        [self getOrCreateView];
+        [self windowDidOpen];
+    }
+    return view;
 }
 
 
@@ -1357,19 +1469,19 @@ SEL GetterForKrollProperty(NSString * key)
     [self determineSandboxBoundsForce];
     [self parentWillShow];
     [self windowWillOpen];
-    [self windowDidOpen];
     TiUIView* tiview = [self getOrCreateView];
+    [self windowDidOpen];
     return tiview;
 }
 
 
 -(void)determineSandboxBoundsForce
 {
-    if(!CGRectIsEmpty(sandboxBounds)) return;
-    if(!CGRectIsEmpty(view.bounds)){
+    if(!TiCGRectIsEmpty(sandboxBounds)) return;
+    if(!TiCGRectIsEmpty(view.bounds)){
         [self setSandboxBounds:view.bounds];
     }
-    else if (!CGRectIsEmpty(sizeCache)) {
+    else if (!TiCGRectIsEmpty(sizeCache)) {
         [self setSandboxBounds:sizeCache];
     }
     else if (parent != nil) {
@@ -1378,6 +1490,9 @@ SEL GetterForKrollProperty(NSString * key)
             [self setSandboxBounds:bounds];
         }
         else [self setSandboxBounds:([self viewParent]).sandboxBounds];
+    } else {
+        [self computeBoundsForParentBounds:CGRectZero];
+        [self setSandboxBounds:sizeCache];
     }
 }
 
@@ -1395,7 +1510,16 @@ SEL GetterForKrollProperty(NSString * key)
 		// on open we need to create a new view
 		[self viewWillInitialize];
 		view = [self newView];
-		view.proxy = self;
+
+#ifdef TI_USE_AUTOLAYOUT
+        if ([self respondsToSelector:@selector(defaultAutoWidthBehavior:)]) {
+            [view setDefaultWidth:[self defaultAutoWidthBehavior:nil]];
+        }
+        if ([self respondsToSelector:@selector(defaultAutoHeightBehavior:)]) {
+            [view setDefaultHeight:[self defaultAutoHeightBehavior:nil]];
+        }
+#endif
+        view.proxy = self;
 		view.layer.transform = CATransform3DIdentity;
 		view.transform = CGAffineTransformIdentity;
         view.hidden = hidden;
@@ -1407,14 +1531,11 @@ SEL GetterForKrollProperty(NSString * key)
 		[self firePropertyChanges];
 
 		[self configurationSet];
-
-		NSArray * childrenArray = [[self viewChildren] retain];
-		for (id child in childrenArray)
-		{
-			TiUIView *childView = [(TiViewProxy*)child getOrCreateView];
-			[self insertSubview:childView forProxy:child];
-		}
-		[childrenArray release];
+        
+        [self performBlockOnViewChildren:^(TiViewProxy *child) {
+            TiUIView *childView = [(TiViewProxy*)child getOrCreateView];
+            [self insertSubview:childView forProxy:child];
+        }];
 
 		viewInitialized = YES;
 		[self viewDidInitialize];
@@ -1424,16 +1545,22 @@ SEL GetterForKrollProperty(NSString * key)
 //			[parent contentsWillChange];
 //		}
 //		else {
-			if(CGRectIsEmpty(sandboxBounds) && !CGRectIsEmpty(view.bounds)){
+#ifndef TI_USE_AUTOLAYOUT
+			if(TiCGRectIsEmpty(sandboxBounds) && !TiCGRectIsEmpty(view.bounds)){
                 [self setSandboxBounds:view.bounds];
 			}
+#endif
 //            [self dirtyItAll];
 //            [self refreshViewIfNeeded];
 //		}
-        if (!CGRectIsEmpty(sandboxBounds))
+        if (!TiCGRectIsEmpty(sandboxBounds))
         {
             [self refreshView];
             [self handlePendingAnimation];
+        }
+        
+        if (windowOpening || windowOpened) {
+            [self viewDidAttach];
         }
 	}
 
@@ -1448,15 +1575,22 @@ SEL GetterForKrollProperty(NSString * key)
 
 - (void)prepareForReuse
 {
+    [self makeViewChildrenPerformSelector:@selector(prepareForReuse) withObject:nil];
     [self makeChildrenPerformSelector:@selector(prepareForReuse) withObject:nil];
+}
+
+-(void)clearViewNSNumber:(NSNumber*)recurse
+{
+    [self clearView:[recurse boolValue]];
 }
 
 //CAUTION: TO BE USED ONLY WITH TABLEVIEW MAGIC
 -(void)clearView:(BOOL)recurse
 {
     [self setView:nil];
-    if (recurse)
-    [self makeChildrenPerformSelector:@selector(clearView:) withObject:recurse];
+    if (recurse) {
+        [self makeViewChildrenPerformSelector:@selector(clearViewNSNumber:) withObject:@(recurse)];
+    }
 }
 
 //CAUTION: TO BE USED ONLY WITH TABLEVIEW MAGIC
@@ -1595,13 +1729,14 @@ SEL GetterForKrollProperty(NSString * key)
 	windowOpened = YES;
 	windowOpening = YES;
     
-    [self viewDidAttach];
-    	
+    if (view != nil) {
+        [self viewDidAttach];
+    }
 	// If the window was previously opened, it may need to have
 	// its existing children redrawn
 	// Maybe need to call layout children instead for non absolute layout
-    [self makeChildrenPerformSelector:@selector(windowWillOpen) withObject:nil];
-	
+    [self makeViewChildrenPerformSelector:@selector(windowWillOpen) withObject:nil];
+
 
     //TODO: This should be properly handled and moved, but for now, let's force it (Redundantly, I know.)
 	if (parent != nil) {
@@ -1612,12 +1747,12 @@ SEL GetterForKrollProperty(NSString * key)
 -(void)windowDidOpen
 {
 	windowOpening = NO;
-    [self makeChildrenPerformSelector:@selector(windowDidOpen) withObject:nil];
+    [self makeViewChildrenPerformSelector:@selector(windowDidOpen) withObject:nil];
 }
 
 -(void)windowWillClose
 {
-    [self makeChildrenPerformSelector:@selector(windowWillClose) withObject:nil];
+    [self makeViewChildrenPerformSelector:@selector(windowWillClose) withObject:nil];
 }
 
 -(void)windowDidClose
@@ -1626,7 +1761,7 @@ SEL GetterForKrollProperty(NSString * key)
         [controller removeFromParentViewController];
         RELEASE_TO_NIL_AUTORELEASE(controller);
     }
-    [self makeChildrenPerformSelector:@selector(windowDidClose) withObject:nil];
+    [self makeViewChildrenPerformSelector:@selector(windowDidClose) withObject:nil];
 	[self detachView:NO];
 	windowOpened=NO;
 }
@@ -1662,6 +1797,10 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(void)viewDidAttach
 {
+    if (needsFocusOnAttach) {
+        [self focus:nil];
+        needsFocusOnAttach = NO;
+    }
 	// for subclasses
 }
 
@@ -1742,13 +1881,32 @@ SEL GetterForKrollProperty(NSString * key)
 -(BOOL)viewReady
 {
 	return view!=nil &&
-			CGRectIsNull(view.bounds)==NO &&
-			[view superview] != nil;
+			CGRectIsNull([view layer].bounds)==NO &&
+			[[view layer] superlayer] != nil;
 }
 
 -(BOOL)windowHasOpened
 {
 	return windowOpened;
+}
+
+-(void)setPreviewContext:(id)context
+{
+#if IS_XCODE_7
+#ifdef USE_TI_UIIOSPREVIEWCONTEXT
+    
+    if ([TiUtils forceTouchSupported] == NO) {
+        NSLog(@"[WARN] 3DTouch is not available on this device.");
+        return;
+    }
+    
+    ENSURE_TYPE(context, TiUIiOSPreviewContextProxy);
+    
+    [context setSourceView:self];
+    [context connectToDelegate];
+
+#endif
+#endif
 }
 
 -(BOOL)windowIsOpening
@@ -1789,11 +1947,15 @@ SEL GetterForKrollProperty(NSString * key)
 		_bubbleParent = YES;
         defaultReadyToCreateView = NO;
         hidden = NO;
+        _hiddenForLayout = NO;
         [self resetDefaultValues];
         _transitioning = NO;
         vzIndex = 0;
+        instantUpdates = NO;
         _canBeResizedByFrame = NO;
-//        _runningViewAnimations = [[NSMutableArray alloc] init];
+        _canRepositionItself = YES;
+        _canResizeItself = YES;
+        needsFocusOnAttach = NO;
 	}
 	return self;
 }
@@ -1812,8 +1974,12 @@ SEL GetterForKrollProperty(NSString * key)
     updateStarted = YES;
     allowLayoutUpdate = NO;
 	// Set horizontal layout wrap:true as default 
+#ifndef TI_USE_AUTOLAYOUT
 	layoutProperties.layoutFlags.horizontalWrap = NO;
     layoutProperties.fullscreen = NO;
+    layoutProperties.weight = 1.0f;
+    layoutProperties.sizeRatio = 0.0f;
+#endif
 	[self initializeProperty:@"visible" defaultValue:NUMBOOL(YES)];
 
 	if (properties!=nil)
@@ -1897,11 +2063,16 @@ SEL GetterForKrollProperty(NSString * key)
 {
     if (controller != nil) {
         [controller detachProxy]; //make the controller knows we are done
+#ifdef TI_USE_KROLL_THREAD
         TiThreadReleaseOnMainThread(controller, NO);
         controller = nil;
+#else
+        TiThreadPerformOnMainThread(^{
+            RELEASE_TO_NIL(controller);
+        }, YES);
+#endif
     }
 	RELEASE_TO_NIL(destroyLock);
-	
 	
 	[super dealloc];
 }
@@ -1909,17 +2080,33 @@ SEL GetterForKrollProperty(NSString * key)
 
 -(void)viewWillAppear:(BOOL)animated
 {
-    [self parentWillShowWithoutUpdate];
-    [self refreshView];
+    [self willShow];
+//    [self refreshViewIfNeeded];
+//    [self runBlock:^(TiViewProxy *proxy) {
+//        [proxy viewWillAppear:animated];
+//    } onlyVisible:NO recursive:YES];
+}
+
+-(void)viewDidAppear:(BOOL)animated
+{
+//    [self runBlock:^(TiViewProxy *proxy) {
+//        [proxy viewDidAppear:animated];
+//    } onlyVisible:NO recursive:YES];
 }
 
 -(void)viewWillDisappear:(BOOL)animated
 {
+    [self willHide];
+//    [self runBlock:^(TiViewProxy *proxy) {
+//        [proxy viewWillDisappear:animated];
+//    } onlyVisible:NO recursive:YES];
 }
 
 -(void)viewDidDisappear:(BOOL)animated
 {
-    [self parentWillHide];
+//    [self runBlock:^(TiViewProxy *proxy) {
+//        [proxy viewDidDisappear:animated];
+//    } onlyVisible:NO recursive:YES];
 }
 
 -(UIViewController*)hostingController;
@@ -1977,16 +2164,19 @@ SEL GetterForKrollProperty(NSString * key)
 -(void)detachView:(BOOL)recursive
 {
 	[destroyLock lock];
+    [self clearAnimations];
     
     if(recursive)
     {
-        [self makeChildrenPerformSelector:@selector(detachView) withObject:nil];
+        [self makeViewChildrenPerformSelector:@selector(detachView) withObject:nil];
     }
+    
+    [self removeBarButtonView];
     
 	if (view!=nil)
 	{
 		[self viewWillDetach];
-        [self cancelAllAnimations:nil];
+//        [self cancelAllAnimations:nil];
 		[view removeFromSuperview];
 		view.proxy = nil;
         view.touchDelegate = nil;
@@ -2000,7 +2190,6 @@ SEL GetterForKrollProperty(NSString * key)
         self.modelDelegate = nil;
     }
 	[destroyLock unlock];
-    [self clearAnimations];
     [self resetDefaultValues];
 
 }
@@ -2014,12 +2203,6 @@ SEL GetterForKrollProperty(NSString * key)
 		[destroyLock unlock];
 		return;
 	}
-	// _destroy is called during a JS context shutdown, to inform the object to 
-	// release all its memory and references.  this will then cause dealloc 
-	// on objects that it contains (assuming we don't have circular references)
-	// since some of these objects are registered in the context and thus still
-	// reachable, we need _destroy to help us start the unreferencing part
-	[super _destroy];
 
 	//Part of super's _destroy is to release the modelDelegate, which in our case is ALSO the view.
 	//As such, we need to have the super happen before we release the view, so that we can insure that the
@@ -2033,8 +2216,14 @@ SEL GetterForKrollProperty(NSString * key)
 		}
 		else
 		{
+#ifdef TI_USE_KROLL_THREAD
 			TiThreadReleaseOnMainThread(barButtonItem, NO);
 			barButtonItem = nil;
+#else
+            TiThreadPerformOnMainThread(^{
+                RELEASE_TO_NIL(barButtonItem);
+            }, NO);
+#endif
 		}
 	}
 
@@ -2047,10 +2236,24 @@ SEL GetterForKrollProperty(NSString * key)
 		else
 		{
 			view.proxy = nil;
+#ifdef TI_USE_KROLL_THREAD
 			TiThreadReleaseOnMainThread(view, NO);
 			view = nil;
+#else
+            TiThreadPerformOnMainThread(^{
+                RELEASE_TO_NIL(view);
+            }, YES);
+#endif
 		}
 	}
+    
+    // _destroy is called during a JS context shutdown, to inform the object to
+    // release all its memory and references.  this will then cause dealloc
+    // on objects that it contains (assuming we don't have circular references)
+    // since some of these objects are registered in the context and thus still
+    // reachable, we need _destroy to help us start the unreferencing part
+    [super _destroy];
+    
 	[destroyLock unlock];
 }
 
@@ -2095,38 +2298,12 @@ SEL GetterForKrollProperty(NSString * key)
 	{
 		return;
 	}
-
-	if([NSThread isMainThread])
-	{
-		[[self view] performSelector:selector withObject:object];
-		return;
-	}
-
-	if(isAttached)
-	{
-		TiThreadPerformOnMainThread(^{[[self view] performSelector:selector withObject:object];}, wait);
-		return;
-	}
-
-	TiThreadPerformOnMainThread(^{
+	TiThreadPerformBlockOnMainThread(^{
 		[[self getOrCreateView] performSelector:selector withObject:object];
 	}, wait);
 }
 
 #pragma mark Listener Management
-
-
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message checkForListener:(BOOL)checkForListener;
-{
-    if (checkForListener && ![self _hasListeners:type])
-	{
-		return;
-	}
-    if (_bubbleParentDefined) {
-        propagate = _bubbleParent;
-    }
-	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message checkForListener:NO];
-}
 
 -(void)parentListenersChanged
 {
@@ -2137,7 +2314,7 @@ SEL GetterForKrollProperty(NSString * key)
     }, NO);
 }
 
--(void)_listenerAdded:(NSString*)type count:(int)count
+-(void)_listenerAdded:(NSString*)type count:(NSInteger)count
 {
 	if (self.modelDelegate!=nil && [(NSObject*)self.modelDelegate respondsToSelector:@selector(listenerAdded:count:)])
 	{
@@ -2153,7 +2330,7 @@ SEL GetterForKrollProperty(NSString * key)
     [super _listenerAdded:type count:count];
 }
 
--(void)_listenerRemoved:(NSString*)type count:(int)count
+-(void)_listenerRemoved:(NSString*)type count:(NSInteger)count
 {
 	if (self.modelDelegate!=nil && [(NSObject*)self.modelDelegate respondsToSelector:@selector(listenerRemoved:count:)])
 	{
@@ -2169,15 +2346,10 @@ SEL GetterForKrollProperty(NSString * key)
 
 }
 
--(TiProxy *)parentForBubbling
-{
-	return parent;
-}
-
 #pragma mark Layout events, internal and external
 
 #define SET_AND_PERFORM(flagBit,action)	\
-if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(flagBit, &dirtyflags)) \
+if (!viewInitialized || !parentVisible || OSAtomicTestAndSetBarrier(flagBit, &dirtyflags)) \
 {	\
 	action;	\
 }
@@ -2185,25 +2357,34 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)willEnqueue
 {
+#ifndef TI_USE_AUTOLAYOUT
 	SET_AND_PERFORM(TiRefreshViewEnqueued,return);
-    if (!allowContentChange) return;
+    if (parentVisible && !hidden && (!allowContentChange || instantUpdates)) return;
 	[TiLayoutQueue addViewProxy:self];
+#endif
 }
 
 -(void)willEnqueueIfVisible
 {
-	if(parentVisible && !hidden)
-	{
+//	if(parentVisible && !hidden)
+//	{
 		[self willEnqueue];
-	}
+//	}
+//    SET_AND_PERFORM(TiRefreshViewEnqueued,return);
+//    if (parentVisible && !hidden && (!allowContentChange || instantUpdates)) return;
+//    [TiLayoutQueue addViewProxy:self];
 }
 
 
 -(void)performBlockWithoutLayout:(void (^)(void))block
 {
-    allowContentChange = NO;
-    block();
-    allowContentChange = YES;
+    if (!allowContentChange) {
+        block();
+    } else {
+        allowContentChange = NO;
+        block();
+        allowContentChange = YES;
+    }
 }
 
 -(void)performBlock:(void (^)(void))block withinAnimation:(TiViewAnimationStep*)animation
@@ -2232,12 +2413,20 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }];
     }
     else {
-        [[self viewParent] contentsWillChange];
+        if ([self viewParent]) {
+            [[self viewParent] contentsWillChange];
+        } else {
+            [self contentsWillChange];
+        }
     }
 }
 
 -(void)willChangeSize
 {
+ #ifndef TI_USE_AUTOLAYOUT
+   if (!_canResizeItself) {
+        return;
+    }
 	SET_AND_PERFORM(TiRefreshViewSize,return);
 
 	if (![self absoluteLayout])
@@ -2257,11 +2446,20 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     [self parentContentWillChange];
 	
     if (!allowContentChange) return;
-    [self makeChildrenPerformSelector:@selector(parentSizeWillChange) withObject:nil];
+//    [self makeChildrenPerformSelector:@selector(parentSizeWillChange) withObject:nil];
+    
+    if (instantUpdates) {
+        TiThreadPerformOnMainThread(^{[self refreshViewOrParent];}, NO);
+    }
+#endif
 }
 
 -(void)willChangePosition
 {
+#ifndef TI_USE_AUTOLAYOUT
+    if (!_canRepositionItself) {
+        return;
+    }
 	SET_AND_PERFORM(TiRefreshViewPosition,return);
 
 	if(TiDimensionIsUndefined(layoutProperties.width) || 
@@ -2271,46 +2469,55 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	}
 	[self willEnqueueIfVisible];
     [self parentContentWillChange];
+#endif
+}
+
+-(void)willChange
+{
+    [self willChangeSize];
+    [self willChangePosition];
 }
 
 -(void)willChangeZIndex
 {
-	SET_AND_PERFORM(TiRefreshViewZIndex, return);
-	//Nothing cascades from here.
-	[self willEnqueueIfVisible];
+#ifndef TI_USE_AUTOLAYOUT
+    SET_AND_PERFORM(TiRefreshViewZIndex, return);
+    //Nothing cascades from here.
+    [self willEnqueueIfVisible];
+#endif
 }
+
 
 -(void)willShow;
 {
-    [self willChangeZIndex];
+//    [self willChangeZIndex];
+//    pthread_rwlock_rdlock(&childrenLock);
+//    if (allowContentChange)
+//    {
+        [self makeViewChildrenPerformSelector:@selector(parentWillShow) withObject:nil];
+//    }
+//    else {
+//        [self makeChildrenPerformSelector:@selector(parentWillShowWithoutUpdate) withObject:nil];
+//    }
+//    pthread_rwlock_unlock(&childrenLock);
     
-    pthread_rwlock_rdlock(&childrenLock);
-    if (allowContentChange)
-    {
-        [self makeChildrenPerformSelector:@selector(parentWillShow) withObject:nil];
-    }
-    else {
-        [self makeChildrenPerformSelector:@selector(parentWillShowWithoutUpdate) withObject:nil];
-    }
-    pthread_rwlock_unlock(&childrenLock);
-    
-    if (parent && ![[self viewParent] absoluteLayout])
-        [self parentContentWillChange];
-    else {
-        [self contentsWillChange];
-    }
-    
+//    if (parent && ![[self viewParent] absoluteLayout])
+//        [self parentContentWillChange];
+//    else {
+//        [self contentsWillChange];
+//    }
+    [self willChange];
 }
 
 -(void)willHide;
 {
     //	SET_AND_PERFORM(TiRefreshViewZIndex,);
-    dirtyflags = 0;
+//    dirtyflags = 0;
 
-    [self makeChildrenPerformSelector:@selector(parentWillHide) withObject:nil];
+    [self makeViewChildrenPerformSelector:@selector(parentWillHide) withObject:nil];
     
-    if (parent && ![[self viewParent] absoluteLayout])
-        [self parentContentWillChange];
+//    if (parent && ![[self viewParent] absoluteLayout])
+//        [self parentContentWillChange];
 }
 
 -(void)willResizeChildren
@@ -2327,12 +2534,13 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 	[self willEnqueueIfVisible];
 
-    if (!allowContentChange || alreadySet) return;
-    [self makeChildrenPerformSelector:@selector(parentWillRelay) withObject:nil];
+//    if (!allowContentChange || alreadySet) return;
+//    [self makeChildrenPerformSelector:@selector(parentWillRelay) withObject:nil];
 }
 
 -(BOOL) widthIsAutoSize
 {
+#ifndef TI_USE_AUTOLAYOUT
     if (layoutProperties.fullscreen) return NO;
     BOOL isAutoSize = NO;
     if (TiDimensionIsAutoSize(layoutProperties.width))
@@ -2360,10 +2568,14 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }
     }
     return isAutoSize;
+#else
+	return NO;
+#endif
 }
 
 -(BOOL) heightIsAutoSize
 {
+#ifndef TI_USE_AUTOLAYOUT
     if (layoutProperties.fullscreen) return NO;
     BOOL isAutoSize = NO;
     if (TiDimensionIsAutoSize(layoutProperties.height))
@@ -2391,10 +2603,14 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }
     }
     return isAutoSize;
+#else
+	return NO;
+#endif
 }
 
 -(BOOL) widthIsAutoFill
 {
+#ifndef TI_USE_AUTOLAYOUT
     if (layoutProperties.fullscreen) return YES;
     BOOL isAutoFill = NO;
     BOOL followsFillBehavior = TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]);
@@ -2421,15 +2637,19 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         if (!TiDimensionIsUndefined(layoutProperties.right) ) {
             pinCount ++;
         }
-        if ( (pinCount < 2) || (!centerDefined) ){
+        if (!centerDefined){
             isAutoFill = followsFillBehavior;
         }
     }
     return isAutoFill;
+#else
+	return NO;
+#endif
 }
 
 -(BOOL) heightIsAutoFill
 {
+#ifndef TI_USE_AUTOLAYOUT
     if (layoutProperties.fullscreen) return YES;
     BOOL isAutoFill = NO;
     BOOL followsFillBehavior = TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]);
@@ -2456,26 +2676,62 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         if (!TiDimensionIsUndefined(layoutProperties.bottom) ) {
             pinCount ++;
         }
-        if ( (pinCount < 2) || (!centerDefined) ) {
+        if ((!centerDefined) ) {
             isAutoFill = followsFillBehavior;
         }
     }
     return isAutoFill;
+#else
+	return NO;
+#endif
 }
+
+-(BOOL)wantsToFillVerticalLayout
+{
+    if ([self heightIsAutoFill]) return YES;
+    BOOL followsFillBehavior = TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]);
+    if (TiDimensionIsDip(layoutProperties.height) || TiDimensionIsPercent(layoutProperties.height) ||
+        (!followsFillBehavior && TiDimensionIsUndefined(layoutProperties.height)))return NO;
+    NSArray* subproxies = [self visibleChildren];
+    for (TiViewProxy* child in subproxies) {
+        if ([child wantsToFillVerticalLayout]) return YES;
+    }
+    return NO;
+}
+
+-(CGFloat)layoutWeight
+{
+    return layoutProperties.weight;
+}
+
+-(BOOL)wantsToFillHorizontalLayout
+{
+    if ([self widthIsAutoFill]) return YES;
+    BOOL followsFillBehavior = TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]);
+    if (TiDimensionIsDip(layoutProperties.width) || TiDimensionIsPercent(layoutProperties.width) ||
+        (!followsFillBehavior && TiDimensionIsUndefined(layoutProperties.width)))return NO;
+    NSArray* subproxies = [self visibleChildren];
+    for (TiViewProxy* child in subproxies) {
+        if ([child wantsToFillHorizontalLayout]) return YES;
+    }
+    return NO;
+}
+
 
 -(void)contentsWillChange
 {
+#ifndef TI_USE_AUTOLAYOUT
     BOOL isAutoSize = [self widthIsAutoSize] || [self heightIsAutoSize];
     
 	if (isAutoSize)
 	{
 		[self willChangeSize];
 	}
-	else if (![self absoluteLayout])
-	{//Since changing size already does this, we only need to check
-	//Layout if the changeSize didn't
+	else
+	{
 		[self willChangeLayout];
 	}
+#endif
 }
 
 -(BOOL)allowContentChange
@@ -2490,6 +2746,11 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     allowContentChange = YES;
     [self refreshViewOrParent];
 }
+-(void)performLayoutBlockAndRefresh:(void (^)(void))block
+{
+    [self performBlockWithoutLayout:block];
+    [self refreshViewOrParent];
+}
 
 -(void)contentsWillChangeAnimated:(NSTimeInterval)duration
 {
@@ -2500,6 +2761,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)parentSizeWillChange
 {
+#ifndef TI_USE_AUTOLAYOUT
 //	if not dip, change size
 	if(!TiDimensionIsDip(layoutProperties.width) || !TiDimensionIsDip(layoutProperties.height) )
 	{
@@ -2510,10 +2772,12 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	{
 		[self willChangePosition];
 	}
+#endif
 }
 
 -(void)parentWillRelay
 {
+#ifndef TI_USE_AUTOLAYOUT
 //	if percent or undefined size, change size
 	if(TiDimensionIsUndefined(layoutProperties.width) ||
 			TiDimensionIsUndefined(layoutProperties.height) ||
@@ -2523,6 +2787,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 		[self willChangeSize];
 	}
 	[self willChangePosition];
+#endif
 }
 
 -(void)parentWillShow
@@ -2563,7 +2828,6 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 #pragma mark Layout actions
 
-
 -(void)updateZIndex {
     if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags) && vzIndex > 0) {
         if(parent != nil) {
@@ -2575,13 +2839,16 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 // Need this so we can overload the sandbox bounds on split view detail/master
 -(void)determineSandboxBounds
 {
-    if (controller) return;
+ #ifndef TI_USE_AUTOLAYOUT
+   if (controller) return;
     [self updateZIndex];
     UIView * ourSuperview = [[self view] superview];
-    if(ourSuperview != nil)
+    CGRect bounds = [ourSuperview bounds];
+    if(ourSuperview != nil && !TiCGRectIsEmpty(bounds))
     {
-        sandboxBounds = [ourSuperview bounds];
+        sandboxBounds = bounds;
     }
+#endif
 }
 
 -(void)refreshView:(TiUIView *)transferView
@@ -2613,44 +2880,45 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         [self refreshViewIfNeeded:YES];
     }
 }
-
+-(void)refreshViewIfNeededNSNumber:(NSNumber*)recursive
+{
+    [self refreshViewIfNeeded:[recursive boolValue]];
+}
 -(void)refreshViewIfNeeded:(BOOL)recursive
 {
-    BOOL needsRefresh = OSAtomicTestAndClear(TiRefreshViewEnqueued, &dirtyflags);
-    TiViewProxy* viewParent = [self viewParent];
-    if (viewParent && [viewParent willBeRelaying] && ![viewParent absoluteLayout]) {
+    TiViewProxy* viewParent = isUsingBarButtonItem?nil:[self viewParent];
+    if (hidden || (viewParent && [viewParent willBeRelaying] && ![viewParent absoluteLayout])) {
         return;
     }
-    
+    BOOL needsRefresh = OSAtomicTestAndClear(TiRefreshViewEnqueued, &dirtyflags);
+
     if (!needsRefresh)
     {
+        dirtyflags = 0;
         //even if our sandbox is null and we are not ready (next test) let s still call refresh our our children. They wont refresh but at least they will clear their TiRefreshViewEnqueued flags !
         if (recursive){
-            [self makeChildrenPerformSelector:@selector(refreshViewIfNeeded:) withObject:recursive];
+            [self makeViewChildrenPerformSelector:@selector(refreshViewIfNeededNSNumber:) withObject:@(recursive)];
         }
         return;
 	}
-    if (CGRectIsEmpty(sandboxBounds) && (!view || ![view superview])) {
+    if (TiCGRectIsEmpty(sandboxBounds) && (!view || ![view superview])) {
         //we have no way to get our size yet. May be we need to be added to a superview
         //let s keep our flags set
         return;
     }
     
-	if(parent && !parentVisible)
+	if(viewParent && !parentVisible)
 	{
 		VerboseLog(@"[INFO] Parent Invisible");
 		return;
 	}
 	
-	if(hidden)
-	{
-		return;
-	}
+	
     
     if (view != nil)
 	{
         BOOL relayout = ![self suppressesRelayout];
-        if (parent != nil && ![viewParent absoluteLayout]) {
+        if (viewParent != nil && ![viewParent absoluteLayout]) {
             //Do not mess up the sandbox in vertical/horizontal layouts
             relayout = NO;
         }
@@ -2669,11 +2937,19 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)dirtyItAll
 {
+#ifndef TI_USE_AUTOLAYOUT
     OSAtomicTestAndSet(TiRefreshViewZIndex, &dirtyflags);
     OSAtomicTestAndSet(TiRefreshViewEnqueued, &dirtyflags);
-    OSAtomicTestAndSet(TiRefreshViewSize, &dirtyflags);
-    OSAtomicTestAndSet(TiRefreshViewPosition, &dirtyflags);
-    if (childrenCount > 0) OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
+    if (_canResizeItself){
+        OSAtomicTestAndSet(TiRefreshViewSize, &dirtyflags);
+    }
+    if (_canRepositionItself) {
+        OSAtomicTestAndSet(TiRefreshViewPosition, &dirtyflags);
+    }
+    if (childrenCount > 0) {
+        OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
+    }
+#endif
 }
 
 -(void)clearItAll
@@ -2689,6 +2965,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 -(void)refreshView:(TiUIView *)transferView withinAnimation:(TiViewAnimationStep*)animation
 {
     [transferView setRunningAnimation:animation];
+#ifndef TI_USE_AUTOLAYOUT
     WARN_IF_BACKGROUND_THREAD_OBJ;
 	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
 	
@@ -2774,26 +3051,32 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 		[view setAutoresizingMask:autoresizeCache];
 	}
     
-    
-	[self updateZIndex];
+    [self updateZIndex];
+#endif
     [transferView setRunningAnimation:nil];
 }
 
 -(void)refreshPosition
 {
-	OSAtomicTestAndClearBarrier(TiRefreshViewPosition, &dirtyflags);
+#ifndef TI_USE_AUTOLAYOUT
+    if (_canRepositionItself) {
+        OSAtomicTestAndClearBarrier(TiRefreshViewPosition, &dirtyflags);
+    }
+#endif
 }
 
 -(void)refreshSize
 {
-	OSAtomicTestAndClearBarrier(TiRefreshViewSize, &dirtyflags);
+#ifndef TI_USE_AUTOLAYOUT
+    if (_canResizeItself) {
+        OSAtomicTestAndClearBarrier(TiRefreshViewSize, &dirtyflags);
+    }
+#endif
 }
-
 
 +(void)reorderViewsInParent:(UIView*)parentView
 {
-	if (parentView == nil) return;
-    
+    if (parentView == nil) return;
     NSMutableArray* parentViewToSort = [NSMutableArray array];
     for (UIView* subview in [parentView subviews])
     {
@@ -2802,8 +3085,8 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }
     }
     NSArray *sortedArray = [parentViewToSort sortedArrayUsingComparator:^NSComparisonResult(TiUIView* a, TiUIView* b) {
-        int first = [(TiViewProxy*)(a.proxy) vzIndex];
-        int second = [(TiViewProxy*)(b.proxy) vzIndex];
+        NSInteger first = [(TiViewProxy*)(a.proxy) vzIndex];
+        NSInteger second = [(TiViewProxy*)(b.proxy) vzIndex];
         return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
     }];
     for (TiUIView* view in sortedArray) {
@@ -2812,10 +3095,10 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 }
 
 -(void)reorderZChildren{
-	if (view == nil) return;
+    if (view == nil) return;
     NSArray *sortedArray = [[self viewChildren] sortedArrayUsingComparator:^NSComparisonResult(TiViewProxy* a, TiViewProxy* b) {
-        int first = [a vzIndex];
-        int second = [b vzIndex];
+        NSInteger first = [a vzIndex];
+        NSInteger second = [b vzIndex];
         return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
     }];
     for (TiViewProxy* child in sortedArray) {
@@ -2832,7 +3115,6 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     }
     [ourView addSubview:[childProxy view]];
 }
-
 
 -(BOOL)absoluteLayout
 {
@@ -2860,25 +3142,37 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(BOOL)relayout
 {
-	if (!repositioning && !CGSizeEqualToSize(sandboxBounds.size, CGSizeZero))
-	{
-		ENSURE_UI_THREAD_0_ARGS
+#ifndef TI_USE_AUTOLAYOUT
+    if (!repositioning)
+    {
+        if (CGSizeEqualToSize(sandboxBounds.size, CGSizeZero)) {
+            dirtyflags = 0;
+            repositioning = NO;
+            return NO;
+        }
+        ENSURE_UI_THREAD_0_ARGS
         OSAtomicTestAndClear(TiRefreshViewEnqueued, &dirtyflags);
-		repositioning = YES;
-
-        UIView *parentView = [[self viewParent] parentViewForChild:self];
-        CGSize referenceSize = (parentView != nil) ? parentView.bounds.size : sandboxBounds.size;
+        repositioning = YES;
+        
+        TiViewProxy* parentViewProxy = [self viewParent];
+        UIView *parentView = [parentViewProxy parentViewForChild:self];
+        CGSize referenceSize = sandboxBounds.size;
+        CGRect parentBounds = [parentView bounds];
+        if (parentView && !(TiCGRectIsEmpty(parentBounds))) {
+            referenceSize = parentView.bounds.size;
+        }
         if (CGSizeEqualToSize(referenceSize, CGSizeZero)) {
             repositioning = NO;
+            dirtyflags = 0;
             return;
         }
-        BOOL needsAll = CGRectIsEmpty(sizeCache);
+        BOOL needsAll = TiCGRectIsEmpty(sizeCache);
         BOOL needsSize = OSAtomicTestAndClear(TiRefreshViewSize, &dirtyflags) || needsAll;
         BOOL needsPosition = OSAtomicTestAndClear(TiRefreshViewPosition, &dirtyflags) || needsAll;
         BOOL layoutChanged = NO;
         if (needsSize) {
             CGSize size;
-            if (parent != nil && ![[self viewParent] absoluteLayout] ) {
+            if (parentViewProxy != nil && ![parentViewProxy absoluteLayout] ) {
                 size = SizeConstraintViewWithSizeAddingResizing(&layoutProperties,self, sandboxBounds.size, &autoresizeCache);
             }
             else {
@@ -2891,9 +3185,9 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }
         if (needsPosition) {
             CGPoint position;
-            position = PositionConstraintGivenSizeBoundsAddingResizing(&layoutProperties, [[self viewParent] layoutProperties], self, sizeCache.size,
-            [[view layer] anchorPoint], referenceSize, sandboxBounds.size, &autoresizeCache);
-
+            position = PositionConstraintGivenSizeBoundsAddingResizing(&layoutProperties, [parentViewProxy layoutProperties], self, sizeCache.size,
+                                                                       [[view layer] anchorPoint], referenceSize, sandboxBounds.size, &autoresizeCache);
+            
             position.x += sizeCache.origin.x + sandboxBounds.origin.x;
             position.y += sizeCache.origin.y + sandboxBounds.origin.y;
             if (!CGPointEqualToPoint(position, positionCache)) {
@@ -2910,28 +3204,27 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             layoutChanged = layoutChanged || !(CGSizeEqualToSize(oldSize,sizeCache.size) || !CGRectEqualToRect([view bounds], sizeCache) || !CGPointEqualToPoint([view center], positionCache));
         }
         
-		
+        
         [view setAutoresizingMask:autoresizeCache];
-        [view setBounds:sizeCache];
-        [view setCenter:positionCache];
+        if (needsPosition) {
+            [view setCenter:positionCache];
+        }
+        if (needsSize) {
+            [view setBounds:sizeCache];
+        }
         
         [self updateZIndex];
         
         if ([observer respondsToSelector:@selector(proxyDidRelayout:)]) {
             [observer proxyDidRelayout:self];
         }
-
-        if (layoutChanged) {
-            [self fireEvent:@"postlayout" propagate:NO];
+        
+        if (layoutChanged && [self _hasListeners:@"postlayout" checkParent:NO]) {
+            [self fireEvent:@"postlayout" propagate:NO checkForListener:NO];
         }
         repositioning = NO;
         return layoutChanged;
-	}
-#ifdef VERBOSE
-	else
-	{
-		DeveloperLog(@"[INFO] %@ Calling Relayout from within relayout.",self);
-	}
+    }
 #endif
     return NO;
 }
@@ -2941,9 +3234,9 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	IGNORE_IF_NOT_OPENED
 	
     // if not visible, ignore layout
-    if (view.hidden)
+    if (hidden)
     {
-        OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
+//        OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
         return;
     }
     
@@ -2952,8 +3245,12 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(BOOL)willBeRelaying
 {
+#ifndef TI_USE_AUTOLAYOUT
     DeveloperLog(@"DIRTY FLAGS %d WILLBERELAYING %d",dirtyflags, (*((char*)&dirtyflags) & (1 << (7 - TiRefreshViewEnqueued))));
     return ((*((char*)&dirtyflags) & (1 << (7 - TiRefreshViewEnqueued))) != 0);
+#else
+    return NO;
+#endif
 }
 
 -(void)childWillResize:(TiViewProxy *)child
@@ -2968,13 +3265,14 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         return;
     }
     
+#ifndef TI_USE_AUTOLAYOUT
 	[self contentsWillChange];
 
 	IGNORE_IF_NOT_OPENED
 	
-	BOOL containsChild = [[self children] containsObject:child];
-
-	ENSURE_VALUE_CONSISTENCY(containsChild,YES);
+//	BOOL containsChild = [[self children] containsObject:child];
+//
+//	ENSURE_VALUE_CONSISTENCY(containsChild,YES);
 
 	if (![self absoluteLayout])
 	{
@@ -2984,6 +3282,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 			[self willEnqueue];
 		}
 	}
+#endif
 }
 
 -(void)reposition
@@ -3033,13 +3332,16 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     }
 }
 
-
+-(void)repositionWithinAnimation
+{
+    [self repositionWithinAnimation:[self runningAnimation]];
+}
 -(void)repositionWithinAnimation:(TiViewAnimationStep*)animation
 {
 	IGNORE_IF_NOT_OPENED
 	
-	UIView* superview = [[self view] superview];
-	if (![self viewAttached] || view.hidden || superview == nil)
+//	UIView* superview = [[self view] superview];
+	if (![self viewReady] || hidden)
 	{
 		VerboseLog(@"[INFO] Reposition is exiting early in %@.",self);
 		return;
@@ -3063,37 +3365,35 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     
 }
 
--(BOOL)wantsToFillVerticalLayout
-{
-    if ([self heightIsAutoFill]) return YES;
-    if (TiDimensionIsDip(layoutProperties.height) || TiDimensionIsPercent(layoutProperties.height))return NO;
-    NSArray* subproxies = [self visibleChildren];
-    for (TiViewProxy* child in subproxies) {
-        if ([child wantsToFillVerticalLayout]) return YES;
-    }
-    return NO;
-}
-
--(BOOL)wantsToFillHorizontalLayout
-{
-    if ([self widthIsAutoFill]) return YES;
-    if (TiDimensionIsDip(layoutProperties.width) || TiDimensionIsPercent(layoutProperties.width))return NO;
-    NSArray* subproxies = [self visibleChildren];
-    for (TiViewProxy* child in subproxies) {
-        if ([child wantsToFillHorizontalLayout]) return YES;
-    }
-    return NO;
-}
-
 -(CGRect)boundsForMeasureForChild:(TiViewProxy*)child
 {
     UIView * ourView = [self parentViewForChild:child];
     if (!ourView) return CGRectZero;
-    return [ourView bounds];
+    CGRect result = [ourView bounds];
+//    BOOL autoWidth = [self widthIsAutoSize];
+//    BOOL autoHeight = [self heightIsAutoSize];
+//    if (autoWidth || autoHeight) {
+//        CGRect parentBounds = [[self viewParent] boundsForMeasureForChild:self];
+//        if (!CGSizeEqualToSize(parentBounds.size, CGSizeZero)) {
+//            if (autoWidth) {
+//                result.size.width = parentBounds.size.width;
+//            }
+//            if (autoHeight) {
+//                result.size.height = parentBounds.size.height;
+//            }
+//        }
+//        
+//    }
+//    if (!TiLayoutFlagsHasHorizontalWrap(&layoutProperties)) {
+//        result.size.width -= horizontalLayoutBoundary;
+//    }
+//    result.size.height -= verticalLayoutBoundary;
+    return result;
 }
 
 -(NSArray*)measureChildren:(NSArray*)childArray
 {
+#ifndef TI_USE_AUTOLAYOUT
     if ([childArray count] == 0) {
         return nil;
     }
@@ -3103,19 +3403,20 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
 	BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
     NSMutableArray * measuredBounds = [NSMutableArray arrayWithCapacity:[childArray count]];
-    NSUInteger i, count = [childArray count];
+    int i, count = (int)[childArray count];
 	int maxHeight = 0;
     
     NSMutableArray * widthFillChildren = horizontal?[NSMutableArray array]:nil;
     NSMutableArray * heightFillChildren = (vertical || horizontalWrap)?[NSMutableArray array]:nil;
     CGFloat widthNonFill = 0;
     CGFloat heightNonFill = 0;
+    CGFloat autoFillWidthTotalWeight = 0;
+    CGFloat autoFillHeightTotalWeight = 0;
     
     //First measure the sandbox bounds
     for (id child in childArray)
     {
         CGRect bounds = [self boundsForMeasureForChild:child];
-        TiRect * childRect = [[TiRect alloc] init];
         CGRect childBounds = CGRectZero;
         
         if(![self absoluteLayout])
@@ -3123,6 +3424,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             if (horizontalNoWrap) {
                 if ([child wantsToFillHorizontalLayout])
                 {
+                    autoFillWidthTotalWeight += [child layoutWeight];
                     [widthFillChildren addObject:child];
                 }
                 else{
@@ -3134,6 +3436,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             else if (vertical) {
                 if ([child wantsToFillVerticalLayout])
                 {
+                    autoFillHeightTotalWeight += [child layoutWeight];
                     [heightFillChildren addObject:child];
                 }
                 else{
@@ -3148,49 +3451,48 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         else {
             childBounds = bounds;
         }
-        [childRect setRect:childBounds];
-        [measuredBounds addObject:childRect];
-        [childRect release];
+        [measuredBounds addObject:[NSValue valueWithCGRect:childBounds]];
     }
     //If it is a horizontal layout ensure that all the children in a row have the
     //same height for the sandbox
     
-    int nbWidthAutoFill = [widthFillChildren count];
+    NSUInteger nbWidthAutoFill = [widthFillChildren count];
     if (nbWidthAutoFill > 0) {
         //it is horizontalNoWrap
-        horizontalLayoutBoundary = 0;
+//        horizontalLayoutBoundary = 0;
+        CGFloat counter = 0.0f;
         for (int i =0; i < [childArray count]; i++) {
             id child = [childArray objectAtIndex:i];
             CGRect bounds = [self boundsForMeasureForChild:child];
-            CGFloat width = floorf((bounds.size.width - widthNonFill) / nbWidthAutoFill);
             if ([widthFillChildren containsObject:child]){
-                CGRect usableRect = CGRectMake(0,0,width + horizontalLayoutBoundary, bounds.size.height);
+                CGFloat weight = [child layoutWeight];
+                CGFloat width = ((bounds.size.width - horizontalLayoutBoundary)*weight / (autoFillWidthTotalWeight - counter));
+                counter += weight;
+                CGRect usableRect = CGRectMake(0,0,width, bounds.size.height);
                 CGRect result = [self computeChildSandbox:child withBounds:usableRect];
                 maxHeight = MAX(maxHeight, result.size.height);
-                [(TiRect*)[measuredBounds objectAtIndex:i] setRect:result];
-            }
-            else {
-                horizontalLayoutBoundary += [[(TiRect*)[measuredBounds objectAtIndex:i] width] floatValue];
+                [measuredBounds replaceObjectAtIndex:i withObject:[NSValue valueWithCGRect:result]];
             }
         }
     }
     
-    int nbHeightAutoFill = [heightFillChildren count];
+    NSUInteger nbHeightAutoFill = [heightFillChildren count];
     if (nbHeightAutoFill > 0) {
         //it is vertical
-        verticalLayoutBoundary = 0;
+//        verticalLayoutBoundary = 0;
+        CGFloat counter = 0.0f;
         for (int i =0; i < [childArray count]; i++) {
             id child = [childArray objectAtIndex:i];
             CGRect bounds = [self boundsForMeasureForChild:child];
-            CGFloat height = floorf((bounds.size.height - heightNonFill) / nbHeightAutoFill);
             if ([heightFillChildren containsObject:child]){
-                CGRect usableRect = CGRectMake(0,0,bounds.size.width, height + verticalLayoutBoundary);
+                CGFloat weight = [child layoutWeight];
+                CGFloat height = ((bounds.size.height - verticalLayoutBoundary)*weight / (autoFillHeightTotalWeight - counter));
+                counter += weight;
+                CGRect usableRect = CGRectMake(0,0,bounds.size.width, height);
                 CGRect result = [self computeChildSandbox:child withBounds:usableRect];
-                [(TiRect*)[measuredBounds objectAtIndex:i] setRect:result];
-            }
-            else {
-                verticalLayoutBoundary += [[(TiRect*)[measuredBounds objectAtIndex:i] height] floatValue];
-            }
+                [measuredBounds replaceObjectAtIndex:i withObject:[NSValue valueWithCGRect:result]];
+           }
+
         }
     }
 	if (horizontalNoWrap)
@@ -3198,9 +3500,10 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         int currentLeft = 0;
 		for (i=0; i<count; i++)
 		{
-            [(TiRect*)[measuredBounds objectAtIndex:i] setX:[NSNumber numberWithInt:currentLeft]];
-            currentLeft += [[(TiRect*)[measuredBounds objectAtIndex:i] width] integerValue];
-//			[(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:maxHeight]];
+            CGRect rect = [[measuredBounds objectAtIndex:i] CGRectValue];
+            rect.origin.x = currentLeft;
+            [measuredBounds replaceObjectAtIndex:i withObject:[NSValue valueWithCGRect:rect]];
+            currentLeft += rect.size.width;
 		}
 	}
     else if(vertical && (count > 1) )
@@ -3208,8 +3511,10 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         int currentTop = 0;
 		for (i=0; i<count; i++)
 		{
-            [(TiRect*)[measuredBounds objectAtIndex:i] setY:[NSNumber numberWithInt:currentTop]];
-            currentTop += [[(TiRect*)[measuredBounds objectAtIndex:i] height] integerValue];
+            CGRect rect = [[measuredBounds objectAtIndex:i] CGRectValue];
+            rect.origin.y = currentTop;
+            [measuredBounds replaceObjectAtIndex:i withObject:[NSValue valueWithCGRect:rect]];
+            currentTop += rect.size.height;
 		}
     }
 	else if(horizontal && (count > 1) )
@@ -3218,7 +3523,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         startIndex = endIndex = maxHeight = currentTop = -1;
         for (i=0; i<count; i++)
         {
-            CGRect childSandbox = (CGRect)[(TiRect*)[measuredBounds objectAtIndex:i] rect];
+            CGRect childSandbox = [[measuredBounds objectAtIndex:i] CGRectValue];
             if (startIndex == -1)
             {
                 //FIRST ELEMENT
@@ -3234,7 +3539,9 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                     endIndex = i;
                     for (int j=startIndex; j<endIndex; j++)
                     {
-                        [(TiRect*)[measuredBounds objectAtIndex:j] setHeight:[NSNumber numberWithInt:maxHeight]];
+                        CGRect rect = [[measuredBounds objectAtIndex:j] CGRectValue];
+                        rect.size.height = maxHeight;
+                        [measuredBounds replaceObjectAtIndex:j withObject:[NSValue valueWithCGRect:rect]];
                     }
                     startIndex = i;
                     endIndex = -1;
@@ -3253,200 +3560,181 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             //LAST ROW
             for (i=startIndex; i<count; i++)
             {
-                [(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:maxHeight]];
+                CGRect rect = [[measuredBounds objectAtIndex:i] CGRectValue];
+                rect.size.height = maxHeight;
+                [measuredBounds replaceObjectAtIndex:i withObject:[NSValue valueWithCGRect:rect]];
             }
         }
     }
     return measuredBounds;
+#else
+    return nil;
+#endif
 }
 
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds
 {
+#ifndef TI_USE_AUTOLAYOUT
     CGRect originalBounds = bounds;
-    BOOL followsFillWBehavior = TiDimensionIsAutoFill([child defaultAutoWidthBehavior:nil]);
-    BOOL followsFillHBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
+    __block BOOL followsFillWBehavior = TiDimensionIsAutoFill([child defaultAutoWidthBehavior:nil]);
+    __block BOOL followsFillHBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
+    LayoutConstraint * childConstraint = [child layoutProperties];
     __block CGSize autoSize;
+    __block BOOL fullscreen = childConstraint->fullscreen;
     __block BOOL autoSizeComputed = FALSE;
-    __block CGFloat boundingWidth = TiLayoutFlagsHasHorizontalWrap(&layoutProperties)?bounds.size.width:bounds.size.width - horizontalLayoutBoundary;
-    __block CGFloat boundingHeight = bounds.size.height-verticalLayoutBoundary;
+    __block BOOL recalculateWidth = NO;
+    UIView *parentView = [self parentViewForChild:child];
+    __block CGFloat boundingWidth = bounds.size.width;
+    __block CGFloat boundingHeight = bounds.size.height;
     if (boundingHeight < 0) {
         boundingHeight = 0;
     }
+    
+    CGFloat offsetx = fullscreen?0:TiDimensionCalculateValue(childConstraint->left, boundingWidth)
+    + TiDimensionCalculateValue(childConstraint->right, boundingWidth);
+    
+    CGFloat offsety = fullscreen?0:TiDimensionCalculateValue(childConstraint->top, boundingHeight)
+    + TiDimensionCalculateValue(childConstraint->bottom, boundingHeight);
+    
+    
     void (^computeAutoSize)() = ^() {
         if (autoSizeComputed == FALSE) {
-            autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingHeight)];
+            autoSize = [child minimumParentSizeForSizeNoPadding:CGSizeMake(boundingWidth - offsetx, boundingHeight - offsety)];
             autoSizeComputed = YES;
         }
     };
     
-    CGFloat (^computeHeight)() = ^() {
-        if ([child layoutProperties]->fullscreen == YES) return boundingHeight;
-        //TOP + BOTTOM
-        CGFloat offsetV = TiDimensionCalculateValue([child layoutProperties]->top, bounds.size.height)
-        + TiDimensionCalculateValue([child layoutProperties]->bottom, bounds.size.height);
-        TiDimension constraint = [child layoutProperties]->height;
-        switch (constraint.type)
+    CGFloat (^computeHeight)() = ^CGFloat() {
+        if (fullscreen == YES) {
+            followsFillHBehavior = YES;
+            return boundingHeight;
+        }
+        TiDimension constraint = childConstraint->height;
+        CGFloat ratio = childConstraint->sizeRatio;
+      
+        if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
         {
-            case TiDimensionTypePercent:
-            case TiDimensionTypeDip:
-            {
-                return  TiDimensionCalculateValue(constraint, boundingHeight) + offsetV;
+            followsFillHBehavior = NO;
+            return  TiDimensionCalculateValue(constraint, boundingHeight-offsety);
+        }
+        else if (TiDimensionIsUndefined(constraint) && ratio == 0)
+        {
+            if (!TiDimensionIsUndefined(childConstraint->top) && !TiDimensionIsUndefined(childConstraint->centerY) ) {
+                followsFillHBehavior = NO;
+                return 2 * ( TiDimensionCalculateValue(childConstraint->centerY, boundingHeight) - TiDimensionCalculateValue(childConstraint->top, boundingHeight) );
             }
-            case TiDimensionTypeAutoFill:
-            {
-                return boundingHeight;
+            //            else if (!TiDimensionIsUndefined(childConstraint->top) && !TiDimensionIsUndefined(childConstraint->bottom) ) {
+            //                recalculateWidth = YES;
+            ////                followsFillHBehavior = YES;
+            //                return boundingHeight-offsety;
+            //            }
+            else if (!TiDimensionIsUndefined(childConstraint->centerY) && !TiDimensionIsUndefined(childConstraint->bottom) ) {
+                return 2 * ( boundingHeight - TiDimensionCalculateValue(childConstraint->bottom, boundingHeight) - TiDimensionCalculateValue(childConstraint->centerY, boundingHeight));
             }
-            case TiDimensionTypeUndefined:
-            {
-                if (!TiDimensionIsUndefined([child layoutProperties]->top) && !TiDimensionIsUndefined([child layoutProperties]->centerY) ) {
-                    CGFloat height = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerY, boundingHeight) - TiDimensionCalculateValue([child layoutProperties]->top, boundingHeight) );
-                    return height + offsetV;
-                }
-                else if (!TiDimensionIsUndefined([child layoutProperties]->top) && !TiDimensionIsUndefined([child layoutProperties]->bottom) ) {
-                    return boundingHeight;
-                }
-                else if (!TiDimensionIsUndefined([child layoutProperties]->centerY) && !TiDimensionIsUndefined([child layoutProperties]->bottom) ) {
-                    CGFloat height = 2 * ( boundingHeight - TiDimensionCalculateValue([child layoutProperties]->bottom, boundingHeight) - TiDimensionCalculateValue([child layoutProperties]->centerY, boundingHeight));
-                    return height + offsetV;
-                }
-            }
-            case TiDimensionTypeAuto:
-            {
-                if (followsFillHBehavior) {
-                    //FILL behavior
-                    return boundingHeight;
-                }
-            }
-            default:
-            case TiDimensionTypeAutoSize:
-            {
+            else if (followsFillHBehavior){
+                recalculateWidth = YES;
+                return boundingHeight-offsety;
+            } else {
+                //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
                 computeAutoSize();
-                return autoSize.height; //offset is already in autoSize
+                followsFillHBehavior = NO;
+                return autoSize.height;
             }
         }
+        else if(TiDimensionIsAutoFill(constraint) || (TiDimensionIsAuto(constraint) && followsFillHBehavior)){
+            followsFillHBehavior = YES;
+            return boundingHeight-offsety;
+        }
+        else if(ratio > 0){
+            followsFillHBehavior = NO;
+            return 0.0f;
+        }
+        else {
+            //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
+            computeAutoSize();
+            followsFillHBehavior = NO;
+            return autoSize.height;
+        }
     };
+    
+    CGFloat (^computeWidth)() = ^CGFloat() {
+        if (fullscreen == YES) {
+            followsFillWBehavior = YES;
+            return boundingWidth;
+        }
+        TiDimension constraint = childConstraint->width;
+        CGFloat ratio = childConstraint->sizeRatio;
+        
+        if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
+        {
+            followsFillWBehavior = NO;
+            return  TiDimensionCalculateValue(constraint, boundingWidth-offsetx);
+        }
+        else if (TiDimensionIsUndefined(constraint) && ratio == 0)
+        {
+            if (!TiDimensionIsUndefined(childConstraint->left) && !TiDimensionIsUndefined(childConstraint->centerX) ) {
+                return 2 * ( TiDimensionCalculateValue(childConstraint->centerX, boundingWidth) - TiDimensionCalculateValue(childConstraint->left, boundingWidth) );
+            }
+            //            else if (!TiDimensionIsUndefined(childConstraint->left) && !TiDimensionIsUndefined(childConstraint->right) ) {
+            //                recalculateWidth = YES;
+            ////                followsFillWBehavior = YES;
+            //                return boundingWidth-offsetx;
+            //            }
+            else if (!TiDimensionIsUndefined(childConstraint->centerX) && !TiDimensionIsUndefined(childConstraint->right) ) {
+                return 2 * ( boundingWidth - TiDimensionCalculateValue(childConstraint->right, boundingWidth) - TiDimensionCalculateValue(childConstraint->centerX, boundingWidth));
+            }
+            else if (followsFillWBehavior){
+                recalculateWidth = YES;
+                return boundingWidth-offsetx;
+            } else {
+                //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
+                recalculateWidth = YES;
+                computeAutoSize();
+                followsFillWBehavior = NO;
+                return autoSize.width;
+            }
+        }
+        else if(TiDimensionIsAutoFill(constraint) || (TiDimensionIsAuto(constraint) && followsFillWBehavior)){
+            followsFillWBehavior = YES;
+            return boundingWidth-offsetx;
+        }
+        else if(ratio > 0){
+            followsFillWBehavior = NO;
+            return 0.0f;
+        }
+        else {
+            //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
+            recalculateWidth = YES;
+            computeAutoSize();
+            followsFillWBehavior = NO;
+            return autoSize.width;
+        }
+    };
+    
+    bounds.size = CGSizeMake(computeWidth(), computeHeight());
+    
+    //    if (followsFillWBehavior) {
+    //        bounds.size.width -= offsetx;
+    //    }
+    //    if (followsFillHBehavior) {
+    //        bounds.size.height -= offsety;
+    //    }
+    
+    bounds.size = minmaxSize(childConstraint, bounds.size, originalBounds.size);
+    
+    bounds.size.width += offsetx;
+    bounds.size.height += offsety;
     
     if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle))
     {
         bounds.origin.y = verticalLayoutBoundary;
-        //LEFT + RIGHT
-        CGFloat offsetH = TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width)
-        + TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width);
-        
-        if ([child layoutProperties]->fullscreen == YES) {
-            bounds.size.width = boundingWidth;
-        }
-        else {
-            TiDimension constraint = [child layoutProperties]->width;
-            switch (constraint.type)
-            {
-                case TiDimensionTypePercent:
-                case TiDimensionTypeDip:
-                {
-                    bounds.size.width =  TiDimensionCalculateValue(constraint, boundingWidth) + offsetH;
-                    break;
-                }
-                case TiDimensionTypeAutoFill:
-                {
-                    bounds.size.width = boundingWidth;
-                    break;
-                }
-                case TiDimensionTypeUndefined:
-                {
-                    if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->centerX) ) {
-                        CGFloat width = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->left, boundingWidth) );
-                        bounds.size.width = width + offsetH;
-                    }
-                    else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
-                        CGFloat w   = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth));
-                        bounds.size.width = autoSize.width + offsetH;
-                        break;
-                    }
-                }
-                case TiDimensionTypeAuto:
-                {
-                    if (followsFillWBehavior) {
-                        bounds.size.width = boundingWidth;
-                        break;
-                    }
-                }
-                default:
-                case TiDimensionTypeAutoSize:
-                {
-                    computeAutoSize();
-                    bounds.size.width = autoSize.width; //offset is already in autoSize
-                    break;
-                }
-            }
-        }
-        
-        bounds.size.height = computeHeight();
         verticalLayoutBoundary += bounds.size.height;
     }
     else if(TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle))
     {
-		BOOL horizontalWrap = TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
-        BOOL followsFillBehavior = TiDimensionIsAutoFill([child defaultAutoWidthBehavior:nil]);
-        bounds.size = [child sizeForAutoSize:bounds.size];
+        BOOL horizontalWrap = TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
         
-        //LEFT + RIGHT
-        CGFloat offsetH = TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width)
-        + TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width);
-        //TOP + BOTTOM
-        CGFloat offsetV = TiDimensionCalculateValue([child layoutProperties]->top, bounds.size.height)
-        + TiDimensionCalculateValue([child layoutProperties]->bottom, bounds.size.height);
-        
-        
-        CGFloat desiredWidth;
-        BOOL recalculateWidth = NO;
-        BOOL isPercent = NO;
-        if ([child layoutProperties]->fullscreen == YES) {
-            followsFillBehavior = YES;
-            desiredWidth = boundingWidth;
-        }
-        else {
-            TiDimension constraint = [child layoutProperties]->width;
-
-            if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
-            {
-                desiredWidth =  TiDimensionCalculateValue(constraint, boundingWidth) + offsetH;
-                isPercent = TiDimensionIsPercent(constraint);
-            }
-            else if (followsFillBehavior && TiDimensionIsUndefined(constraint))
-            {
-                if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->centerX) ) {
-                    desiredWidth = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->left, boundingWidth) );
-                    desiredWidth += offsetH;
-                }
-                else if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
-                    recalculateWidth = YES;
-                    followsFillBehavior = YES;
-                    desiredWidth = boundingWidth;
-                }
-                else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
-                    desiredWidth = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth));
-                    desiredWidth += offsetH;
-                }
-                else {
-                    recalculateWidth = YES;
-                    computeAutoSize();
-                    desiredWidth = autoSize.width;
-                }
-            }
-            else if(TiDimensionIsAutoFill(constraint) || (TiDimensionIsAuto(constraint) && followsFillWBehavior)){
-                followsFillBehavior = YES;
-                desiredWidth = boundingWidth;
-            }
-            else {
-                //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
-                recalculateWidth = YES;
-                computeAutoSize();
-                desiredWidth = autoSize.width;
-                followsFillBehavior = NO;
-            }
-        }
-        
-        bounds.size.height = computeHeight();
+        CGFloat desiredWidth = bounds.size.width;
         
         if (horizontalWrap && (horizontalLayoutBoundary + desiredWidth >   boundingWidth)) {
             if (horizontalLayoutBoundary == 0.0) {
@@ -3477,13 +3765,13 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                         verticalLayoutBoundary += bounds.size.height;
                     }
                 }
-                else if (followsFillBehavior) {
+                else if (followsFillHBehavior) {
                     
                     verticalLayoutBoundary += bounds.size.height;
                 }
                 else {
                     computeAutoSize();
-                    desiredWidth = autoSize.width + offsetH;
+                    desiredWidth = autoSize.width;
                     if (desiredWidth < boundingWidth) {
                         
                         bounds.size.width = desiredWidth;
@@ -3511,17 +3799,17 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                 bounds.size.width = desiredWidth;
                 horizontalLayoutBoundary += bounds.size.width;
             }
-            else if(followsFillBehavior)
+            else if(followsFillWBehavior)
             {
                 //FILL that fits in left over space. Move to next row
                 bounds.size.width = boundingWidth;
-				if (horizontalWrap) {
-					horizontalLayoutBoundary = 0.0;
-                	verticalLayoutBoundary += horizontalLayoutRowHeight;
-					horizontalLayoutRowHeight = 0.0;
-				} else {
-					horizontalLayoutBoundary += bounds.size.width;
-				}
+                if (horizontalWrap) {
+                    horizontalLayoutBoundary = 0.0;
+                    verticalLayoutBoundary += horizontalLayoutRowHeight;
+                    horizontalLayoutRowHeight = 0.0;
+                } else {
+                    horizontalLayoutBoundary += bounds.size.width;
+                }
             }
             else
             {
@@ -3534,13 +3822,18 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     else {
         //        CGSize autoSize = [child minimumParentSizeForSize:bounds.size];
     }
+    
     return bounds;
+#else
+    return CGRectZero;
+#endif
 }
 
 -(void)layoutChild:(TiViewProxy*)child optimize:(BOOL)optimize withMeasuredBounds:(CGRect)bounds
 {
+#ifdef TI_USE_KROLL_THREAD
 	IGNORE_IF_NOT_OPENED
-	
+#endif
 	UIView * ourView = [self parentViewForChild:child];
 
 	if (ourView==nil || [child isHidden])
@@ -3563,10 +3856,10 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     [child dirtyItAll]; //for multileve recursion we need to make sure the child resizes itself
     [self performBlock:^{
         [child relayout];
+        // tell our children to also layout
+        [child layoutChildren:optimize];
     } withinOurAnimationOnProxy:child];
-
-	// tell our children to also layout
-	[child layoutChildren:optimize];
+	
     [child handlePendingAnimation];
 }
 
@@ -3579,6 +3872,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)layoutChildren:(BOOL)optimize
 {
+#ifndef TI_USE_AUTOLAYOUT
 	IGNORE_IF_NOT_OPENED
 	
 	verticalLayoutBoundary = 0.0;
@@ -3603,7 +3897,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             NSUInteger childIndex;
             for (childIndex = 0; childIndex < childCount; childIndex++) {
                 id child = [childrenArray objectAtIndex:childIndex];
-                CGRect childSandBox = (CGRect)[(TiRect*)[measuredBounds objectAtIndex:childIndex] rect];
+                CGRect childSandBox = [[measuredBounds objectAtIndex:childIndex] CGRectValue];
                 [self layoutChild:child optimize:optimize withMeasuredBounds:childSandBox];
             }
             [measuredBounds release];
@@ -3617,6 +3911,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	{
 		OSAtomicTestAndClearBarrier(TiRefreshViewChildrenPosition, &dirtyflags);
 	}
+#endif
 }
 
 
@@ -3669,40 +3964,51 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 #pragma mark - View Templates
 
-+ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context
++ (NSString*)defaultTemplateType
 {
-	return [[self class] createFromDictionary:dictionary rootProxy:rootProxy inContext:context defaultType:@"Ti.UI.View"];
+    return @"Ti.UI.View";
+}
+
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiParentingProxy*)rootProxy inContext:(id<TiEvaluator>)context
+{
+	return [[self class] createFromDictionary:dictionary rootProxy:rootProxy inContext:context defaultType:[[self class] defaultTemplateType]];
 }
 
 
 -(void)hideKeyboard:(id)arg
 {
-	ENSURE_UI_THREAD_1_ARG(arg);
-	if ([self viewAttached])
-	{
-		[[self view] endEditing:YES];
-	}
+    [self blur:nil];
 }
 
 -(void)blur:(id)args
 {
-	ENSURE_UI_THREAD_1_ARG(args)
 	if ([self viewAttached])
 	{
-		[[self view] endEditing:YES];
+        TiThreadPerformBlockOnMainThread(^{
+            [[self view] resignFirstResponder];
+            [[self view] makeRootViewFirstResponder];
+        }, NO);
 	}
 }
 
 -(void)focus:(id)args
 {
-	ENSURE_UI_THREAD_1_ARG(args)
 	if ([self viewAttached])
 	{
-		[[self view] becomeFirstResponder];
-	}
+        TiThreadPerformBlockOnMainThread(^{
+            [[self view] becomeFirstResponder];
+        }, NO);
+    } else {
+        needsFocusOnAttach = YES;
+    }
 }
 
 - (BOOL)focused:(id)unused
+{
+    return [self focused];
+}
+
+-(BOOL)focussed
 {
     return [self focused];
 }
@@ -3732,73 +4038,100 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 -(void)transitionViews:(id)args
 {
     
-	ENSURE_UI_THREAD_1_ARG(args)
     if (_transitioning) {
         _pendingTransition = [args retain];
         return;
     }
+    ENSURE_UI_THREAD_1_ARG(args)
     _transitioning = YES;
     if ([args count] > 1) {
-        TiViewProxy *view1Proxy = nil;
-        TiViewProxy *view2Proxy = nil;
+        __block TiViewProxy *view1Proxy = nil;
+        __block TiViewProxy *view2Proxy = nil;
+        __block KrollCallback* callback = nil;
+        NSDictionary* props = nil;
         ENSURE_ARG_OR_NIL_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
         ENSURE_ARG_OR_NIL_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
-        if ([self viewAttached])
+        ENSURE_ARG_OR_NIL_AT_INDEX(props, args, 2, NSDictionary);
+        ENSURE_ARG_OR_NIL_AT_INDEX(callback, args, 3, KrollCallback);
+        [callback retain];
+        void (^onCompletion)() = ^() {
+            if (view1Proxy) {
+                [self removeProxy:view1Proxy shouldDetach:YES];
+                view1Proxy.hiddenForLayout = NO;
+            }
+            [self refreshViewIfNeeded];
+            _transitioning = NO;
+            if (callback) {
+                [self _fireEventToListener:@"done" withObject:nil listener:callback thisObject:nil];
+            }
+            [callback release];
+            [self handlePendingTransition];
+        };
+        if ([self viewAttached] && parentVisible && [self viewLayedOut])
         {
             if (view1Proxy != nil) {
                 pthread_rwlock_wrlock(&childrenLock);
                 if (![children containsObject:view1Proxy])
                 {
                     pthread_rwlock_unlock(&childrenLock);
-                    if (view2Proxy)[self add:view2Proxy];
+                    if (view2Proxy){
+                        [self add:view2Proxy];
+                    }
                     _transitioning = NO;
                     [self handlePendingTransition];
                     return;
                 }
             }
-            NSDictionary* props = [args count] > 2 ? [args objectAtIndex:2] : nil;
-            if (props == nil) {
-                DebugLog(@"[WARN] Called transitionViews without transitionStyle");
-            }
+            
             pthread_rwlock_unlock(&childrenLock);
             
             TiUIView* view1 = nil;
             __block TiUIView* view2 = nil;
+            
             if (view2Proxy) {
-                [view2Proxy performBlockWithoutLayout:^{
-                    [view2Proxy setParent:self];
+                view2Proxy.hiddenForLayout = YES;
+                [self add:view2Proxy];
+                if (view2Proxy.view) {
+                    view2 = view2Proxy.view;
+                    [view2Proxy determineSandboxBoundsForce];
+                    [view2Proxy dirtyItAll];
+                    [view2Proxy refreshViewIfNeeded];
+                } else {
                     view2 = [view2Proxy getAndPrepareViewForOpening];
-                }];
-                
-                id<TiEvaluator> context = self.executionContext;
-                if (context == nil) {
-                    context = self.pageContext;
                 }
-                [context.krollContext invokeBlockOnThread:^{
-                    [self rememberProxy:view2Proxy];
-                    [view2Proxy forgetSelf];
-                }];
+                
             }
             if (view1Proxy != nil) {
                 view1 = [view1Proxy getAndPrepareViewForOpening];
+                [view1Proxy refreshViewIfNeeded];
             }
+            void (^animationBlock)() = ^() {
+                [self performBlockWithoutLayout:^{
+                    if (view2Proxy) {
+                        view2Proxy.hiddenForLayout = NO;
+                    }
+                    if (view1Proxy) {
+                        view1Proxy.hiddenForLayout = YES;
+                    }
+                    [self contentsWillChange];
+                }];
+                
+                [self refreshViewOrParent];
+            };
+            [self refreshViewOrParent];
             
             TiTransition* transition = [TiTransitionHelper transitionFromArg:props containerView:self.view];
             transition.adTransition.type = ADTransitionTypePush;
-            [[self view] transitionfromView:view1 toView:view2 withTransition:transition completionBlock:^{
-                if (view1Proxy) [self remove:view1Proxy];
-                if (view2Proxy) [self add:view2Proxy];
-                _transitioning = NO;
-                [self handlePendingTransition];
-            }];
+                 [[self view] transitionFromView:view1 toView:view2 withTransition:transition animationBlock:animationBlock completionBlock:onCompletion];
         }
         else {
-            if (view1Proxy) [self remove:view1Proxy];
-            if (view2Proxy)[self add:view2Proxy];
-            _transitioning = NO;
-            [self handlePendingTransition];
+            if (view2Proxy) {
+                [self add:view2Proxy];
+            }
+            onCompletion();
+            
         }
-	}
+    }
 }
 
 
@@ -3809,11 +4142,24 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         [[self view] blurBackground:args];
     }
 }
+-(void)configurationStartNSNumber:(NSNumber*)ready
+{
+    [self configurationStart:[ready boolValue]];
+}
+
+-(void)handleUpdatedValue:(id)value forKey:(NSString*)key {
+    if (eventOverrideDelegate && [self.eventOverrideDelegate respondsToSelector:@selector(viewProxy:updatedValue:forType:)]) {
+        [self.eventOverrideDelegate viewProxy:self updatedValue:value forType:key];
+    }
+}
+
 -(void)configurationStart:(BOOL)recursive
 {
     needsContentChange = allowContentChange = NO;
     [view configurationStart];
-    if (recursive)[self makeChildrenPerformSelector:@selector(configurationStart:) withObject:recursive];
+    if (recursive) {
+        [self makeViewChildrenPerformSelector:@selector(configurationStartNSNumber:) withObject:@(recursive)];
+    }
 }
 
 -(void)configurationStart
@@ -3821,11 +4167,23 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     [self configurationStart:NO];
 }
 
+-(void)configurationSetNSNumber:(NSNumber*)ready
+{
+    [self configurationSet:[ready boolValue]];
+}
+
 -(void)configurationSet:(BOOL)recursive
 {
     [view configurationSet];
-    if (recursive)[self makeChildrenPerformSelector:@selector(configurationSet:) withObject:recursive];
+    if (recursive) {
+        [self makeViewChildrenPerformSelector:@selector(configurationSetNSNumber:) withObject:@(recursive)];
+    }
     allowContentChange = YES;
+}
+
+-(BOOL)isConfigurationSet
+{
+    return ![self inReproxy] && view && [view isConfigurationSet];
 }
 
 -(void)configurationSet
@@ -3835,15 +4193,16 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 
 
--(BOOL)containsView:(id)args
+-(id)containsView:(id)args
 {
     ENSURE_SINGLE_ARG(args, TiProxy);
-    return [self containsChild:args];
+    return @([self containsChild:args]);
 }
 
 -(BOOL)canBeNextResponder
 {
     return !hidden && [[self view] interactionEnabled];
 }
+
 
 @end

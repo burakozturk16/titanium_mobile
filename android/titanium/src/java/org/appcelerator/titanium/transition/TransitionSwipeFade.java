@@ -71,26 +71,27 @@ public class TransitionSwipeFade extends Transition {
 	}
 	
 	@Override
-	public void transformView(View view, float position, boolean adjustScroll) {
+	public void transformView(View view, float position) {
+	    float decale = 1 - destTrans;
 		boolean out = (position < 0);
 		float multiplier = 1;
-		float dest = 0;
 		if (!TransitionHelper.isPushSubType(subType)) {
-			multiplier = -1;
+			multiplier = -multiplier;
 			out = !out;
 		}
 		float alpha = 1;
-		if (out) { //out
-			dest = multiplier* Math.abs(position)*(adjustScroll?(1-destTrans):destTrans);
+		float translate = position;
+		if (out) {
+	        translate += Math.abs(position)*decale;
 			alpha = 1 - Math.abs(position);
 		}
-
+		translate *= multiplier;
 		ViewHelper.setAlpha(view, alpha);
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setTranslationRelativeY(view, dest);
+			TiViewHelper.setTranslationRelativeY(view, translate);
 		}
 		else {
-			TiViewHelper.setTranslationRelativeX(view, dest);
+			TiViewHelper.setTranslationRelativeX(view, translate);
 		}
 	}
 }

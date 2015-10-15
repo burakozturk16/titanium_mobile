@@ -35,8 +35,8 @@ static const NSInteger kDashboardViewDefaultColumnCount = 3;
 {
 	if (launcher==nil)
 	{
-		int rowCount = [TiUtils intValue:[self.proxy valueForKey:@"rowCount"] def:kDashboardViewDefaultRowCount];
-		int columnCount = [TiUtils intValue:[self.proxy valueForKey:@"columnCount"] def:kDashboardViewDefaultColumnCount];
+		NSInteger rowCount = [TiUtils intValue:[self.proxy valueForKey:@"rowCount"] def:kDashboardViewDefaultRowCount];
+		NSInteger columnCount = [TiUtils intValue:[self.proxy valueForKey:@"columnCount"] def:kDashboardViewDefaultColumnCount];
 		launcher = [[LauncherView alloc] initWithFrame:CGRectMake(0, 0, 320, 400) 
                                           withRowCount:rowCount 
                                        withColumnCount:columnCount];
@@ -69,7 +69,6 @@ static const NSInteger kDashboardViewDefaultColumnCount = 3;
     if (launcher != nil) {
         [launcher setEditable:[args boolValue]];
     }
-    [[self proxy] replaceValue:args forKey:@"editable" notification:NO];
 }
 
 -(void)setViewData_:(id)args

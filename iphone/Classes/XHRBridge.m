@@ -90,9 +90,12 @@ static XHRBridge *xhrBridge = nil;
 	}
 	else if ([method isEqualToString:@"log"])
 	{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
 		NSString *level = [event objectForKey:@"level"];
 		NSString *message = [event objectForKey:@"message"];
 		[tiModule performSelector:@selector(log:) withObject:[NSArray arrayWithObjects:level,message,nil]];
+#pragma clang diagnostic pop
 	}
 	else
 	{

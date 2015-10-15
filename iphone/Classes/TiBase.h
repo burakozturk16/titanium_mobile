@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -190,6 +190,8 @@ if (![in respondsToSelector:@selector(intValue)]) {\
 }\
 out = [in intValue]; \
 
+#define IS_OF_CLASS(x,t) ([x isKindOfClass:[t class]])
+
 #define ENSURE_INT_AT_INDEX(out,args,index) \
 {\
 id tmp = nil; \
@@ -274,7 +276,7 @@ else if (![x isKindOfClass:t])	\
 #define ENSURE_ARG_COUNT(x,c) \
 if ([x count]<c)\
 {\
-[self throwException:TiExceptionNotEnoughArguments subreason:[NSString stringWithFormat:@"expected %d arguments, received: %d",c,[x count]] location:CODELOCATION]; \
+[self throwException:TiExceptionNotEnoughArguments subreason:[NSString stringWithFormat:@"expected %d arguments, received: %lu",c,(unsigned long)[x count]] location:CODELOCATION]; \
 }\
 
 #define VALUE_AT_INDEX_OR_NIL(x,i)	\
@@ -304,7 +306,7 @@ __typeof__(minX) __minX = (minX);	\
 __typeof__(maxX) __maxX = (maxX);	\
 if ((__x<__minX) || (__x>__maxX)) \
 { \
-[self throwException:TiExceptionRangeError subreason:[NSString stringWithFormat:@"%d was not >= %d and <= %d",__x,__maxX,__minX] location:CODELOCATION]; \
+[self throwException:TiExceptionRangeError subreason:[NSString stringWithFormat:@"%lld was not >= %lld and <= %lld",(long long)__x,(long long)__maxX,(long long)__minX] location:CODELOCATION]; \
 }\
 }
 
@@ -418,11 +420,17 @@ DebugLog(@"[WARN] Ti%@.%@ DEPRECATED in %@, in favor of %@.",@"tanium",api,in,ne
 #define NUMLONG(x) \
 [NSNumber numberWithLong:x]\
 
+#define NUMULONG(x) \
+[NSNumber numberWithUnsignedLong:x]\
+
 #define NUMLONGLONG(x) \
 [NSNumber numberWithLongLong:x]\
 
 #define NUMINT(x) \
 [NSNumber numberWithInt:x]\
+
+#define NUMUINT(x) \
+[NSNumber numberWithUnsignedInt:x]\
 
 #define NUMDOUBLE(x) \
 [NSNumber numberWithDouble:x]\
@@ -430,6 +438,11 @@ DebugLog(@"[WARN] Ti%@.%@ DEPRECATED in %@, in favor of %@.",@"tanium",api,in,ne
 #define NUMFLOAT(x) \
 [NSNumber numberWithFloat:x]\
 
+#define NUMINTEGER(x) \
+[NSNumber numberWithInteger:x]\
+
+#define NUMUINTEGER(x) \
+[NSNumber numberWithUnsignedInteger:x]\
     
 #define DEFINE_SUBPROXY(methodName,ivarName)	\
 -(TiProxy*)methodName	\
@@ -461,6 +474,7 @@ RELEASE_TO_NIL(x); \
 [x setDelegate:nil]; \
 RELEASE_TO_NIL(x); \
 }
+
 
  //MUST BE NEGATIVE, as it inhabits the same space as UIBarButtonSystemItem
 enum {
@@ -624,6 +638,7 @@ extern NSString * const kTiSuspendNotification;
 extern NSString * const kTiPausedNotification;
 extern NSString * const kTiResumeNotification;
 extern NSString * const kTiResumedNotification;
+extern NSString * const kTiErrorNotification;
 extern NSString * const kTiAnalyticsNotification;
 extern NSString * const kTiRemoteDeviceUUIDNotification;
 extern NSString * const kTiGestureShakeNotification;
@@ -633,15 +648,26 @@ extern NSString * const kTiSilentPushNotification;
 extern NSString * const kTiBackgroundTransfer;
 extern NSString * const kTiFrameAdjustNotification;
 extern NSString * const kTiLocalNotification;
+extern NSString * const kTiLocalNotificationAction;
+extern NSString * const kTiRemoteNotificationAction;
+extern NSString * const kTiUserNotificationSettingsNotification;
 extern NSString * const kTiBackgroundTransfer;
 extern NSString * const kTiURLDownloadFinished;
 extern NSString * const kTiURLSessionCompleted;
 extern NSString * const kTiURLSessionEventsCompleted;
 extern NSString * const kTiURLDowloadProgress;
 extern NSString * const kTiURLUploadProgress;
+extern NSString * const kTiKeyboardHeightChangedNotification;
+extern NSString * const kTiNetworkChangedNotification;
+
+extern NSString * const kTiWatchKitExtensionRequest;
+extern NSString * const kTiContinueActivity;
+extern NSString * const kTiApplicationShortcut;
     
+#ifndef TI_USE_AUTOLAYOUT
 extern NSString* const kTiBehaviorSize;
 extern NSString* const kTiBehaviorFill;
+extern NSString* const kTiBehaviorMatch;
 extern NSString* const kTiBehaviorAuto;
 extern NSString* const kTiUnitPixel;
 extern NSString* const kTiUnitCm;
@@ -651,7 +677,7 @@ extern NSString* const kTiUnitDip;
 extern NSString* const kTiUnitDipAlternate;
 extern NSString* const kTiUnitSystem;
 extern NSString* const kTiUnitPercent;
-
+#endif
 extern NSString* const kTiExceptionSubreason;
 extern NSString* const kTiExceptionLocation;
 
@@ -668,10 +694,16 @@ extern NSString* const kTiExceptionLocation;
     
 #include "TiThreading.h"
 //Counter to keep track of KrollContext
+#ifdef TI_USE_KROLL_THREAD
 extern int krollContextCounter;
 void incrementKrollCounter();	
 void decrementKrollCounter();
-    
+#endif
+/**
+ *	Make sure the block is called on the main thread.
+ *	only calls TiThreadPerformBlockOnMainThread if necessary
+ */
+void TiThreadPerformBlockOnMainThread(void (^mainBlock)(void),BOOL waitForFinish);
 /**
  *	TiThreadPerformOnMainThread should replace all Titanium instances of
  *	performSelectorOnMainThread, ESPECIALLY if wait is to be yes. That way,
@@ -687,9 +719,10 @@ void TiThreadPerformOnMainThread(void (^mainBlock)(void),BOOL waitForFinish);
  *	convenience functions are provided. By being a function, it removes self
  *	from being a stack variable. It also has some optimizations.
  */
+#ifdef TI_USE_KROLL_THREAD
 void TiThreadReleaseOnMainThread(id releasedObject,BOOL waitForFinish);
 void TiThreadRemoveFromSuperviewOnMainThread(UIView* view,BOOL waitForFinish);
-
+#endif
 /**	
  *	Blocks sent to TiThreadPerformOnMainThread will be processed on the main
  *	thread. Most of the time, this is done using dispatch_async or
@@ -726,11 +759,13 @@ void TiThreadRemoveFromSuperviewOnMainThread(UIView* view,BOOL waitForFinish);
  *
  *	Returns: Whether or not the queue was empty upon return.
  */
+
+#ifdef TI_USE_KROLL_THREAD
 BOOL TiThreadProcessPendingMainThreadBlocks(NSTimeInterval timeout, BOOL doneWhenEmpty, void * reserved );
 
 	
 void TiThreadInitalize();
-
+#endif
 #include "TiPublicAPI.h"
 
 #ifdef __cplusplus

@@ -8,9 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@class TiSelectableBackgroundLayer;
+//@class TiSelectableBackgroundLayer;
 @interface TiCellBackgroundView : UIView
 - (void)setRoundedRadius:(CGFloat)radius inCorners:(UIRectCorner)corners;
 
--(TiSelectableBackgroundLayer*)selectableLayer;
+//-(TiSelectableBackgroundLayer*)selectableLayer;
 @end

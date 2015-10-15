@@ -38,26 +38,19 @@
 {
     TiShadow* result = [[TiShadow alloc] init];
     if ([args objectForKey:@"offset"]) {
-        NSDictionary* offsetDict  = [args objectForKey:@"offset"];
-        CGSize offset = CGSizeZero;
-        if ([offsetDict objectForKey:@"x"]) {
-            offset.width = [TiUtils floatValue:[offsetDict objectForKey:@"x"]];
-        }
-        if ([offsetDict objectForKey:@"y"]) {
-            offset.height = [TiUtils floatValue:[offsetDict objectForKey:@"y"]];
-        }
-        result.shadowOffset = offset;
+        CGPoint offset = [TiUtils pointValue:[args objectForKey:@"offset"] def:CGPointZero];
+        result.shadowOffset = CGSizeMake(offset.x, offset.y);
     }
     else {
         result.shadowOffset = CGSizeZero;
     }
     
-//    if ([args objectForKey:@"opacity"]) {
-//        result.opacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
-//    }
-//    else {
-//        result.opacity = 1.0f;
-//    }
+    //    if ([args objectForKey:@"opacity"]) {
+    //        result.opacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
+    //    }
+    //    else {
+    //        result.opacity = 1.0f;
+    //    }
     
     if ([args objectForKey:@"color"]) {
         result.shadowColor = [[TiUtils colorValue:[args objectForKey:@"color"]] _color];

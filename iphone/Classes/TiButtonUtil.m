@@ -10,7 +10,7 @@
 
 @implementation TiButtonUtil
 
-+(UIView*)systemButtonWithType:(int)type
++(UIView*)systemButtonWithType:(NSInteger)type
 {
 	switch (type)
 	{
@@ -40,7 +40,7 @@
 	return nil;
 }
 
-+(UIView*)buttonWithType:(int)type
++(UIView*)buttonWithType:(NSInteger)type
 {
 	UIView *button = [TiButtonUtil systemButtonWithType:type];
 	if (button==nil)

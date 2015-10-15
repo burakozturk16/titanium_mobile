@@ -206,4 +206,12 @@ public class TiDatabaseProxy extends KrollProxy
 	{
 		return "Ti.Database.DB";
 	}
+	
+	public SQLiteDatabase getDatabase() {
+	    return db;
+	}
+	
+	public String getNativePath() {
+        return db.getPath();
+    }
 }

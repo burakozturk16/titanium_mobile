@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2011 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -57,6 +57,28 @@ Java_org_appcelerator_kroll_runtime_v8_V8Object_nativeSetProperty
 
 	Handle<Value> jsValue = TypeConverter::javaObjectToJsValue(env, value);
 	properties->Set(jsName, jsValue);
+}
+
+JNIEXPORT jobject JNICALL
+Java_org_appcelerator_kroll_runtime_v8_V8Object_nativeGetProperty
+	(JNIEnv *env, jobject object, jlong ptr, jstring name)
+{
+	ENTER_V8(V8Runtime::globalContext);
+	titanium::JNIScope jniScope(env);
+
+	Handle<Object> jsObject;
+	if (ptr != 0) {
+		jsObject = Persistent<Object>((Object *) ptr);
+	} else {
+		jsObject = TypeConverter::javaObjectToJsValue(env, object)->ToObject();
+	}
+
+	Handle<Object> properties = jsObject->Get(Proxy::propertiesSymbol)->ToObject();
+	Handle<Value> jsName = TypeConverter::javaStringToJsString(env, name);
+
+	Local<Value> jsValue = Local<Value>::New(jsObject->Get(jsName));
+	bool isNew;
+	return TypeConverter::jsValueToJavaObject(env, jsValue, &isNew);
 }
 
 JNIEXPORT void JNICALL
@@ -191,6 +213,7 @@ Java_org_appcelerator_kroll_runtime_v8_V8Object_nativeCallProperty
 	}
 
 	if (tryCatch.HasCaught()) {
+		V8Util::openJSErrorDialog(tryCatch);
 		V8Util::reportException(tryCatch);
 		return JNIUtil::undefinedObject;
 	}

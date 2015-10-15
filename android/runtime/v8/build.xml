@@ -1,0 +1,11 @@
+<project basedir="./../" name="kroll-v8" default="build">
+	<import file="../../build/common.xml"/>
+	
+	<target name="build">
+		<antcall target="build.kroll.runtime.v8"/>
+	</target>
+
+	<target name="clean">
+		<clean.project name="kroll-v8"/>
+	</target>
+</project>

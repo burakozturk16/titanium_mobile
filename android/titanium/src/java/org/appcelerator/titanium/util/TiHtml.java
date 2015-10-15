@@ -1,8 +1,12 @@
 package org.appcelerator.titanium.util;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.NodeTraversor;
+import java.io.IOException;
+import java.io.StringReader;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -10,13 +14,11 @@ import android.graphics.Rect;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
 import android.graphics.drawable.shapes.Shape;
-import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.style.ReplacementSpan;
 import android.text.style.URLSpan;
 
 public class TiHtml {
-	private static final String TAG = "TiHtml";
 
 	public static class RoundedRectDrawable extends ShapeDrawable {
 	    private final Paint fillpaint, strokepaint;
@@ -108,11 +110,23 @@ public class TiHtml {
 //
 //    }
 	
-	public static Spanned fromHtml(String html, final boolean disableLinkStyle) {
-		Document doc = Jsoup.parse(html);
-		TiHTMLFormattingVisitor formatter = new TiHTMLFormattingVisitor(disableLinkStyle);
-        NodeTraversor traversor = new NodeTraversor(formatter);
-        traversor.traverse(doc); // walk the DOM, and call .head() and .tail() for each node
-        return formatter.spannable();
+	public static CharSequence fromHtml(CharSequence html, final boolean disableLinkStyle) {
+	    if (html instanceof String) {
+            XMLReader xmlReader;
+            try {
+                xmlReader = XMLReaderFactory.createXMLReader ("org.ccil.cowan.tagsoup.Parser");
+                TiHtmlToSpannedConverter converter =
+                        new TiHtmlToSpannedConverter(null, null, disableLinkStyle);
+                xmlReader.setContentHandler (converter);
+                xmlReader.parse (new InputSource(new StringReader((String)html)));
+                return converter.spannable();
+            } catch (SAXException | IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return html;
 	}
+    public static CharSequence fromHtml(CharSequence html) {
+        return fromHtml(html, false);
+    }
 }

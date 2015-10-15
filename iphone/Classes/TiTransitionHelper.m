@@ -48,6 +48,12 @@
 #import "ADSlideTransition.h"
 #import "ADModernPushTransition.h"
 
+#import "TiViewAnimation+Friend.h"
+#import "TiViewAnimationStep.h"
+
+#import "TiUIView.h"
+#import "TiViewProxy.h"
+
 @interface UIView (FindUIViewController)
 - (UIViewController *) firstAvailableUIViewController;
 - (id) traverseResponderChainForUIViewController;
@@ -226,8 +232,15 @@ reversed{
         BOOL reversed =  [TiUtils boolValue:@"reverse" properties:arg def:(transition && [transition.adTransition isReversed])];
         
         ADTransitionOrientation subtype = [TiUtils intValue:@"substyle" properties:arg def:transition?transition.orientation:[TiUtils intValue:@"substyle" properties:defaultArg def:ADTransitionRightToLeft]];
-        NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"style" properties:defaultArg def:-1]];
-        result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg reversed:reversed];
+        NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"style" properties:defaultArg def:NWTransitionUndefined]];
+        
+        if (type == NWTransitionUndefined && [arg objectForKey:@"from"]) {
+            //must be custom animation
+            result = [[[TiTransition alloc] initCustomTransitionWithDict:arg] autorelease];
+        } else {
+            result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg reversed:reversed];
+        }
+        
     }
     return result;
 }
@@ -246,11 +259,33 @@ reversed{
     return [self transitionFromArg:arg defaultArg:nil defaultTransition:nil containerView:container];
 }
 
-+ (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block
+-(void)playAnimation:(TiAnimation*)animation onView:(UIView*)view
+{
+    TiViewAnimation * viewAnimation = [TiViewAnimation animation];
+    viewAnimation.animationProxy = animation;
+    TiHLSAnimationStep* step = [TiViewAnimationStep animationStep];
+    step.duration = [animation getAnimationDuration];
+    step.curve = [animation curve];
+    [(TiViewAnimationStep*)step addViewAnimation:viewAnimation forView:view];
+    HLSAnimation* hlsAnimation = [HLSAnimation animationWithAnimationStep:step];
+    hlsAnimation.delegate = animation;
+    hlsAnimation.lockingUI = NO;
+    animation.animation = hlsAnimation;
+    
+    [hlsAnimation playWithRepeatCount:[animation repeatCount] afterDelay:[animation delay]];
+}
+
++ (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block
 {
     [self transitionfromView:viewOut toView:viewIn insideView:holder withTransition:transition prepareBlock:nil completionBlock:block];
 }
-+ (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition prepareBlock:(void (^)(void))prepareBlock completionBlock:(void (^)(void))block
+
++ (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition prepareBlock:(void (^)(void))prepareBlock completionBlock:(void (^)(void))block
+{
+    [self transitionFromView:viewOut toView:viewIn insideView:holder withTransition:transition prepareBlock:prepareBlock animationBlock:NULL completionBlock:block];
+}
+
++ (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition prepareBlock:(void (^)(void))prepareBlock animationBlock:(void (^)(void))animationBlock completionBlock:(void (^)(void))block
 {
     ADTransition* adTransition = transition.adTransition ;
     
@@ -258,7 +293,7 @@ reversed{
                               [adTransition isKindOfClass:[ADTransformTransition class]]) && ![holder.layer isKindOfClass:[CATransformLayer class]];
     UIView* workingView = holder;
     UIView* workingView2 = holder;
-    int index = viewOut?[[holder subviews] indexOfObject:viewOut]:[[holder subviews] count];
+    NSUInteger index = viewOut?[[holder subviews] indexOfObject:viewOut]:[[holder subviews] count];
     
     if (needsTransformFix) {
         if([transition isKindOfClass:[TiTransitionPerspective class]]) {
@@ -284,9 +319,10 @@ reversed{
         prepareBlock();
     }
     
-    adTransition.type = ADTransitionTypePush;
-//    [transition prepareViewHolder:workingView2];
-    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
+    if (!transition.custom) {
+        adTransition.type = ADTransitionTypePush;
+        [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
+    }
     
     void (^completionBlock)(void) = ^void(void) {
         [viewOut removeFromSuperview];
@@ -311,11 +347,24 @@ reversed{
         return;
     }
     [CATransaction setCompletionBlock:^{
-        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        if (!transition.custom) {
+            [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        }
         completionBlock();
     }];
-    
-    [adTransition startTransitionFromView:viewOut toView:viewIn inside:workingView];
+    if (transition.custom) {
+    } else {
+        [UIView animateWithDuration:transition.duration
+                              delay:0
+                            options:UIViewAnimationOptionAllowUserInteraction
+                         animations:^{
+                             if (animationBlock) {
+                                 animationBlock();
+                             }
+                         }
+                         completion:nil];
+        [adTransition startTransitionFromView:viewOut toView:viewIn inside:workingView];
+    }
 }
 
 @end

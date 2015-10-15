@@ -31,8 +31,8 @@ enum
 {
 	TiRefreshViewPosition = 2,
 	TiRefreshViewChildrenPosition,
-	TiRefreshViewZIndex,
-	TiRefreshViewSize,
+    TiRefreshViewZIndex,
+    TiRefreshViewSize,
 
 	TiRefreshViewEnqueued,
 };
@@ -50,9 +50,11 @@ enum
 //TODO: Actually have a rhyme and reason on keeping things @protected vs @private.
 //For now, for sake of proper value grouping, we're all under one roof.
 
+#ifndef TI_USE_AUTOLAYOUT
 #pragma mark Layout properties
 	LayoutConstraint layoutProperties;
-	int vzIndex;
+#endif
+    NSInteger vzIndex;
 	BOOL hidden;	//This is the boolean version of ![TiUtils boolValue:visible def:yes]
 		//And has nothing to do with whether or not it's onscreen or
     
@@ -108,14 +110,20 @@ enum
 @property(nonatomic,readonly) TiRect * rect;
 /*
  Provides access to z-index value.
- */
-@property(nonatomic,readwrite,assign) int vzIndex;
+*/
+@property(nonatomic,readwrite,assign) NSInteger vzIndex;
+
 /**
  Provides access to visibility of parent view proxy.
  */
 @property(nonatomic,readwrite,assign) BOOL parentVisible; // For tableview magic ONLY
 @property(nonatomic,readwrite,assign) BOOL preventListViewSelection; // For listview
 @property(nonatomic,readwrite,assign) BOOL canBeResizedByFrame;
+@property(nonatomic,readwrite,assign) BOOL canRepositionItself;
+@property(nonatomic,readwrite,assign) BOOL canResizeItself;
+
+
+@property(nonatomic,readwrite,assign) BOOL hiddenForLayout;
 
 -(void)startLayout:(id)arg;//Deprecated since 3.0.0
 -(void)finishLayout:(id)arg;//Deprecated since 3.0.0
@@ -136,21 +144,23 @@ enum
  */
 -(void)hide:(id)arg;
 
+#ifndef TI_USE_AUTOLAYOUT
 -(void)setTop:(id)value;
 -(void)setBottom:(id)value;
 -(void)setLeft:(id)value;
 -(void)setRight:(id)value;
 -(void)setWidth:(id)value;
 -(void)setHeight:(id)value;
+#endif
 -(void)setZIndex:(id)value;
 -(id)zIndex;
 
 // See the code for setValue:forUndefinedKey: for why we can't have this
-//-(void)setLayout:(id)value;
+#ifndef TI_USE_AUTOLAYOUT
 -(void)setMinWidth:(id)value;
 -(void)setMinHeight:(id)value;
-
 -(void)setCenter:(id)value;
+#endif
 -(NSMutableDictionary*)center;
 -(id)animatedCenter;
 
@@ -167,17 +177,20 @@ enum
 -(TiUIView*)getOrCreateView;
 -(void)fakeOpening;
 
--(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check;
+-(TiViewProxy*)viewParent;
+//-(void)setParent:(TiParentingProxy*)parent_ checkForOpen:(BOOL)check;
 -(void)runBlock:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive;
 -(void)runBlockOnMainThread:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive;
 
 #pragma mark nonpublic accessors not related to Housecleaning
 
 
+#ifndef TI_USE_AUTOLAYOUT
 /**
  Provides access to layout properties of the underlying view.
  */
 @property(nonatomic,readonly,assign) LayoutConstraint * layoutProperties;
+#endif
 
 /**
  Provides access to sandbox bounds of the underlying view.
@@ -419,11 +432,10 @@ enum
 
 /**
  Tells the view proxy that the attached view z-index will change.
- */
+*/
 -(void)willChangeZIndex;
 
-/**
- Tells the view proxy that the attached view layout will change.
+/** Tells the view proxy that the attached view layout will change.
  */
 -(void)willChangeLayout;
 
@@ -521,6 +533,7 @@ enum
 
 -(void)reposition;	//Todo: Replace
 -(void)repositionWithinAnimation:(TiViewAnimationStep*)animation;
+-(void)repositionWithinAnimation;
 /**
  Tells if the view is enqueued in the LayoutQueue
  */
@@ -532,6 +545,9 @@ enum
 -(BOOL) heightIsAutoSize;
 -(BOOL) belongsToContext:(id<TiEvaluator>) context;
 
+-(CGSize)autoSizeForSize:(CGSize)size;
+-(CGSize)autoSizeForSize:(CGSize)size ignoreMinMax:(BOOL)ignoreMinMaxComputation;
+
 /**
  Tells the view that its child view size will change.
  @param child The child view
@@ -540,12 +556,11 @@ enum
 -(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiViewAnimationStep*)animation;
 -(void)aboutToBeAnimated;
 
+/**
+ The current running animation
+ */
 -(TiViewAnimationStep*)runningAnimation;
 -(void)setRunningAnimation:(TiViewAnimationStep*)animation;
-
-
-+(NSArray*)layoutProperties;
-+(NSSet*)transferableProperties;
 
 - (void)prepareForReuse;
 
@@ -558,10 +573,7 @@ enum
 -(void)configurationStart:(BOOL)recursive;
 -(void)configurationSet;
 -(void)configurationSet:(BOOL)recursive;
-
-
--(BOOL) widthIsAutoSize;
--(BOOL) heightIsAutoSize;
+-(BOOL)isConfigurationSet;
 
 /**
  foucs methods
@@ -569,6 +581,7 @@ enum
 - (void)focus:(id)args;
 - (void)blur:(id)args;
 - (BOOL)focused:(id)unused;
+- (BOOL)focussed;
 
 /**
  Method to simulate the layout of child even if not really a child
@@ -589,10 +602,7 @@ enum
  */
 -(void)removeFakeAnimation;
 
-/**
- The current running animation
- */
--(TiViewAnimationStep*)runningAnimation;
+
 -(void)performBlock:(void (^)(void))block withinOurAnimationOnProxy:(TiViewProxy*)viewProxy;
 
 /**
@@ -607,6 +617,7 @@ enum
  Perform a block while preventing relayout
  */
 -(void)performBlockWithoutLayout:(void (^)(void))block;
+-(void)performLayoutBlockAndRefresh:(void (^)(void))block;
 
 /**
  Make the view dirty so that it will get refreshed on the next run
@@ -627,6 +638,7 @@ Set the animation on its view and all it's children
  Create or access a managing controller. Only call if you want a controller!
  */
 -(UIViewController*) hostingController;
+-(UIViewController*) controller;
 -(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds;
 -(TiUIView*) getAndPrepareViewForOpening;
 +(void)reorderViewsInParent:(UIView*)parentView;

@@ -259,7 +259,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     BOOL adjustScrollViewInsets = NO;
     if (_ios7OrGreater) {
         id<UIViewControllerIOS7Support> theController = controller;
-        int edges = [theController edgesForExtendedLayout];
+        NSInteger edges = [theController edgesForExtendedLayout];
         topEdge = ((edges & 1/*UIRectEdgeTop*/) != 0);
         bottomEdge = ((edges & 4/*UIRectEdgeBottom*/) != 0);
         includeOpaqueBars = [theController extendedLayoutIncludesOpaqueBars];
@@ -435,7 +435,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     // Create array that will be returned
     NSMutableArray * outViewControllers = [NSMutableArray arrayWithCapacity:(_viewControllers.count - indexInViewController - 1)];
-    for (int i = indexInViewController + 1; i < _viewControllers.count; i++) {
+    for (NSUInteger i = indexInViewController + 1; i < _viewControllers.count; i++) {
         [outViewControllers addObject:_viewControllers[i]];
     }
     

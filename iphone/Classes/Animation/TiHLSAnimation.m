@@ -57,10 +57,26 @@
 
 #pragma mark API
 
--(NSDictionary*)animationProperties
+//-(NSDictionary*)animationProperties
+//{
+//    if (m_animationProxy) {
+//        return [m_animationProxy propertiesForAnimation:self];
+//    }
+//    return nil;
+//}
+
+-(NSDictionary*)fromProperties
 {
     if (m_animationProxy) {
-        return [m_animationProxy propertiesForAnimation:self];
+        return [m_animationProxy fromPropertiesForAnimation:self];
+    }
+    return nil;
+}
+
+-(NSDictionary*)toProperties
+{
+    if (m_animationProxy) {
+        return [m_animationProxy toPropertiesForAnimation:self];
     }
     return nil;
 }

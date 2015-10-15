@@ -5,6 +5,8 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
+#ifndef TI_USE_AUTOLAYOUT
+
 #import "TiDimension.h"
 #import "TiUtils.h"
 #import "TiApp.h"
@@ -13,6 +15,7 @@ const TiDimension TiDimensionZero = {TiDimensionTypeDip, 0};
 const TiDimension TiDimensionAuto = {TiDimensionTypeAuto, 0};
 const TiDimension TiDimensionAutoSize = {TiDimensionTypeAutoSize, 0};
 const TiDimension TiDimensionAutoFill = {TiDimensionTypeAutoFill, 0};
+const TiDimension TiDimensionMatch = {TiDimensionTypeMatch, 0};
 const TiDimension TiDimensionUndefined = {TiDimensionTypeUndefined, 0};
 
 TiDimension TiDimensionMake(TiDimensionType type, CGFloat value)
@@ -37,6 +40,9 @@ CGFloat convertInchToPixels(CGFloat value)
 
 CGFloat convertPixelsToDip(CGFloat value)
 {
+    if ([TiUtils isRetinaHDDisplay]) {
+        return value/3.0;
+    }
     if ([TiUtils isRetinaDisplay]) {
         return value/2.0;
     }
@@ -45,6 +51,9 @@ CGFloat convertPixelsToDip(CGFloat value)
 
 CGFloat convertDipToInch(CGFloat value)
 {
+    if ([TiUtils isRetinaHDDisplay]) {
+        return (value*3.0)/[TiUtils dpi];
+    }
     if ([TiUtils isRetinaDisplay]) {
         return (value*2.0)/[TiUtils dpi];
     }
@@ -53,6 +62,9 @@ CGFloat convertDipToInch(CGFloat value)
 
 CGFloat convertDipToPixels(CGFloat value)
 {
+    if ([TiUtils isRetinaHDDisplay]) {
+        return (value * 3.0);
+    }
     if ([TiUtils isRetinaDisplay]) {
         return (value * 2.0);
     }
@@ -71,6 +83,10 @@ TiDimension TiDimensionFromObject(id object)
 		{
 			return TiDimensionAutoFill;
 		}
+        if ([object caseInsensitiveCompare:kTiBehaviorMatch]==NSOrderedSame)
+        {
+            return TiDimensionMatch;
+        }
 		if ([object caseInsensitiveCompare:kTiBehaviorSize]==NSOrderedSame)
 		{
 			return TiDimensionAutoSize;
@@ -144,3 +160,4 @@ TiDimension TiDimensionFromObject(id object)
 }
 
 
+#endif

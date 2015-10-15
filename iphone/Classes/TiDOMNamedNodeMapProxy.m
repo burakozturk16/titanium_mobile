@@ -103,7 +103,7 @@
 -(id)item:(id)args
 {
 	ENSURE_SINGLE_ARG(args,NSObject);
-	int index = [TiUtils intValue:args];
+	NSInteger index = [TiUtils intValue:args];
 
     if( ([[(GDataXMLElement*)[element node] attributes] count] > index) && (index >= 0) )
     {
@@ -138,7 +138,7 @@ properties the same as foo.item(index).
 
 -(NSNumber*)length
 {
-	return NUMINT([[(GDataXMLElement*)[element node] attributes] count]);
+	return NUMUINTEGER([[(GDataXMLElement*)[element node] attributes] count]);
 }
 
 @end

@@ -46,12 +46,12 @@
         
         TiViewAnimation *viewAnimation = (TiViewAnimation *)[self objectAnimationForObject:view];
         UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction); //Backwards compatible
-        if (!viewAnimation.animationProxy.restartFromBeginning && !viewAnimation.animationProxy.cancelRunningAnimations) {
+        if (viewAnimation.animationProxy.shouldBeginFromCurrentState) {
             options |= UIViewAnimationOptionBeginFromCurrentState;
         }
         NSTimeInterval animationDuration = self.duration;
         NSAssert(viewAnimation != nil, @"Missing view animation; data consistency failure");
-        [viewAnimation checkParameters];
+//        [viewAnimation checkParameters];
         void (^animation)() = ^{
             if (self.curve) {
                 [CATransaction begin];
@@ -69,7 +69,15 @@
         void (^complete)(BOOL) = ^(BOOL finished) {
             [self notifyAsynchronousAnimationStepDidStopFinished:finished];
         };
-    
+        
+        
+//        [UIView animateWithDuration:animationDuration
+//                              delay:0
+//             usingSpringWithDamping:0.0f
+//              initialSpringVelocity:0.0f
+//                            options:options
+//                         animations:animation
+//                         completion:complete];
         [UIView animateWithDuration:animationDuration
                               delay:0
                             options:options
@@ -114,6 +122,7 @@
 
 #pragma mark Reverse animation
 
+
 - (CAMediaTimingFunction *)inverseFunction:(CAMediaTimingFunction*)function
 {
     float values1[2];
@@ -132,7 +141,16 @@
 - (id)reverseAnimationStep
 {
     TiViewAnimationStep *reverseAnimationStep = [super reverseAnimationStep];
-    reverseAnimationStep.curve = [self inverseFunction:self.curve];
+    if ([self.objects count] == 1) {
+        TiViewAnimation *viewAnimation = (TiViewAnimation *)[self objectAnimationForObject:[self.objects firstObject]];
+        TiAnimation* anim = viewAnimation.animationProxy;
+        if (anim.reverseCurve) {
+            reverseAnimationStep.curve = anim.reverseCurve;
+        }
+        if (anim.reverseDuration > 0) {
+            reverseAnimationStep.duration = [anim getAnimationReverseDuration];
+        }
+    }
 
     return reverseAnimationStep;
 }

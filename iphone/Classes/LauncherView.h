@@ -65,7 +65,7 @@
 @property(nonatomic,readonly) BOOL editing;
 @property(nonatomic,assign) BOOL editable;
 
-- (id)initWithFrame:(CGRect)frame withRowCount:(int)newRowCount withColumnCount:(int)newColumnCount;
+- (id)initWithFrame:(CGRect)frame withRowCount:(NSInteger)newRowCount withColumnCount:(NSInteger)newColumnCount;
 
 - (void)addItem:(LauncherItem*)item animated:(BOOL)animated;
 - (void)removeItem:(LauncherItem*)item animated:(BOOL)animated;

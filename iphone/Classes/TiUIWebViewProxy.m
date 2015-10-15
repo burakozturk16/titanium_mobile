@@ -14,16 +14,6 @@
 
 @implementation TiUIWebViewProxy
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"autoDetect",
-                                              @"html",@"data",@"scalesPageToFit",
-                                              @"url",@"scrollsToTop",@"disableBounce", nil]];
-}
-
-static NSArray* webKeySequence;
-
 #ifdef DEBUG_MEMORY
 -(void)dealloc
 {
@@ -43,12 +33,12 @@ static NSArray* webKeySequence;
 
 -(NSArray *)keySequence
 {
-    if (webKeySequence == nil)
-    {
-        //URL has to be processed first since the spinner depends on URL being remote
-        webKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"asyncLoad", @"url"]] retain];
-    }
-    return webKeySequence;
+    static NSArray *keySequence = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"asyncLoad", @"url"]] retain];;
+    });
+    return keySequence;
 }
 
 -(NSString*)apiName
@@ -64,7 +54,7 @@ static NSArray* webKeySequence;
 -(void)_initWithProperties:(NSDictionary *)properties
 {
     [self replaceValue:[NSArray arrayWithObject:NUMINT(UIDataDetectorTypePhoneNumber)] forKey:@"autoDetect" notification:NO];
-    [self initializeProperty:@"willHandleTouches" defaultValue:NUMBOOL(YES)];
+//    [self initializeProperty:@"willHandleTouches" defaultValue:NUMBOOL(YES)];
     [super _initWithProperties:properties];
 }
 
@@ -228,6 +218,10 @@ USE_VIEW_FOR_CONTENT_SIZE
 	__block id result;
 	TiThreadPerformOnMainThread(^{result=[[(TiUIWebView*)[self view] stringByEvaluatingJavaScriptFromString:code] retain];}, YES);
 	return [result autorelease];
+}
+-(void)includeFile:(NSString *)file withBaseUrl:(NSURL*)baseUrl
+{
+    
 }
 
 - (void)fireEvent:(id)listener withObject:(id)obj remove:(BOOL)yn thisObject:(id)thisObject_

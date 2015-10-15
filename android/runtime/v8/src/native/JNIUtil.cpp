@@ -53,6 +53,7 @@ jclass JNIUtil::krollObjectClass = NULL;
 jclass JNIUtil::krollProxyClass = NULL;
 jclass JNIUtil::krollAssetHelperClass = NULL;
 jclass JNIUtil::krollLoggingClass = NULL;
+jclass JNIUtil::krollDictClass = NULL;
 jclass JNIUtil::referenceTableClass = NULL;
 
 jmethodID JNIUtil::classGetNameMethod = NULL;
@@ -65,6 +66,10 @@ jmethodID JNIUtil::hashMapGetMethod = NULL;
 jmethodID JNIUtil::hashMapPutMethod = NULL;
 jmethodID JNIUtil::hashMapKeySetMethod = NULL;
 jmethodID JNIUtil::hashMapRemoveMethod = NULL;
+
+jmethodID JNIUtil::krollDictInitMethod = NULL;
+jmethodID JNIUtil::krollDictPutMethod = NULL;
+
 jmethodID JNIUtil::setToArrayMethod = NULL;
 jmethodID JNIUtil::dateInitMethod = NULL;
 jmethodID JNIUtil::dateGetTimeMethod = NULL;
@@ -94,13 +99,12 @@ jmethodID JNIUtil::krollObjectOnEventFiredMethod = NULL;
 jmethodID JNIUtil::krollProxyCreateProxyMethod = NULL;
 jmethodID JNIUtil::krollProxyCreateDeprecatedProxyMethod = NULL;
 jfieldID JNIUtil::krollProxyKrollObjectField = NULL;
-jfieldID JNIUtil::krollProxyModelListenerField = NULL;
+// jfieldID JNIUtil::krollProxyModelListenerField = NULL;
 jmethodID JNIUtil::krollProxySetIndexedPropertyMethod = NULL;
 jmethodID JNIUtil::krollProxyGetIndexedPropertyMethod = NULL;
 jmethodID JNIUtil::krollProxyOnPropertyChangedMethod = NULL;
 jmethodID JNIUtil::krollProxyOnPropertiesChangedMethod = NULL;
 jmethodID JNIUtil::krollAssetHelperReadAssetMethod = NULL;
-jmethodID JNIUtil::krollAssetHelperFileExistsMethod = NULL;
 jmethodID JNIUtil::krollLoggingLogWithDefaultLoggerMethod = NULL;
 
 jmethodID JNIUtil::krollRuntimeDispatchExceptionMethod = NULL;
@@ -296,6 +300,7 @@ void JNIUtil::initCache()
 	krollAssetHelperClass = findClass("org/appcelerator/kroll/util/KrollAssetHelper");
 	krollLoggingClass = findClass("org/appcelerator/kroll/KrollLogging");
 	krollExceptionClass = findClass("org/appcelerator/kroll/KrollException");
+	krollDictClass = findClass("org/appcelerator/kroll/KrollDict");
 	referenceTableClass = findClass("org/appcelerator/kroll/runtime/v8/ReferenceTable");
 
 	classGetNameMethod = getMethodID(classClass, "getName", "()Ljava/lang/String;", false);
@@ -327,6 +332,10 @@ void JNIUtil::initCache()
 	v8ObjectInitMethod = getMethodID(v8ObjectClass, "<init>", "(J)V", false);
 	v8FunctionInitMethod = getMethodID(v8FunctionClass, "<init>", "(J)V", false);
 
+	krollDictInitMethod = getMethodID(krollDictClass, "<init>", "(I)V", false);
+	krollDictPutMethod = getMethodID(krollDictClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;",
+			false);
+
 	referenceTableCreateReferenceMethod = getMethodID(referenceTableClass, "createReference", "(Ljava/lang/Object;)I", true);
 	referenceTableDestroyReferenceMethod = getMethodID(referenceTableClass, "destroyReference", "(I)V", true);
 	referenceTableMakeWeakReferenceMethod = getMethodID(referenceTableClass, "makeWeakReference", "(I)V", true);
@@ -347,7 +356,7 @@ void JNIUtil::initCache()
 	krollProxyCreateDeprecatedProxyMethod = getMethodID(krollProxyClass, "createDeprecatedProxy", createProxySignature, true);
 
 	krollProxyKrollObjectField = getFieldID(krollProxyClass, "krollObject", "Lorg/appcelerator/kroll/KrollObject;");
-	krollProxyModelListenerField = getFieldID(krollProxyClass, "modelListener", "Lorg/appcelerator/kroll/KrollProxyListener;");
+	// krollProxyModelListenerField = getFieldID(krollProxyClass, "modelListener", "Lorg/appcelerator/kroll/KrollProxyListener;");
 	krollProxySetIndexedPropertyMethod = getMethodID(krollProxyClass, "setIndexedProperty", "(ILjava/lang/Object;)V");
 	krollProxyGetIndexedPropertyMethod = getMethodID(krollProxyClass, "getIndexedProperty", "(I)Ljava/lang/Object;");
 	krollProxyOnPropertyChangedMethod = getMethodID(krollProxyClass, "onPropertyChanged",
@@ -355,9 +364,8 @@ void JNIUtil::initCache()
 	krollProxyOnPropertiesChangedMethod = getMethodID(krollProxyClass, "onPropertiesChanged",
 		"([[Ljava/lang/Object;)V", false);
 
-	krollRuntimeDispatchExceptionMethod = getMethodID(krollRuntimeClass, "dispatchException", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;I)V",true);
+	krollRuntimeDispatchExceptionMethod = getMethodID(krollRuntimeClass, "dispatchException", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;ILjava/lang/String;)V",true);
 	krollAssetHelperReadAssetMethod = getMethodID(krollAssetHelperClass, "readAsset", "(Ljava/lang/String;)Ljava/lang/String;", true);
-	krollAssetHelperFileExistsMethod = getMethodID(krollAssetHelperClass, "fileExists", "(Ljava/lang/String;)Z", true);
 
 	krollLoggingLogWithDefaultLoggerMethod = getMethodID(krollLoggingClass, "logWithDefaultLogger", "(ILjava/lang/String;)V", true);
 

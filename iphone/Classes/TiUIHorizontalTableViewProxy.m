@@ -18,12 +18,6 @@
 
 @implementation TiUIHorizontalTableViewProxy
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiUITableViewProxy transferableProperties];
-    return common;
-}
-
 @end 
 
 #endif

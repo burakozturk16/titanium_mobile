@@ -25,12 +25,19 @@
 #import <arpa/inet.h>
 #import "Reachability.h"
 
+@import CoreTelephony;
+
 NSString* const WIFI_IFACE = @"en0";
 NSString* const DATA_IFACE = @"pdp_ip0";
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 static NSOperationQueue *_operationQueue = nil;
 static NetworkModule *_sharedInstance = nil;
+
+@interface TiApp()
+@property (nonatomic, assign) BOOL networkConnected;
+@end
+
 @implementation NetworkModule
 {
     dispatch_semaphore_t _startingSema;
@@ -75,12 +82,19 @@ static NetworkModule *_sharedInstance = nil;
 }
 -(void)startReachability
 {
-	NSAssert([NSThread currentThread],@"not on the main thread for startReachability");
-	// reachability runs on the current run loop so we need to make sure we're
-	// on the main UI thread
-	reachability = [[Reachability reachabilityForInternetConnection] retain];
+    NSAssert([NSThread currentThread],@"not on the main thread for startReachability");
+    // reachability runs on the current run loop so we need to make sure we're
+    // on the main UI thread
+    
+    NSDictionary* tiappProperties = [TiApp tiAppProperties];
+    BOOL onLocalNetwork = [TiUtils boolValue:[tiappProperties objectForKey:@"network.local"] def:NO];
+    if (onLocalNetwork) {
+        reachability = [[Reachability reachabilityForLocalWiFi] retain];
+    } else {
+        reachability = [[Reachability reachabilityForInternetConnection] retain];
+    }
     [reachability startNotifier];
-	[self updateReachabilityStatus];
+    [self updateReachabilityStatus];
 }
 
 -(void)stopReachability
@@ -149,13 +163,15 @@ static NetworkModule *_sharedInstance = nil;
         dispatch_semaphore_signal(_startingSema);
         
     }
+    [TiApp app].networkConnected = [[self online] boolValue];
+    NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                           [self networkType], @"networkType",
+                           [self online], @"online",
+                           [self networkTypeName], @"networkTypeName",
+                           nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kTiNetworkChangedNotification object:self userInfo:event];
 	if ([self _hasListeners:@"change"])
 	{
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-							   [self networkType], @"networkType",
-							   [self online], @"online",
-							   [self networkTypeName], @"networkTypeName",
-							   nil];
 		[self fireEvent:@"change" withObject:event];
 	}
 }
@@ -420,8 +436,8 @@ static NetworkModule *_sharedInstance = nil;
     return @{
              @"boottime":NUMLONGLONG([boottime timeIntervalSince1970]*1000.0),
              @"timestamp":NUMLONGLONG([now timeIntervalSince1970]*1000.0),
-             @"wifi":@{@"sent_bytes": NUMLONG(abs(WiFiSent)), @"received_bytes": NUMLONG(abs(WiFiReceived))},
-             @"wwan":@{@"sent_bytes": NUMLONG(abs(WWANSent)), @"received_bytes": NUMLONG(abs(WWANReceived))}
+             @"wifi":@{@"sent_bytes": NUMLONGLONG(ABS(WiFiSent)), @"received_bytes": NUMLONGLONG(ABS(WiFiReceived))},
+             @"wwan":@{@"sent_bytes": NUMLONGLONG(ABS(WWANSent)), @"received_bytes": NUMLONGLONG(ABS(WWANReceived))}
     };
 }
 
@@ -440,6 +456,8 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_0, TLS_VERSION_1_0);
 MAKE_SYSTEM_PROP(TLS_VERSION_1_1, TLS_VERSION_1_1);
 MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 
+MAKE_SYSTEM_NUMBER(PROGRESS_UNKNOWN, NUMINT(-1));
+
 #pragma mark Push Notifications 
 
 - (NSString*) remoteDeviceUUID
@@ -449,41 +467,70 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 
 - (NSNumber*)remoteNotificationsEnabled
 {
-	UIRemoteNotificationType types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
-	return NUMBOOL(types != UIRemoteNotificationTypeNone);
+    // enableRemoteNotificationTypes deprecated in iOS 8.0
+    if (![TiUtils isIOS8OrGreater]) {
+        __block UIRemoteNotificationType types;
+        TiThreadPerformOnMainThread(^{
+            types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+        }, YES);
+        return NUMBOOL(types != UIRemoteNotificationTypeNone);
+    }
+    
+    __block BOOL enabled;
+    TiThreadPerformOnMainThread(^{
+        enabled = [[UIApplication sharedApplication] isRegisteredForRemoteNotifications];
+    }, YES);
+    return NUMBOOL(enabled);
 }
 
 - (NSArray*)remoteNotificationTypes
 {
-	UIRemoteNotificationType types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
-	NSMutableArray *result = [NSMutableArray array];
-	if ((types & UIRemoteNotificationTypeBadge)!=0)
-	{
-		[result addObject:NUMINT(1)];
-	}
-	if ((types & UIRemoteNotificationTypeAlert)!=0)
-	{
-		[result addObject:NUMINT(2)];
-	}
-	if ((types & UIRemoteNotificationTypeSound)!=0)
-	{
-		[result addObject:NUMINT(3)];
-	}
-	if ((types & UIRemoteNotificationTypeNewsstandContentAvailability)!=0)
-	{
-		[result addObject:NUMINT(4)];
-	}
-	return result;
+    __block NSUInteger types;
+    NSMutableArray *result = [NSMutableArray array];
+    if ([TiUtils isIOS8OrGreater]) {
+        TiThreadPerformOnMainThread(^{
+            types = [[[UIApplication sharedApplication] currentUserNotificationSettings] types];
+        }, YES);
+        if ((types & UIUserNotificationTypeBadge)!=0)
+        {
+            [result addObject:NUMINT(1)];
+        }
+        if ((types & UIUserNotificationTypeAlert)!=0)
+        {
+            [result addObject:NUMINT(2)];
+        }
+        if ((types & UIUserNotificationTypeSound)!=0)
+        {
+            [result addObject:NUMINT(3)];
+        }
+    } else {
+        TiThreadPerformOnMainThread(^{
+            types = [[UIApplication sharedApplication] enabledRemoteNotificationTypes];
+        }, YES);
+        if ((types & UIRemoteNotificationTypeBadge)!=0)
+        {
+            [result addObject:NUMINT(1)];
+        }
+        if ((types & UIRemoteNotificationTypeAlert)!=0)
+        {
+            [result addObject:NUMINT(2)];
+        }
+        if ((types & UIRemoteNotificationTypeSound)!=0)
+        {
+            [result addObject:NUMINT(3)];
+        }
+        if ((types & UIRemoteNotificationTypeNewsstandContentAvailability)!=0)
+        {
+            [result addObject:NUMINT(4)];
+        }
+    }
+    return result;
 }
 
 -(void)registerForPushNotifications:(id)args
 {
 	ENSURE_SINGLE_ARG(args,NSDictionary);
-	
-	UIApplication * app = [UIApplication sharedApplication];
-	UIRemoteNotificationType ourNotifications = [app enabledRemoteNotificationTypes];
-	
-	NSArray *typesRequested = [args objectForKey:@"types"];
+    ENSURE_UI_THREAD(registerForPushNotifications, args);
 	
 	RELEASE_TO_NIL(pushNotificationCallback);
 	RELEASE_TO_NIL(pushNotificationError);
@@ -493,41 +540,58 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 	pushNotificationError = [[args objectForKey:@"error"] retain];
 	pushNotificationCallback = [[args objectForKey:@"callback"] retain];
 	
-	if (typesRequested!=nil)
-	{
-		for (id thisTypeRequested in typesRequested) 
-		{
-			NSInteger value = [TiUtils intValue:thisTypeRequested];
-			switch(value)
-			{
-				case 1: //NOTIFICATION_TYPE_BADGE
-				{
-					ourNotifications |= UIRemoteNotificationTypeBadge;
-					break;
-				}
-				case 2: //NOTIFICATION_TYPE_ALERT
-				{
-					ourNotifications |= UIRemoteNotificationTypeAlert;
-					break;
-				}
-				case 3: //NOTIFICATION_TYPE_SOUND
-				{
-					ourNotifications |= UIRemoteNotificationTypeSound;
-					break;
-				}
-				case 4: // NOTIFICATION_TYPE_NEWSSTAND
-				{
-					ourNotifications |= UIRemoteNotificationTypeNewsstandContentAvailability;
-					break;
-				}
-			}
-		}
-	}
-	
 	[[TiApp app] setRemoteNotificationDelegate:self];
-	[app registerForRemoteNotificationTypes:ourNotifications];
-	
-	// check to see upon registration if we were started with a push 
+    
+    UIApplication * app = [UIApplication sharedApplication];
+    
+	//for iOS8 or greater only
+	//Note adviced to register user notification settings in Ti.App.iOS first before register for remote notifications
+	if([TiUtils isIOS8OrGreater]) {
+        [app registerForRemoteNotifications];
+        
+        if ([args objectForKey:@"types"] != nil) {
+            NSLog(@"[WARN] Passing `types` to registerForPushNotifications is not supported on iOS 8 and greater. Use registerUserNotificationSettings to register notification types.");
+        }
+	}
+	else {
+        UIRemoteNotificationType ourNotifications = [app enabledRemoteNotificationTypes];
+        
+        NSArray *typesRequested;
+        ENSURE_ARG_OR_NIL_FOR_KEY(typesRequested, args, @"types", NSArray);
+        if (typesRequested != nil)
+        {
+            for (id thisTypeRequested in typesRequested)
+            {
+                NSInteger value = [TiUtils intValue:thisTypeRequested];
+                switch(value)
+                {
+                    case 1: // NOTIFICATION_TYPE_BADGE
+                    {
+                        ourNotifications |= UIRemoteNotificationTypeBadge;
+                        break;
+                    }
+                    case 2: // NOTIFICATION_TYPE_ALERT
+                    {
+                        ourNotifications |= UIRemoteNotificationTypeAlert;
+                        break;
+                    }
+                    case 3: // NOTIFICATION_TYPE_SOUND
+                    {
+                        ourNotifications |= UIRemoteNotificationTypeSound;
+                        break;
+                    }
+                    case 4: // NOTIFICATION_TYPE_NEWSSTAND
+                    {
+                        ourNotifications |= UIRemoteNotificationTypeNewsstandContentAvailability;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        [app registerForRemoteNotificationTypes:ourNotifications];
+	}
+	// check to see upon registration if we were started with a push
 	// notification and if so, go ahead and trigger our callback
 	id currentNotification = [[TiApp app] remoteNotification];
 	if (currentNotification!=nil && pushNotificationCallback!=nil)
@@ -536,6 +600,8 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 		[event setObject:currentNotification forKey:@"data"];
 		[event setObject:NUMBOOL(YES) forKey:@"inBackground"];
 		[self _fireEventToListener:@"remote" withObject:event listener:pushNotificationCallback thisObject:nil];
+        //notification "read", let's clear it
+        [[TiApp app] clearRemoteNotification];
 	}
 }
 
@@ -629,6 +695,7 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
     {
         [storage setCookie:cookie];
     }
+	RELEASE_TO_NIL(cookie);
 }
 
 -(NSArray*)getHTTPCookies:(id)args
@@ -643,13 +710,14 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
     
     NSArray *allCookies = [storage cookies];
     NSMutableArray *returnArray = [NSMutableArray array];
-    NSHTTPCookie *c = [[NSHTTPCookie alloc] initWithProperties:@{}];
     for(NSHTTPCookie *cookie in allCookies)
     {
         if([[cookie domain] isEqualToString:domain] &&
            [[cookie path] isEqualToString:path] &&
            ([[cookie name] isEqualToString:name] || name == nil)) {
-            [returnArray addObject:[[[TiNetworkCookieProxy alloc] initWithCookie:cookie andPageContext:[self evaluationContext]] autorelease]];
+			TiNetworkCookieProxy *tempCookieProxy = [[TiNetworkCookieProxy alloc] initWithCookie:cookie andPageContext:[self evaluationContext]];
+            [returnArray addObject:tempCookieProxy];
+			RELEASE_TO_NIL(tempCookieProxy);
         }
     }
     return returnArray;
@@ -668,7 +736,9 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
     NSArray* cookies = [self getHTTPCookies:args];
     NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
     for(TiNetworkCookieProxy* cookie in cookies) {
-        [storage deleteCookie: [cookie newCookie]];
+		NSHTTPCookie *tempCookie = [cookie newCookie];
+        [storage deleteCookie: tempCookie];
+		RELEASE_TO_NIL(tempCookie);
     }
 }
 
@@ -677,7 +747,9 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
     NSArray* cookies = [self getHTTPCookiesForDomain:args];
     NSHTTPCookieStorage *storage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
     for(TiNetworkCookieProxy* cookie in cookies) {
-        [storage deleteCookie: [cookie newCookie]];
+		NSHTTPCookie *tempCookie = [cookie newCookie];
+        [storage deleteCookie: tempCookie];
+		RELEASE_TO_NIL(tempCookie);
     }
 }
 

@@ -5,7 +5,7 @@
 // (c) 2009-* Stephen Celis, <stephen@stephencelis.com>.
 // Released under the MIT License.
 //
-#ifdef USE_TI_MEDIA
+#ifdef USE_TI_AUDIO
 
 #import <Foundation/Foundation.h>
 #import <AudioToolbox/AudioQueue.h>

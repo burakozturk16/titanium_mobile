@@ -43,11 +43,11 @@ public class TiAnimatorSet extends TiAnimator {
 	
 	@Override
 	protected void handleCancel() {
-		super.handleCancel();
 		set.cancel();
 		if (reverseSet != null) {
 			reverseSet.cancel();
 		}
+        super.handleCancel();
 	}
 	
 	@Override

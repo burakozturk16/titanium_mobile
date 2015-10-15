@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -27,8 +27,6 @@
 #import "TiFile.h"
 #import "TiBuffer.h"
 
-bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, char **outOutputDataPtr, size_t *outOutputDataSize);
-
 typedef enum {
     BAD_DEST_OFFSET = -1,
     BAD_SRC_OFFSET = -2,
@@ -37,6 +35,49 @@ typedef enum {
     BAD_ENDIAN = -16,
     TOO_SMALL = -32,
 } EncodingError;
+
+struct TiCap
+{
+    TiDimension leftCap;
+    TiDimension rightCap;
+    TiDimension topCap;
+    TiDimension bottomCap;
+};
+typedef struct TiCap TiCap;
+extern const TiCap TiCapUndefined;
+
+TI_INLINE bool TiCapIsUndefined(TiCap cap)
+{
+    return TiDimensionIsUndefined(cap.leftCap) &&TiDimensionIsUndefined(cap.rightCap) && TiDimensionIsUndefined(cap.topCap) && TiDimensionIsUndefined(cap.bottomCap);
+}
+
+TI_INLINE NSArray* sliceArray(NSArray* array, int startIndex) {
+    return [array subarrayWithRange:NSMakeRange(startIndex,[array count] -1)];
+}
+
+TI_INLINE NSTextCheckingType NSTextCheckingTypesFromUIDataDetectorTypes(UIDataDetectorTypes dataDetectorType) {
+    if (dataDetectorType == UIDataDetectorTypeAll) {
+        return NSTextCheckingAllTypes;
+    }
+    NSTextCheckingType textCheckingType = 0;
+    if (dataDetectorType & UIDataDetectorTypeAddress) {
+        textCheckingType |= NSTextCheckingTypeAddress;
+    }
+    
+    if (dataDetectorType & UIDataDetectorTypeCalendarEvent) {
+        textCheckingType |= NSTextCheckingTypeDate;
+    }
+    
+    if (dataDetectorType & UIDataDetectorTypeLink) {
+        textCheckingType |= NSTextCheckingTypeLink;
+    }
+    
+    if (dataDetectorType & UIDataDetectorTypePhoneNumber) {
+        textCheckingType |= NSTextCheckingTypePhoneNumber;
+    }
+    
+    return textCheckingType;
+}
 
 /**
  Titanium orientation flags.
@@ -81,24 +122,13 @@ typedef enum
 #define TI_ORIENTATION_ALLOWED(flag,bit)	(flag & (1<<bit))
 #define TI_ORIENTATION_SET(flag,bit)		(flag |= (1<<bit))
 
-/**
- The class represent root controller in a view hierarchy.
- */
-@protocol TiUIViewControllerIOS7Support <NSObject>
-/* Legacy support: UIViewController methods introduced in iOS 7.0
- * For those still on 5.x and 6.x, we have to declare these methods so the
- * the compiler knows the right return datatypes.
- */
-@optional
-@property(nonatomic,assign) NSUInteger edgesForExtendedLayout; // Defaults to UIRectEdgeAll on iOS7. We will set to UIRectEdgeNone
-@property(nonatomic,assign) BOOL extendedLayoutIncludesOpaqueBars; // Defaults to NO, but bars are translucent by default on 7_0.
-@property(nonatomic,assign) BOOL automaticallyAdjustsScrollViewInsets; // Defaults to NO
+
+@protocol VolumeSupport <NSObject>
+@required
+-(void)setVolume:(float)volume;
+-(float)volume;
 @end
 
-@protocol UIImageIOS7Support <NSObject>
-@optional
-- (UIImage *)imageWithRenderingMode:(NSInteger)renderingMode;
-@end
 
 /**
  Utilities class.
@@ -174,6 +204,7 @@ typedef enum
 +(UIImage*)toImage:(id)object proxy:(TiProxy*)proxy size:(CGSize)imageSize;
 +(UIImage*)toImage:(id)object proxy:(TiProxy*)proxy;
 +(UIImage*)scaleImage:(UIImage *)image toSize:(CGSize)newSize;
++(UIImage*)stretchedImage:(UIImage*)image withCap:(TiCap)cap;
 
 /**
  Constructs URL from string using provided base URL.
@@ -213,6 +244,7 @@ typedef enum
  @return The textual representation of the value.
  */
 +(NSString*)stringValue:(id)value;
++(NSString*)stringValue:(id)value def:(NSString*)def;
 
 +(NSString*)replaceString:(NSString *)string characters:(NSCharacterSet *)characterSet withString:(NSString *)replacementString;
 
@@ -316,7 +348,7 @@ typedef enum
  @return The int representation of the value.
  @see intValue:def:
  */
-+(int)intValue:(id)value;
++(NSInteger)intValue:(id)value;
 
 /**
  Converts input value into an int with default fallback.
@@ -325,7 +357,7 @@ typedef enum
  @return The int representation of the value.
  @see intValue:
  */
-+(int)intValue:(id)value def:(int)def;
++(NSInteger)intValue:(id)value def:(NSInteger)def;
 
 /**
  Converts input value into an int with default fallback.
@@ -335,7 +367,7 @@ typedef enum
  @return The int representation of the value.
  @see intValue:
  */
-+(int)intValue:(id)value def:(int)def valid:(BOOL*)isValid;
++(NSInteger)intValue:(id)value def:(NSInteger)def valid:(BOOL*)isValid;
 
 /**
  Converts input value into the color type.
@@ -351,11 +383,12 @@ typedef enum
  */
 +(TiDimension)dimensionValue:(id)value;
 
++(TiCap)capValue:(id)value def:(TiCap)def;
+
 +(TiPoint*)tiPointValue:(id)value;
 +(TiPoint*)tiPointValue:(id)value def:(TiPoint*)def;
 
 +(id)valueFromDimension:(TiDimension)dimension;
-
 /**
  Looks up a value for the key in the provided dictionary and returns it as an int.
  @param name The lookup key.
@@ -426,6 +459,7 @@ typedef enum
  */
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties def:(TiColor*)def exists:(BOOL*) exists;
 
+#ifndef TI_USE_AUTOLAYOUT
 /**
  Looks up a value for the key in the provided dictionary and returns it as a dimension.
  @param name The lookup key.
@@ -435,6 +469,7 @@ typedef enum
  @return The resulting value as a dimension
  */
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties def:(TiDimension)def exists:(BOOL*) exists;
+#endif
 
 +(NSShadow*)shadowValue:(id)value;
 
@@ -452,14 +487,14 @@ typedef enum
 
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties def:(TiColor*)def;
 
+#ifndef TI_USE_AUTOLAYOUT
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties def:(TiDimension)def;
+#endif
 
 +(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def;
 +(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def exists:(BOOL*) exists;
 
 +(WebFont*)fontValue:(NSDictionary*)properties def:(WebFont*)def;
-
-+(int)intValue:(id)value def:(int)def;
 
 +(UIDeviceOrientation)orientationValue:(id)value def:(UIDeviceOrientation)def;
 
@@ -478,26 +513,13 @@ typedef enum
 
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties;
 
+#ifndef TI_USE_AUTOLAYOUT
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
-
-+(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties;
-
-+(Ti2DMatrix*)matrixValue:(id)value;
-+(Ti2DMatrix*)matrixValue:(id)value def:(Ti2DMatrix*)def;
-+(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties;
-+(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties def:(Ti2DMatrix*)def;
-+(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties def:(Ti2DMatrix*)def exists:(BOOL*) exists;
-
-
-+(NSDate *)dateValue:(id)value def:(NSDate *)def;
-+(NSDate *)dateValue:(id)object;
-+(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties;
-+(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def;
-+(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def exists:(BOOL*) exists;
-
+#endif
 +(NSDictionary*)pointToDictionary:(CGPoint)point;
-+(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;
-+(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view;
++(NSMutableDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;
++(NSMutableDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view;
++(NSMutableDictionary*)dictionaryFromPoint:(CGPoint)localPoint inView:(UIView*)view;
 
 +(NSDictionary*)rectToDictionary:(CGRect)rect;
 
@@ -516,10 +538,12 @@ typedef enum
 
 +(TiScriptError*) scriptErrorValue:(id)value;
 
-+(UITextAlignment)textAlignmentValue:(id)alignment;
++(NSTextAlignment)textAlignmentValue:(id)alignment;
 
 +(NSString*)jsonStringify:(id)value;
 +(id)jsonParse:(NSString*)value;
+
++(NSString*)currentArchitecture;
 
 +(NSString*)jsonStringify:(id)value error:(NSError**)error;
 +(id)jsonParse:(NSString*)value error:(NSError**)error;;
@@ -570,6 +594,7 @@ typedef enum
 +(BOOL)barTranslucencyForColor:(TiColor *)color;
 +(UIColor *)barColorForColor:(TiColor *)color;
 +(UIBarStyle)barStyleForColor:(TiColor *)color;
++ (UIImage *)imageFromColor:(UIColor *)color;
 
 +(void)applyColor:(TiColor *)color toNavigationController:(UINavigationController *)navController;
 
@@ -583,25 +608,43 @@ typedef enum
  Whether or not the current OS version is equal to or greater than 4.2.
  @return _YES_ if the current OS version is equal to or greater than 4.2, _NO_ otherwise.
  */
-+(BOOL)isIOS4_2OrGreater;
+//+(BOOL)isIOS4_2OrGreater;
 
 /**
  Whether or not the current OS version is equal to or greater than 5.0.
  @return _YES_ if the current OS version is equal to or greater thann 5.0, _NO_ otherwise.
  */
-+(BOOL)isIOS5OrGreater;
+//+(BOOL)isIOS5OrGreater;
 
 /**
  Whether or not the current OS version is equal to or greater than 6.0.
  @return _YES_ if the current OS version is equal to or greater thann 6.0, _NO_ otherwise.
  */
-+(BOOL)isIOS6OrGreater;
+//+(BOOL)isIOS6OrGreater;
 
 /**
  Whether or not the current OS version is equal to or greater than 7.0.
  @return _YES_ if the current OS version is equal to or greater thann 7.0, _NO_ otherwise.
  */
-+(BOOL)isIOS7OrGreater;
+//+(BOOL)isIOS7OrGreater;
+
+/**
+ Whether or not the current OS version is equal to or greater than 8.0.
+ @return _YES_ if the current OS version is equal to or greater thann 8.0, _NO_ otherwise.
+ */
++(BOOL)isIOS8OrGreater;
+
+/**
+ Whether or not the current OS version is equal to or greater than 9.0.
+ @return _YES_ if the current OS version is equal to or greater thann 9.0, _NO_ otherwise.
+ */
++(BOOL)isIOS9OrGreater;
+
+/**
+ Screen scale for retina displays. Used for image computation
+ @return scale as float.
+ */
++(CGFloat)screenScale;
 
 /**
  Whether or not the current device is an iPhone 4.
@@ -621,9 +664,22 @@ typedef enum
  */
 +(BOOL)isRetinaFourInch;
 
-+(void)configureController:(id)controller withObject:(id)object;
+/**
+ Whether or not the current device has a 4.7 inch retina display (iPhone6).
+ @return _YES_ if the current device has a 4.7 inch retina display, _NO_ otherwise.
+ */
++(BOOL)isRetinaiPhone6;
 
-+(CGRect)frameForController:(id)theController;
+/**
+ Whether or not the current device has HD retina display (@3X).
+ @return _YES_ if the current device has HD retina display, _NO_ otherwise.
+ */
++(BOOL)isRetinaHDDisplay;
++(void)setVolume:(float)volume onObject:(id)object;
++(float)volumeFromObject:(id)theObject default:(float)def;
++(void)configureController:(UIViewController*)controller withObject:(id)object;
+
++(CGRect)frameForController:(UIViewController*)theController;
 
 +(int)dpi;
 
@@ -631,9 +687,9 @@ typedef enum
 
 +(TiDataType)constantToType:(NSString*)typeStr;
 
-+(size_t)dataSize:(TiDataType)type;
++(int)dataSize:(TiDataType)type;
 
-+(int)encodeString:(NSString*)string toBuffer:(TiBuffer*)dest charset:(NSString*)charset offset:(int)destPosition sourceOffset:(int)srcPosition length:(int)srcLength;
++(int)encodeString:(NSString*)string toBuffer:(TiBuffer*)dest charset:(NSString*)charset offset:(NSUInteger)destPosition sourceOffset:(NSUInteger)srcPosition length:(NSUInteger)srcLength;
 
 +(int)encodeNumber:(NSNumber*)data toBuffer:(TiBuffer*)dest offset:(int)position type:(NSString*)type endianness:(CFByteOrder)byteOrder;
 
@@ -657,7 +713,7 @@ typedef enum
 +(NSString*)getResponseHeader:(NSString*)header fromHeaders:(NSDictionary*)responseHeaders;
 
 +(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy;
-+(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom;
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withCap:(TiCap)cap;
 + (BOOL) isSVG:(id)arg;
 
 /**
@@ -674,8 +730,12 @@ typedef enum
  @param code The integer representing an error. Use 0 for a success, and -1 for an unknown error.
  @param message The optional string describing the error.
  */
-+ (NSMutableDictionary *)dictionaryWithCode:(int)code message:(NSString *)message;
++ (NSMutableDictionary *)dictionaryWithCode:(NSInteger)code message:(NSString *)message;
 
-+(UIView*)UIViewWithFrame:(CGRect)frame;
+/**
+ Checks the force touch capability of the current device.
+ @return _YES_ if the device supported force touch.
+ */
++ (BOOL)forceTouchSupported;
 
 @end

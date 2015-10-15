@@ -17,9 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,8 +33,8 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 
-import com.trevorpage.tpsvg.SVGDrawable;
-import com.trevorpage.tpsvg.SVGFlyweightFactory;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
@@ -51,6 +48,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.webkit.URLUtil;
 
+@SuppressWarnings("deprecation")
 public class TiFileHelper implements Handler.Callback
 {
 	private static final String TAG = "TiFileHelper";
@@ -78,7 +76,16 @@ public class TiFileHelper implements Handler.Callback
 	private static HashSet<String> foundResourcePathCache;
 	private static HashSet<String> notFoundResourcePathCache;
 	private static TiFileHelper _instance = null;
-	
+
+//	private static Resources RESOURCES = null;
+//	
+//	private static Resources getResources() {
+//        if (RESOURCES == null) {
+//            RESOURCES = TiApplication.getInstance().getResources();
+//        }
+//        return RESOURCES;
+//    }
+
 	public TiFileHelper(Context context)
 	{
 		softContext = new SoftReference<Context>(context);
@@ -266,8 +273,7 @@ public class TiFileHelper implements Handler.Callback
 					is = handleNetworkURL(path);
 				}
 			} else if (path.startsWith(RESOURCE_ROOT_ASSETS)) {
-				int len = "file:///android_asset/".length();
-				path = path.substring(len);
+				path = path.substring(22); // length of "file:///android_asset/"
 				boolean found = false;
 				
 				if (foundResourcePathCache.contains(path)) {
@@ -405,58 +411,51 @@ public class TiFileHelper implements Handler.Callback
 
 	private InputStream handleNetworkURL(String path) throws IOException
 	{
-		InputStream is = null;
-		try {
-			URI uri = new URI(path);
-			if (TiResponseCache.peek(uri)) {
-				InputStream stream = TiResponseCache.openCachedStream(uri);
-				if (stream != null) {
-					// Fallback to actual download when null
-					return stream;
-				}
-			}
-		} catch (URISyntaxException uriException) {
-		}
+        InputStream is = null;
+        Request request = new Request.Builder().url(path).build();
+        Response response = TiApplication.getOkHttpClientInstance()
+                .newCall(request).execute();
+        if (response.isSuccessful()) {
+            InputStream lis = response.body().byteStream();
+            //we need to copy the stream because otherwise it will be closed
+            // in the main thread which will throw :s
+            ByteArrayOutputStream bos = null;
+            try {
+                bos = new ByteArrayOutputStream(8192);
+                int count = 0;
+                byte[] buf = new byte[8192];
 
-		URL u = new URL(path);
-		HttpURLConnection connection = (HttpURLConnection) u.openConnection();
-		connection.addRequestProperty("TiCache", "true");
-		InputStream lis = connection.getInputStream();
-		ByteArrayOutputStream bos = null;
-		try {
-			bos = new ByteArrayOutputStream(8192);
-			int count = 0;
-			byte[] buf = new byte[8192];
+                while((count = lis.read(buf)) != -1) {
+                    bos.write(buf, 0, count);
+                }
 
-			while((count = lis.read(buf)) != -1) {
-				bos.write(buf, 0, count);
-			}
+                is = new ByteArrayInputStream(bos.toByteArray());
 
-			is = new ByteArrayInputStream(bos.toByteArray());
+            } catch (IOException e) {
 
-		} catch (IOException e) {
+                Log.e(TAG, "Problem pulling image data from " + path, e);
+                throw e;
+            } finally {
+                if (lis != null) {
+                    try {
+                        lis.close();
+                        lis = null;
+                    } catch (Exception e) {
+                        // Ignore
+                    }
+                }
+                if (bos != null) {
+                    try {
+                        bos.close();
+                        bos = null;
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+            }
+        }
+        return is;
 
-			Log.e(TAG, "Problem pulling image data from " + path, e);
-			throw e;
-		} finally {
-			if (lis != null) {
-				try {
-					lis.close();
-					lis = null;
-				} catch (Exception e) {
-					// Ignore
-				}
-			}
-			if (bos != null) {
-				try {
-					bos.close();
-					bos = null;
-				} catch (Exception e) {
-					// ignore
-				}
-			}
-		}
-		return is;
 	}
 	
 	/**
@@ -466,20 +465,24 @@ public class TiFileHelper implements Handler.Callback
 	 * @param report  this is not being used.
 	 * @return a Drawable instance.
 	 */
-	public Drawable loadDrawable(String path, boolean report) {
-		return loadDrawable(path, report, false);
+	public static Drawable loadDrawable(String path) {
+		return getInstance().loadDrawable(path, false, true, false);
 	}
 	
-	private Drawable getDrawableFromStream(String path, InputStream is) 
-	{
-		if (path.endsWith(".svg")) {
-			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(is, path, TiApplication.getInstance().getCurrentActivity()));
-		}
-		else {
-			Bitmap b = TiUIHelper.createBitmap(is);
-			return nph.process(b);
-		}
-	}
+//	private Drawable getDrawableFromStream(String path, InputStream is) 
+//	{
+//		if (path.endsWith(".svg")) {
+//			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(is, path, TiApplication.getInstance().getCurrentActivity()));
+//		}
+//		else if (path.contains(".9.")) {
+//			Bitmap b = TiUIHelper.createBitmap(is);
+//			return nph.process(b);
+//		}
+//		else {
+//            Bitmap b = TiUIHelper.createBitmap(is);
+//            return new BitmapDrawable(getResources(), b);
+//        }
+//	}
 
 	/**
 	 * This method creates a Drawable given the bitmap's path, and converts it to a NinePatch Drawable
@@ -487,9 +490,10 @@ public class TiFileHelper implements Handler.Callback
 	 * @param path  the path/url of the Drawable 
 	 * @param report  this is not being used. 
 	 * @param checkForNinePatch  a boolean to determine whether the returning Drawable is a NinePatch Drawable.
+	 * @param densityScaled  a boolean to determine whether the returning Drawable is scaled based on device density.
 	 * @return  a Drawable instance.
 	 */
-	public Drawable loadDrawable(String path, boolean report, boolean checkForNinePatch)
+	public Drawable loadDrawable(String path, boolean report, boolean checkForNinePatch, boolean densityScaled)
 	{
 		Drawable d = null;
 		InputStream is = null;
@@ -521,22 +525,32 @@ public class TiFileHelper implements Handler.Callback
 				if (is == null) {
 					is = openInputStream(path, report);
 				}
-				if (is != null) {
-					d = getDrawableFromStream(path, is);
+				Bitmap b = null;
+				if (densityScaled) {
+					b = TiUIHelper.createDensityScaledBitmap(is);
+				} else {
+					b = TiUIHelper.createBitmap(is);
 				}
+				d = nph.process(b);
 			} else {
 				is = openInputStream(path, report);
-				if (is != null) {
-					d = getDrawableFromStream(path, is);
+				Bitmap b = null;
+				if (densityScaled) {
+					b = TiUIHelper.createDensityScaledBitmap(is);
+				} else {
+					b = TiUIHelper.createBitmap(is);
+				}
+				if (b != null) {
+					d = new BitmapDrawable(b);
 				}
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			Log.e(TAG, path + " not found.", e);
 		} finally {
 			if (is != null) {
 				try {
 					is.close();
-				} catch (IOException e) {
+				} catch (Exception e) {
 					//Ignore
 				}
 			}
@@ -956,5 +970,56 @@ public class TiFileHelper implements Handler.Callback
 		}
 		return false;
 	}
+	
+	public static File createExternalStorageFile() {
+        return createExternalStorageFile(null);
+    }
+	public static File createGalleryImageFile() {
+        return createGalleryImageFile(null);
+    }
+    
+	public static File createExternalStorageFile(String extension) {
+        File pictureDir = TiApplication.getInstance().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File appPictureDir = new File(pictureDir, TiApplication.getInstance().getAppInfo().getName());
+        if (!appPictureDir.exists()) {
+            if (!appPictureDir.mkdirs()) {
+                Log.e(TAG, "Failed to create external storage directory.");
+                return null;
+            }
+        }
+        String ext = (extension == null) ? ".jpg" : extension;
+        File imageFile;
+        try {
+            imageFile = TiFileHelper.getInstance().getTempFile(appPictureDir, ext, false);
+
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to create image file: " + e.getMessage());
+            return null;
+        }
+
+        return imageFile;
+    }
+    
+	public static File createGalleryImageFile(String extension) {
+        File pictureDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        File appPictureDir = new File(pictureDir, TiApplication.getInstance().getAppInfo().getName());
+        if (!appPictureDir.exists()) {
+            if (!appPictureDir.mkdirs()) {
+                Log.e(TAG, "Failed to create application gallery directory.");
+                return null;
+            }
+        }
+        String ext = (extension == null) ? ".jpg" : extension;
+        File imageFile;
+        try {
+            imageFile = TiFileHelper.getInstance().getTempFile(appPictureDir, ext, false);
+
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to create gallery image file: " + e.getMessage());
+            return null;
+        }
+
+        return imageFile;
+    }
 }
 

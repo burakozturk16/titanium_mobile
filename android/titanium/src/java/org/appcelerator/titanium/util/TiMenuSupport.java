@@ -38,7 +38,7 @@ public class TiMenuSupport
 					menuProxy.setMenu(menu);
 				}
 			} else {
-				menuProxy = new MenuProxy(menu);
+				menuProxy = new MenuProxy(menu, this.proxy.getActivity());
 			}
 			event.put(TiC.EVENT_PROPERTY_MENU, menuProxy);
 			onCreate.call(proxy.getKrollObject(), new Object[] { event });
@@ -80,7 +80,7 @@ public class TiMenuSupport
 					menuProxy.setMenu(menu);
 				}
 			} else {
-				menuProxy = new MenuProxy(menu);
+				menuProxy = new MenuProxy(menu, this.proxy.getActivity());
 			}
 			event.put(TiC.EVENT_PROPERTY_MENU, menuProxy);
 			onPrepare.call(proxy.getKrollObject(), new Object[] { event });

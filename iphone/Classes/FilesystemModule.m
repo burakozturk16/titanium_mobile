@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -111,6 +111,17 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 	return [TiFileSystemHelper tempDirectory];
 }
 
+-(id)directoryForSuite:(id)args
+{
+    ENSURE_SINGLE_ARG(args, NSString);
+    NSURL *groupURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:args];
+    if (!groupURL) {
+        NSLog(@"[ERROR] Directory not found for suite: %@ check the com.apple.security.application-groups entitlement.", args);
+        return [NSNull null];
+    }
+    return [TiFileSystemHelper directoryForSuite:[groupURL path]];
+}
+
 -(NSString*)separator
 {
 	return [TiFileSystemHelper separator];
@@ -138,6 +149,26 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 	}
 	
 	return [[[TiFilesystemFileProxy alloc] initWithFile:newpath] autorelease];
+}
+
+-(NSString*)IOS_FILE_PROTECTION_NONE
+{
+	return NSFileProtectionNone;
+}
+
+-(NSString*)IOS_FILE_PROTECTION_COMPLETE
+{
+	return NSFileProtectionComplete;
+}
+
+-(NSString*)IOS_FILE_PROTECTION_COMPLETE_UNLESS_OPEN
+{
+	return NSFileProtectionCompleteUnlessOpen;
+}
+
+-(NSString*)IOS_FILE_PROTECTION_COMPLETE_UNTIL_FIRST_USER_AUTHENTICATION
+{
+	return NSFileProtectionCompleteUntilFirstUserAuthentication;
 }
 
 @end

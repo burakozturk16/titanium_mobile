@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2011-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2011-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -34,14 +34,9 @@ exports.bootstrap = function(Titanium) {
 
 	// Activity getter (account for scenario when heavy weight window's activity is not created yet) 
 	var activityProxyGetter = function () {
-		// Cannot get the activity for a lightweight window.
-		if (this._isLightweight()) {
-			return undefined;
-		}
-
-		var windowProxy = this._getWindowActivityProxy();
-		if (windowProxy) {
-			return windowProxy;
+		var activityProxy = this._getWindowActivityProxy();
+		if (activityProxy) {
+			return activityProxy;
 		} else if (this._cachedActivityProxy == null) {
 			this._cachedActivityProxy = {};
 		}
@@ -58,7 +53,7 @@ exports.bootstrap = function(Titanium) {
 		var handle = new PersistentHandle(this);
 
 		var self = this;
-		this.on("close", function(e) {
+		this.once("close", function(e) {
 			if (e._closeFromActivityForcedToDestroy) {
 				if (kroll.DBG) {
 					kroll.log(TAG, "Window is closed because the activity is forced to destroy by Android OS.");
@@ -72,6 +67,7 @@ exports.bootstrap = function(Titanium) {
 				self._urlContext = null;
 			}
 			handle.dispose();
+			handle = null;
 
 			if (kroll.DBG) {
 				kroll.log(TAG, "Window is closed normally.");
@@ -177,7 +173,7 @@ exports.bootstrap = function(Titanium) {
 			moduleId = this.url;
 
 		// Return "resolvedURL" if it is a valid path.
-		if (parentModule.filenameExists(resolved) || assets.fileExists(resolved)) {
+		if (parentModule.filenameExists(resolved)) {
 			return resolved;
 
 		// Otherwise, try each possible path where the module's source file could be located.

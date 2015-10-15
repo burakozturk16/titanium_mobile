@@ -176,11 +176,10 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
      * @param duration How long in milliseconds the frame should appear
      */
     public void addFrame(Drawable frame, int duration) {
-        Log.d(TAG, "addFrame");
     	durations.add((Integer)duration);
 
         mAnimationState.addChild(frame);
-        if (mCurFrame < 0) {
+        if (mCurFrame >= 0) {
             setFrame(0, true, false);
         }
     }
@@ -246,7 +245,6 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         if (unschedule) {
             unscheduleSelf(this);
         }
-        Log.d(TAG, "mAnimationState " + frame + ", " + unschedule + ", " + animate);
         if (animate) {
             // Unscheduling may have clobbered this value; restore it to record that we're animating
             mCurFrame = frame;

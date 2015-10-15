@@ -66,6 +66,11 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 					if (Build.VERSION.SDK_INT >= 9 && density == DisplayMetrics.DENSITY_XHIGH) {
 						path = "/org/appcelerator/titanium/res/drawable/btn_more_64.png";
 					}
+					
+					if (Build.VERSION.SDK_INT >= 16 && density >= DisplayMetrics.DENSITY_XXHIGH) {
+						path = "/org/appcelerator/titanium/res/drawable/btn_more_100.png";
+					}
+
 					childIndicatorBitmap = BitmapFactory.decodeStream(KrollDict.class.getResourceAsStream(path));
 				}
 				if (checkIndicatorBitmap == null) {
@@ -78,6 +83,12 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 					if (Build.VERSION.SDK_INT >= 9 && density == DisplayMetrics.DENSITY_XHIGH) {
 						path = "/org/appcelerator/titanium/res/drawable/btn_check_buttonless_on_64.png";
 					} 
+					
+					if (Build.VERSION.SDK_INT >= 16 && density >= DisplayMetrics.DENSITY_XXHIGH) {
+						path = "/org/appcelerator/titanium/res/drawable/btn_check_buttonless_on_100.png";
+					}
+
+
 					checkIndicatorBitmap = BitmapFactory.decodeStream(KrollDict.class.getResourceAsStream(path));
 				}
 			}
@@ -137,13 +148,6 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 		return createDrawable(checkIndicatorBitmap);
 	}
 
-	public Drawable loadDrawable(String url) {
-		if (tfh == null) {
-			tfh = new TiFileHelper(getContext());
-		}
-		return tfh.loadDrawable(url, false);
-	}
-
 	public String getClassName() {
 		return className;
 	}
@@ -154,7 +158,7 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 	
 	public Drawable getBackgroundImageDrawable(KrollProxy proxy, String path) {
 		String url = proxy.resolveUrl(null, path);
-		return loadDrawable(url);
+		return TiFileHelper.loadDrawable(url);
 	}
 
 	public void setBackgroundDrawable(KrollDict d, Drawable drawable)
@@ -207,26 +211,22 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 
 	@Override
 	public void processProperties(KrollDict properties) {
-		// TODO Auto-generated method stub
-		
 	}
+	
+	@Override
+    public void processApplyProperties(KrollDict d) {
+    }
 
 	@Override
 	public void propertiesChanged(List<KrollPropertyChange> changes,
 			KrollProxy proxy) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void listenerAdded(String type, int count, KrollProxy proxy) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void listenerRemoved(String type, int count, KrollProxy proxy) {
-		// TODO Auto-generated method stub
-		
 	}
 }

@@ -6,11 +6,12 @@
 //
 //
 
-#import "TTTAttributedLabel.h"
+#import "TouchDelegate_Views.h"
 
-@interface TiLabel : TTTAttributedLabel
+@interface TiLabel : TDTTTAttributedLabel
 
 @property (nonatomic, retain) UIColor *strokeColor;
+@property (nonatomic, assign) CGFloat strokeWidth;
 
 @property BOOL hasStroke;
 

@@ -10,13 +10,6 @@
 
 @implementation TiUISwitchProxy
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"enabled",
-                                              @"value", nil]];
-}
-
 -(void)_configure
 {
     //to get the shadow on ios7

@@ -2,6 +2,14 @@
 name: Titanium.UI.SearchBar
 summary: A specialized text field for entering search text.
 description: |
+    <table id="platformComparison">
+      <tr>
+        <td><img src="images/searchbar/searchbar_android.png" height="25" /></td>
+        <td><img src="images/searchbar/searchbar_ios.png" height="25" /></td>
+      </tr>
+      <tr><th>Android</th><th>iOS</th></tr>
+    </table>
+
     The `SearchBar` object is closely modeled on an iOS native search bar.
     As such, not all features are supported on other platforms. For Android applications, 
     consider using a <Titanium.UI.Android.SearchView> object instead.
@@ -82,21 +90,47 @@ events:
 
   - name: blur
     summary: Fired when the search bar loses focus.
+    properties:
+      - name: value
+        summary: Value of the search bar.
+        type: String
 
   - name: bookmark
     summary: Fired when the bookmark button is pressed.
+    platforms: ['iphone', 'ipad']
+    properties:
+      - name: value
+        summary: Value of the search bar.
+        type: String
       
   - name: cancel
     summary: Fired when the cancel button is pressed.
+    properties:
+      - name: value
+        summary: Value of the search bar.
+        type: String
 
   - name: change
     summary: Fired when the value of the search bar changes.
+    properties:
+      - name: value
+        summary: Value of the search bar.
+        type: String
 
   - name: focus
     summary: Fired when the search bar gains focus.
+    platforms: ['android', 'iphone', 'ipad']
+    properties:
+      - name: value
+        summary: Value of the search bar.
+        type: String
 
   - name: return
     summary: Fired when keyboard search button is pressed.
+    properties:
+      - name: value
+        summary: Value of the search bar.
+        type: String
 
 properties:
 

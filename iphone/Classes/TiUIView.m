@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -10,9 +10,7 @@
 #import "TiRect.h"
 #import "TiUtils.h"
 #import "ImageLoader.h"
-#ifdef USE_TI_UI2DMATRIX	
-	#import "Ti2DMatrix.h"
-#endif
+#import "Ti2DMatrix.h"
 #if defined(USE_TI_UIIOS3DMATRIX) || defined(USE_TI_UI3DMATRIX)
 	#import "Ti3DMatrix.h"
 #endif
@@ -25,6 +23,14 @@
 #import "TiTransition.h"
 #import "TiViewAnimationStep.h"
 #import "TiBorderLayer.h"
+
+#import <objc/runtime.h>
+#import "UIGestureRecognizer+Ti.h"
+
+#import "DirectionPanGestureRecognizer.h"
+
+static NSString * const kTiViewShapeMaskKey = @"kTiViewShapeMask";
+
 
 @interface TiViewProxy()
 -(UIViewController*)getContentController;
@@ -50,11 +56,6 @@
 }
 @end
 
-
-@interface UntouchableView : UIView
-
-@end
-
 @implementation UntouchableView
 
 - (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event
@@ -71,41 +72,45 @@
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
 {
 	VerboseLog(@"ScrollView:%@, keyboardTop:%f minimumContentHeight:%f",scrollView,keyboardTop,minimumContentHeight);
-
-	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] topMostView]];
-	//First, find out how much we have to compensate.
-
-	CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;	
-	//ObscuredHeight is how many vertical pixels the keyboard obscures of the scroll view. Some of this may be acceptable.
-
-	CGFloat unimportantArea = MAX(scrollVisibleRect.size.height - minimumContentHeight,0);
-	//It's possible that some of the covered area doesn't matter. If it all matters, unimportant is 0.
-
-	//As such, obscuredHeight is now how much actually matters of scrollVisibleRect.
-
-	CGFloat bottomInset = MAX(0,obscuredHeight-unimportantArea);
-	[scrollView setContentInset:UIEdgeInsetsMake(0, 0, bottomInset, 0)];
-
-	CGPoint offset = [scrollView contentOffset];
-
-	if(offset.y + bottomInset < 0 )
-	{
-		offset.y = -bottomInset;
-		[scrollView setContentOffset:offset animated:YES];
-	}
-
+    CGFloat bottomInset = 0;
+    if (keyboardTop != 0) {
+        CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] viewForKeyboardAccessory]];
+        //First, find out how much we have to compensate.
+        
+        CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;
+        //ObscuredHeight is how many vertical pixels the keyboard obscures of the scroll view. Some of this may be acceptable.
+        
+        CGFloat unimportantArea = MAX(scrollVisibleRect.size.height - minimumContentHeight,0);
+        //It's possible that some of the covered area doesn't matter. If it all matters, unimportant is 0.
+        
+        //As such, obscuredHeight is now how much actually matters of scrollVisibleRect.
+        
+        bottomInset = MAX(0,obscuredHeight-unimportantArea);
+        
+    }
+    [scrollView setContentInset:UIEdgeInsetsMake(0, 0, bottomInset, 0)];
+    
+    CGPoint offset = [scrollView contentOffset];
+    
+    if(offset.y + bottomInset < 0 )
+    {
+        offset.y = -bottomInset;
+        [scrollView setContentOffset:offset animated:YES];
+    }
+    
 	VerboseLog(@"ScrollVisibleRect(%f,%f),%fx%f; obscuredHeight:%f; unimportantArea:%f",
-			scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
-			obscuredHeight,unimportantArea);
+               scrollVisibleRect.origin.x,scrollVisibleRect.origin.y,scrollVisibleRect.size.width,scrollVisibleRect.size.height,
+               obscuredHeight,unimportantArea);
 }
 
 void OffsetScrollViewForRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight,CGRect responderRect)
 {
+    if (keyboardTop == 0) return;
 	VerboseLog(@"ScrollView:%@, keyboardTop:%f minimumContentHeight:%f responderRect:(%f,%f),%fx%f;",
 			scrollView,keyboardTop,minimumContentHeight,
 			responderRect.origin.x,responderRect.origin.y,responderRect.size.width,responderRect.size.height);
 
-	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] topMostView]];
+	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] viewForKeyboardAccessory]];
 	//First, find out how much we have to compensate.
 
 	CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;	
@@ -152,7 +157,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 			scrollView,keyboardTop,minimumContentHeight,
 			responderRect.origin.x,responderRect.origin.y,responderRect.size.width,responderRect.size.height);
 
-	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] topMostView]];
+	CGRect scrollVisibleRect = [scrollView convertRect:[scrollView bounds] toView:[[TiApp app] viewForKeyboardAccessory]];
 	//First, find out how much we have to compensate.
 
 	CGFloat obscuredHeight = scrollVisibleRect.origin.y + scrollVisibleRect.size.height - keyboardTop;	
@@ -196,7 +201,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	[scrollView setContentOffset:offsetPoint animated:YES];
 }
 
-NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
@@ -217,6 +221,7 @@ NSArray* listenerArray = nil;
     CGFloat* radii;
     BOOL usePathAsBorder;
     BOOL _nonRetina;
+    BOOL _selected;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -233,7 +238,7 @@ DEFINE_EXCEPTIONS
 
 #define kTOUCH_MAX_DIST 70
 
-@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition, runningAnimation;
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, borderLayer = _borderLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition, runningAnimation;
 
 #pragma mark Internal Methods
 
@@ -272,8 +277,12 @@ DEFINE_EXCEPTIONS
 	[rightSwipeRecognizer release];
 	[upSwipeRecognizer release];
 	[downSwipeRecognizer release];
-	[longPressRecognizer release];
+    [longPressRecognizer release];
+    [panRecognizer release];
+    [shoveRecognizer release];
+    [rotationRecognizer release];
 	[runningAnimation release];
+    [proxy setModelDelegate:nil];
 	proxy = nil;
 	touchDelegate = nil;
 	childViews = nil;
@@ -327,6 +336,8 @@ DEFINE_EXCEPTIONS
 
 - (void) initialize
 {
+    configurationSet = NO;
+    _alwaysUseBackgroundLayer = NO;
     childViews  =[[NSMutableArray alloc] init];
     transferLock = [[NSRecursiveLock alloc] init];
     touchPassThrough = NO;
@@ -338,6 +349,7 @@ DEFINE_EXCEPTIONS
     self.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
+    _canKeepBackgroundColor = NO;
     _dispatchPressed = NO;
     animateBgdTransition = NO;
     _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
@@ -347,17 +359,19 @@ DEFINE_EXCEPTIONS
     _propagateParentEnabled = YES;
     _setEnabledFromParent = YES;
     _nonRetina = NO;
+    _tintColorImage = NO;
+    _selected = NO;
 }
 
 
-- (id) init
-{
-	self = [super init];
-	if (self != nil)
-	{
-	}
-	return self;
-}
+//- (id) init
+//{
+//	self = [super init];
+//	if (self != nil)
+//	{
+//	}
+//	return self;
+//}
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -378,33 +392,62 @@ DEFINE_EXCEPTIONS
 
 -(void)ensureGestureListeners
 {
-    if ([[self viewProxy] _hasListeners:@"swipe"]) {
+    if ([[self viewProxy] _hasListenersIgnoreBubble:@"swipe"]) {
         [[self gestureRecognizerForEvent:@"uswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"dswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"rswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"lswipe"] setEnabled:YES];
     }
-    if ([[self viewProxy] _hasListeners:@"pinch"]) {
+    if ([[self viewProxy] _hasListenersIgnoreBubble:@"pinch"]) {
          [[self gestureRecognizerForEvent:@"pinch"] setEnabled:YES];
     }
-    if ([[self viewProxy] _hasListeners:@"longpress"]) {
+    if ([[self viewProxy] _hasListenersIgnoreBubble:@"longpress"]) {
         [[self gestureRecognizerForEvent:@"longpress"] setEnabled:YES];
     }
+    if ([[self viewProxy] _hasListenersIgnoreBubble:@"pan"]) {
+        [[self gestureRecognizerForEvent:@"pan"] setEnabled:YES];
+    }
+    if ([[self viewProxy] _hasListenersIgnoreBubble:@"rotate"]) {
+        [[self gestureRecognizerForEvent:@"rotate"] setEnabled:YES];
+    }
+    if ([[self viewProxy] _hasListenersIgnoreBubble:@"shove"]) {
+        [[self gestureRecognizerForEvent:@"shove"] setEnabled:YES];
+    }
+}
+
+-(NSArray*)gestureListenersArray {
+    static NSArray* gestureListenersArray = nil;
+    if (gestureListenersArray == nil) {
+        gestureListenersArray = [[NSArray alloc] initWithObjects:@"singletap", @"doubletap", @"twofingertap", @"swipe", @"pinch", @"longpress", @"pan", @"rotate", @"shove", nil];
+    }
+    return gestureListenersArray;
 }
 
 -(BOOL)proxyHasTapListener
 {
-	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"singletap", @"doubletap", @"twofingertap", nil]];
+    static NSArray* tapListeners = nil;
+    if (tapListeners == nil) {
+        tapListeners = [[NSArray alloc] initWithObjects:@"singletap", @"doubletap", @"twofingertap", nil];
+    }
+	return [proxy _hasAnyListeners:tapListeners];
 }
 
 -(BOOL)proxyHasTouchListener
 {
-	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"touchstart", @"touchcancel", @"touchend", @"touchmove", @"click", @"dblclick", nil]];
+    static NSArray* touchListeners = nil;
+    if (touchListeners == nil) {
+        touchListeners = [[NSArray alloc] initWithObjects:@"touchstart", @"touchcancel", @"touchend", @"touchmove", @"click", @"dblclick", nil];
+    }
+	return [proxy _hasAnyListeners:touchListeners];
 }
 
 -(BOOL) proxyHasGestureListeners
 {
-	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"swipe", @"pinch", @"longpress", nil]];
+    static NSArray* gestureListeners = nil;
+    if (gestureListeners == nil) {
+        gestureListeners = [[NSArray alloc] initWithObjects:@"swipe", @"pinch", @"longpress", @"pan", @"shove", @"rotate", nil];
+    }
+	return [proxy _hasAnyListeners:gestureListeners];
 }
 
 -(void)updateTouchHandling
@@ -440,6 +483,11 @@ DEFINE_EXCEPTIONS
     if (_borderLayer) {
         _borderLayer.readyToCreateDrawables = configurationSet;
     }
+}
+
+-(BOOL)isConfigurationSet
+{
+    return configurationSet;
 }
 
 -(void)configurationSet
@@ -626,8 +674,19 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)updatePathForClipping:(CGRect)bounds
 {
+
     //the 0.5f is there to have a clean border where you don't see the background
-    CGPathRef path = self.layer.shadowPath = CGPathCreateRoundiiRect(bounds, radii);
+    CGPathRef path =  CGPathCreateRoundiiRect(bounds, radii);
+    if (runningAnimation) {
+        CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"shadowPath"];
+        pathAnimation.fromValue = (id)self.layer.shadowPath;
+        pathAnimation.duration = [runningAnimation duration];
+        pathAnimation.timingFunction = [runningAnimation curve];
+        pathAnimation.fillMode = kCAFillModeBoth;
+        pathAnimation.toValue = (id)path;
+        [self.layer addAnimation:pathAnimation forKey:@"shadowPath"];
+    }
+    self.layer.shadowPath = path;
     if (clipChildren && usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
     {
         [self applyPathToLayersMask:self.layer path:path];
@@ -661,59 +720,96 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [self updatePathForClipping:bounds];
     }
     if (_borderLayer) {
-        [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
+        [_borderLayer setFrame:[self backgroundWrapperView].bounds withinAnimation:runningAnimation];
     }
     if (_bgLayer) {
-        _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
+        _bgLayer.frame = UIEdgeInsetsInsetRect([self backgroundWrapperView].bounds, _backgroundPadding);
     }
-
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
     }
     [self updateTransform];
+    TiProxy* maskProxy = [[self viewProxy] holdedProxyForKey:kTiViewShapeMaskKey];
+    if (maskProxy) {
+        if (IS_OF_CLASS(maskProxy, TiViewProxy)) {
+            [(TiViewProxy*)maskProxy setSandboxBounds:bounds];
+            [(TiViewProxy*)maskProxy refreshView];
+        }
+    }
 }
 
 
 -(void)setFrame:(CGRect)frame
 {
-	[super setFrame:frame];
-    if (![self viewProxy].canBeResizedByFrame) return;
+    
+#ifdef TI_USE_AUTOLAYOUT
+        [super setFrame:frame];
+#else
+   if ([[self viewProxy] canBeResizedByFrame]) {
+        [super setFrame:frame];
+        
+        [self checkBounds];
+        //        [[self viewProxy] performBlock:^{
+        //            [[self viewProxy] performBlockWithoutLayout:^{
+        //                [[self viewProxy] willChangeSize];
+        ////                [self willChangePosition];
+        //            }];
+        //
+        //            [[self viewProxy] refreshViewOrParent];
+        //        } withinAnimation:runningAnimation];
+//        [[self viewProxy] repositionWithinAnimation];
+    }
+//    if (![self viewProxy].canBeResizedByFrame) return;
 	// this happens when a view is added to another view but not
 	// through the framework (such as a tableview header) and it
 	// means we need to force the layout of our children
-	if (childrenInitialized==NO &&
-		CGRectIsEmpty(frame)==NO &&
-		[self.proxy isKindOfClass:[TiViewProxy class]])
-	{
-		childrenInitialized=YES;
-		[(TiViewProxy*)self.proxy layoutChildren:NO];
-	}
+//	if (childrenInitialized==NO &&
+//		CGRectIsEmpty(frame)==NO &&
+//		[self.proxy isKindOfClass:[TiViewProxy class]])
+//	{
+//		childrenInitialized=YES;
+//		[(TiViewProxy*)self.proxy layoutChildren:NO];
+//    } else if (CGRectIsEmpty(frame)) {
+//        childrenInitialized=NO;
+//    }
+#endif
 }
 
 -(void)updateBounds:(CGRect)newBounds
 {
     //TIMOB-11197, TC-1264
     [CATransaction begin];
-    if (runningAnimation == nil) {
+    
+    if (self.runningAnimation == nil) {
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
     }
     else {
-        [CATransaction setAnimationDuration:[runningAnimation duration]];
-        [CATransaction setAnimationTimingFunction:[runningAnimation curve]];
+        [CATransaction setAnimationDuration:[self.runningAnimation duration]];
+        [CATransaction setAnimationTimingFunction:[self.runningAnimation curve]];
     }
-    
     [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
+//    if ([[self viewProxy] canBeResizedByFrame]) {
+//        [[self viewProxy] refreshViewIfNeeded];
+//    }
     [CATransaction commit];
 }
 
 
 -(void)checkBounds
 {
+#ifndef TI_USE_AUTOLAYOUT
     CGRect newBounds = [self bounds];
     if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
-        [self updateBounds:newBounds];
+        //make sure to change old first to prevent setBounds in relayout to call us again
         oldSize = newBounds.size;
+        if ([[self viewProxy] canBeResizedByFrame]) {
+            [[self viewProxy] performBlockWithoutLayout:^{
+                [[self viewProxy] willChangeSize];
+            }];
+        }
+        [self updateBounds:newBounds];
     }
+#endif
 }
 
 
@@ -726,8 +822,22 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)layoutSubviews
 {
-	[super layoutSubviews];
-	[self checkBounds];
+//	[self checkBounds];
+#ifndef TI_USE_AUTOLAYOUT
+
+    if ([[self viewProxy] canBeResizedByFrame]) {
+//        [[self viewProxy] performBlock:^{
+//            [[self viewProxy] performBlockWithoutLayout:^{
+//                [[self viewProxy] willChangeSize];
+////                [self willChangePosition];
+//            }];
+//            
+//            [[self viewProxy] refreshViewOrParent];
+//        } withinAnimation:runningAnimation];
+        [[self viewProxy] refreshViewIfNeeded];
+    }
+#endif
+    [super layoutSubviews];
 }
 
 
@@ -746,7 +856,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)updateTransform
 {
-#ifdef USE_TI_UI2DMATRIX	
 	if ([transformMatrix isKindOfClass:[Ti2DMatrix class]] && self.superview != nil)
 	{
         CGSize size = self.bounds.size;
@@ -754,7 +863,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 		self.transform = [(Ti2DMatrix*)transformMatrix matrixInViewSize:size andParentSize:parentSize];
 		return;
 	}
-#endif
 #if defined(USE_TI_UIIOS3DMATRIX) || defined(USE_TI_UI3DMATRIX)
 	if ([transformMatrix isKindOfClass:[Ti3DMatrix class]])
 	{
@@ -778,8 +886,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 }
 
 - (NSComparisonResult)compare:(TiUIView *)otherView {
-    int val1 = ((TiViewProxy*)self.proxy).vzIndex;
-    int val2 = ((TiViewProxy*)otherView.proxy).vzIndex;
+    NSInteger val1 = ((TiViewProxy*)self.proxy).vzIndex;
+    NSInteger val2 = ((TiViewProxy*)otherView.proxy).vzIndex;
     if (val1 < val2) {
         return NSOrderedAscending;
     } else if(val1 > val2) {
@@ -792,10 +900,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)setTintColor_:(id)color
 {
-    if ([TiUtils isIOS7OrGreater]) {
-        TiColor *ticolor = [TiUtils colorValue:color];
-        [self performSelector:@selector(setTintColor:) withObject:[ticolor _color]];
-    }
+    TiColor *ticolor = [TiUtils colorValue:color];
+    [self setTintColor:[ticolor _color]];
 }
 
 -(UIView*)parentViewForChildren
@@ -837,7 +943,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     return _bgLayer;
 }
 
-
 -(TiBorderLayer*)getOrCreateBorderLayer
 {
     if (_borderLayer != nil) {
@@ -866,10 +971,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     return _borderLayer;
 }
 
--(CALayer*)backgroundLayer
-{
-    return _bgLayer;
-}
 
 -(void)setBackgroundGradient:(TiGradient*)gradient forState:(UIControlState)state
 {
@@ -897,6 +998,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [_bgLayer setColor:color forState:state];
     }
     else {
+        if (!_canKeepBackgroundColor && self.backgroundColor)
+        {
+            [[self getOrCreateCustomBackgroundLayer] setColor:super.backgroundColor forState:UIControlStateNormal];
+            super.backgroundColor = nil;
+        }
         [[self getOrCreateCustomBackgroundLayer] setColor:color forState:state];
     }
 }
@@ -953,13 +1059,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	{
 		uicolor = [[TiUtils colorValue:color] _color];
 	}
-    if (backgroundOpacity < 1.0f) {
-        const CGFloat* components = CGColorGetComponents(uicolor.CGColor);
-        float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
-        uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
-    }
-    if (clipChildren || radii == nil)
+    
+    if (!_alwaysUseBackgroundLayer && !_bgLayer && (clipChildren || radii == nil))
     {
+        if (backgroundOpacity < 1.0f) {
+            const CGFloat* components = CGColorGetComponents(uicolor.CGColor);
+            float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
+            uicolor = [uicolor colorWithAlphaComponent:alpha];
+        }
         super.backgroundColor = uicolor;
     }
     else
@@ -1007,12 +1114,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(id)loadImageOrSVG:(id)arg
 {
     if (arg==nil) return nil;
-	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
-        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+	if (TiCapIsUndefined(imageCap)) {
         return [TiUtils loadBackgroundImage:arg forProxy:proxy];
     }
     else {
-        return [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+        return [TiUtils loadBackgroundImage:arg forProxy:proxy withCap:imageCap];
     }
 	return nil;
 }
@@ -1020,12 +1126,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     if (arg==nil) return nil;
     id result = nil;
-	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
-        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+    if (TiCapIsUndefined(imageCap)) {
         result =  [TiUtils loadBackgroundImage:arg forProxy:proxy];
     }
     else {
-        result =  [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+        result =  [TiUtils loadBackgroundImage:arg forProxy:proxy withCap:imageCap];
     }
     if ([result isKindOfClass:[UIImage class]]) return result;
     else if ([result isKindOfClass:[TiSVGImage class]]) return [((TiSVGImage*)result) fullImage];
@@ -1142,14 +1247,16 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)setBackgroundOpacity_:(id)opacity
 {
     backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
-    
-    id value = [proxy valueForKey:@"backgroundColor"];
-    if (value!=nil) {
-        [self setBackgroundColor_:value];
+    if (backgroundOpacity != 1 && self.backgroundColor)
+    {
+        [[self getOrCreateCustomBackgroundLayer] setColor:super.backgroundColor forState:UIControlStateNormal];
+        super.backgroundColor = nil;
     }
-
     if (_bgLayer) {
         _bgLayer.opacity = backgroundOpacity;
+    }
+    if (_borderLayer) {
+        _borderLayer.opacity = backgroundOpacity;
     }
 }
 
@@ -1157,27 +1264,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     _backgroundPadding = [TiUtils insetValue:value];
     if (_bgLayer) {
-        _bgLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _backgroundPadding);
+        _bgLayer.frame = UIEdgeInsetsInsetRect([self backgroundWrapperView].bounds, _backgroundPadding);
     }
 }
 
 
 -(void)setImageCap_:(id)arg
 {
-    ENSURE_SINGLE_ARG(arg,NSDictionary);
-    NSDictionary* dict = (NSDictionary*)arg;
-    if ([dict objectForKey:@"left"]) {
-        leftCap = TiDimensionFromObject([dict objectForKey:@"left"]);
-    }
-    if ([dict objectForKey:@"right"]) {
-        rightCap = TiDimensionFromObject([dict objectForKey:@"right"]);
-    }
-    if ([dict objectForKey:@"top"]) {
-        topCap = TiDimensionFromObject([dict objectForKey:@"top"]);
-    }
-    if ([dict objectForKey:@"bottom"]) {
-        bottomCap = TiDimensionFromObject([dict objectForKey:@"bottom"]);
-    }
+    imageCap = [TiUtils capValue:arg def:TiCapUndefined];
 }
 
 -(void)setusePathAsBorder:(BOOL)value
@@ -1214,7 +1308,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if ([value isKindOfClass:[NSArray class]]) {
         radii =(CGFloat*)malloc(8*sizeof(CGFloat));
         NSArray* array = (NSArray*)value;
-        int count = [array count];
+        NSUInteger count = [array count];
         if (count == 4)
         {
             for (int i = 0; i < count; ++i){
@@ -1361,8 +1455,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)setAnchorPoint_:(id)point
 {
 	CGPoint anchorPoint = [TiUtils pointValue:point];
-    self.layer.anchorPoint = anchorPoint;
-    [(TiViewProxy*)[self proxy] willChangePosition];
+    [[self viewProxy] performLayoutBlockAndRefresh:^{
+        //setting the anchorPoint will immediately call for a layout
+        self.layer.anchorPoint = anchorPoint;
+        [(TiViewProxy*)[self proxy] willChangePosition];
+    }];
 }
 
 -(void)setTransform_:(id)transform_
@@ -1406,8 +1503,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             [viewProxy performBlockWithoutLayout:^{
                 [viewProxy willShow];
             }];
-            if (configurationSet) [viewProxy refreshViewOrParent];
-		}
+            if (configurationSet) {
+                [viewProxy refreshViewOrParent];
+
+            }
+        }
 	}
 }
 
@@ -1494,6 +1594,13 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)setEnabled_:(id)arg
 {
     [self setEnabled:arg calledFromParent:NO];
+    [self setBgState:UIControlStateNormal];
+}
+
+-(void)setSelected_:(id)arg
+{
+    _selected = [TiUtils boolValue:arg def:NO];
+    [self setViewState:_selected?UIControlStateHighlighted:-1];
 }
 
 -(void)setDispatchPressed_:(id)arg
@@ -1519,6 +1626,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)setExclusiveTouch_:(id)arg
 {
 	self.exclusiveTouch = [TiUtils boolValue:arg];
+    [self viewForHitTest].exclusiveTouch = self.exclusiveTouch;
 }
 
 
@@ -1536,6 +1644,17 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     clipChildren = [TiUtils boolValue:arg];
     self.clipsToBounds = [self clipChildren];
+    if ([self parentViewForChildren] != self) {
+        [self parentViewForChildren].clipsToBounds = self.clipsToBounds;
+    }
+}
+
+-(void)setMasksToBounds_:(id)arg
+{
+    self.layer.masksToBounds = [TiUtils boolValue:arg];
+    if ([self parentViewForChildren] != self) {
+        [self parentViewForChildren].layer.masksToBounds = self.layer.masksToBounds;
+    }
 }
 
 
@@ -1552,6 +1671,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(id)clipChildren_
 {
     return @([self clipChildren]);
+}
+
+-(void)setTintColorImage_:(id)arg
+{
+    _tintColorImage = [TiUtils boolValue:arg def:NO];
 }
 
 
@@ -1614,17 +1738,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 #pragma mark Property Change Support
 
--(SEL)selectorForProperty:(NSString*)key
-{
-	NSString *method = [NSString stringWithFormat:@"set%@%@_:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
-	return NSSelectorFromString(method);
-}
-
--(SEL)selectorForlayoutProperty:(NSString*)key
-{
-	NSString *method = [NSString stringWithFormat:@"set%@%@:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
-	return NSSelectorFromString(method);
-}
+//-(SEL)selectorForProperty:(NSString*)key
+//{
+//	NSString *method = [NSString stringWithFormat:@"set%@%@_:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+//	return NSSelectorFromString(method);
+//}
 
 -(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys
 {
@@ -1637,29 +1755,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 }
 
 
-//Todo: Generalize.
--(void)setKrollValue:(id)value forKey:(NSString *)key withObject:(id)props
-{
-	if(value == [NSNull null])
-	{
-		value = nil;
-	}
-
-	NSString *method = SetterStringForKrollProperty(key);
-    
-	SEL methodSel = NSSelectorFromString([method stringByAppendingString:@"withObject:"]);
-	if([self respondsToSelector:methodSel])
-	{
-		[self performSelector:methodSel withObject:value withObject:props];
-		return;
-	}		
-
-	methodSel = NSSelectorFromString(method);
-	if([self respondsToSelector:methodSel])
-	{
-		[self performSelector:methodSel withObject:value];
-	}
-}
 
 - (void)detachViewProxy {
     if(!proxy) return;
@@ -1668,171 +1763,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         if ([subview isKindOfClass:[TiUIView class]])
             [(TiUIView*)subview detachViewProxy];
     }
-}
-
--(void)transferProxy:(TiViewProxy*)newProxy
-{
-    [self transferProxy:newProxy deep:NO];
-}
-
--(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
-{
-    [self transferProxy:newProxy withBlockBefore:nil withBlockAfter:nil deep:deep];
-}
-
--(void)transferProxy:(TiViewProxy*)newProxy withBlockBefore:(void (^)(TiViewProxy* proxy))blockBefore
-                withBlockAfter:(void (^)(TiViewProxy* proxy))blockAfter deep:(BOOL)deep
-{
-	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
-	
-	// We can safely skip everything if we're transferring to ourself.
-	if (oldProxy != newProxy) {
-        
-        if(blockBefore)
-        {
-            blockBefore(newProxy);
-        }
-        
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-        [transferLock lock];
-        
-        if (deep) {
-			NSArray *subProxies = [newProxy children];
-			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
-				TiViewProxy *newSubProxy = idx < [subProxies count] ? [subProxies objectAtIndex:idx] : nil;
-				[[oldSubProxy view] transferProxy:newSubProxy withBlockBefore:blockBefore withBlockAfter:blockAfter deep:deep];
-			}];
-		}
-        
-        NSSet* transferableProperties = [[oldProxy class] transferableProperties];
-        NSMutableSet* oldProperties = [NSMutableSet setWithArray:(NSArray *)[oldProxy allKeys]];
-        NSMutableSet* newProperties = [NSMutableSet setWithArray:(NSArray *)[newProxy allKeys]];
-        NSMutableSet* keySequence = [NSMutableSet setWithArray:[newProxy keySequence]];
-        NSMutableSet* layoutProps = [NSMutableSet setWithArray:[TiViewProxy layoutProperties]];
-        [oldProperties minusSet:newProperties];
-        [oldProperties minusSet:layoutProps];
-        [newProperties minusSet:keySequence];
-        [layoutProps intersectSet:newProperties];
-        [newProperties intersectSet:transferableProperties];
-        [oldProperties intersectSet:transferableProperties];
-        
-        id<NSFastEnumeration> keySeq = keySequence;
-        id<NSFastEnumeration> oldProps = oldProperties;
-        id<NSFastEnumeration> newProps = newProperties;
-        id<NSFastEnumeration> fastLayoutProps = layoutProps;
-        
-		[oldProxy retain];
-		
-        [self configurationStart];
-		[newProxy setReproxying:YES];
-        
-		[oldProxy setView:nil];
-		[newProxy setView:self];
-        
-		[self setProxy:newProxy];
-
-        //The important sequence first:
-		for (NSString * thisKey in keySeq)
-		{
-			id newValue = [newProxy valueForKey:thisKey];
-			id oldValue = [oldProxy valueForKey:thisKey];
-			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
-				[self setKrollValue:newValue forKey:thisKey withObject:nil];
-			}
-		}
-        
-		for (NSString * thisKey in fastLayoutProps)
-		{
-			id newValue = [newProxy valueForKey:thisKey];
-			id oldValue = [oldProxy valueForKey:thisKey];
-			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
-                SEL selector = [self selectorForlayoutProperty:thisKey];
-				if([[self proxy] respondsToSelector:selector])
-                {
-                    [[self proxy] performSelector:selector withObject:newValue];
-                }
-			}
-		}
-
-		for (NSString * thisKey in oldProps)
-		{
-			[self setKrollValue:nil forKey:thisKey withObject:nil];
-		}
-
-		for (NSString * thisKey in newProps)
-		{
-			id newValue = [newProxy valueForKey:thisKey];
-			id oldValue = [oldProxy valueForKey:thisKey];
-			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
-				[self setKrollValue:newValue forKey:thisKey withObject:nil];
-			}
-		}
-        
-        [pool release];
-        pool = nil;
-
-        [self configurationSet];
-        
-		[oldProxy release];
-		
-		[newProxy setReproxying:NO];
-
- 
-        if(blockAfter)
-        {
-          blockAfter(newProxy);  
-        }
-
-        [transferLock unlock];
-        
-	}
-    
-}
-
--(BOOL)validateTransferToProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
-{
-	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
-	
-	if (oldProxy == newProxy) {
-		return YES;
-	}    
-	if (![newProxy isMemberOfClass:[oldProxy class]]) {
-        DebugLog(@"[ERROR] Cannot reproxy not same proxy class");
-		return NO;
-	}
-    
-    UIView * ourView = [[oldProxy parent] parentViewForChild:oldProxy];
-    UIView *parentView = [self superview];
-    if (parentView!=ourView)
-    {
-        DebugLog(@"[ERROR] Cannot reproxy not same parent view");
-        return NO;
-    }
-	
-	__block BOOL result = YES;
-	if (deep) {
-		NSArray *subProxies = [newProxy children];
-		NSArray *oldSubProxies = [oldProxy children];
-		if ([subProxies count] != [oldSubProxies count]) {
-            DebugLog(@"[ERROR] Cannot reproxy not same number of subproxies");
-			return NO;
-		}
-		[oldSubProxies enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
-			TiViewProxy *newSubProxy = [subProxies objectAtIndex:idx];
-            TiUIView* view = [oldSubProxy view];
-            if (!view){
-                DebugLog(@"[ERROR] Cannot reproxy no subproxy view");
-                result = NO;
-                *stop = YES;
-            }
-            else
-                result = [view validateTransferToProxy:newSubProxy deep:YES]; //we assume that the view is already created
-			if (!result) {
-				*stop = YES;
-			}
-		}];
-	}
-	return result;
 }
 
 -(id)proxyValueForKey:(NSString *)key
@@ -1849,121 +1779,203 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 #pragma mark Recognizers
 
--(UITapGestureRecognizer*)singleTapRecognizer;
-{
-	if (singleTapRecognizer == nil) {
-		singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
-		[self configureGestureRecognizer:singleTapRecognizer];
-		[self addGestureRecognizer:singleTapRecognizer];
 
-		if (doubleTapRecognizer != nil) {
-			[singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
-		}
-	}
-	return singleTapRecognizer;
+-(UIView*)viewForGestures
+{
+    return self;
 }
 
--(UITapGestureRecognizer*)doubleTapRecognizer;
+-(UITapGestureRecognizer*)singleTapRecognizer
 {
-	if (doubleTapRecognizer == nil) {
-		doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedDoubleTap:)];
-		[doubleTapRecognizer setNumberOfTapsRequired:2];
-		[self configureGestureRecognizer:doubleTapRecognizer];
-		[self addGestureRecognizer:doubleTapRecognizer];
-		
-		if (singleTapRecognizer != nil) {
-			[singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
-		}		
-	}
-	return doubleTapRecognizer;
+    if (singleTapRecognizer == nil) {
+        singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
+        [self configureGestureRecognizer:singleTapRecognizer];
+        [[self viewForGestures] addGestureRecognizer:singleTapRecognizer];
+        
+        if (doubleTapRecognizer != nil) {
+            [singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
+        }
+        if (longPressRecognizer != nil) {
+            [singleTapRecognizer requireGestureRecognizerToFail:longPressRecognizer];
+        }
+    }
+    return singleTapRecognizer;
 }
 
--(UITapGestureRecognizer*)twoFingerTapRecognizer;
+-(UITapGestureRecognizer*)doubleTapRecognizer
 {
-	if (twoFingerTapRecognizer == nil) {
-		twoFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
-		[twoFingerTapRecognizer setNumberOfTouchesRequired:2];
-		[self configureGestureRecognizer:twoFingerTapRecognizer];
-		[self addGestureRecognizer:twoFingerTapRecognizer];
-	}
-	return twoFingerTapRecognizer;
+    if (doubleTapRecognizer == nil) {
+        doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedDoubleTap:)];
+        [doubleTapRecognizer setNumberOfTapsRequired:2];
+        [self configureGestureRecognizer:doubleTapRecognizer];
+        [[self viewForGestures] addGestureRecognizer:doubleTapRecognizer];
+        
+        if (singleTapRecognizer != nil) {
+            [singleTapRecognizer requireGestureRecognizerToFail:doubleTapRecognizer];
+        }
+        if (longPressRecognizer != nil) {
+            [doubleTapRecognizer requireGestureRecognizerToFail:longPressRecognizer];
+        }
+    }
+    return doubleTapRecognizer;
 }
 
--(UIPinchGestureRecognizer*)pinchRecognizer;
+-(UITapGestureRecognizer*)twoFingerTapRecognizer
 {
-	if (pinchRecognizer == nil) {
-		pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedPinch:)];
-		[self configureGestureRecognizer:pinchRecognizer];
-		[self addGestureRecognizer:pinchRecognizer];
-	}
-	return pinchRecognizer;
+    if (twoFingerTapRecognizer == nil) {
+        twoFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
+        [twoFingerTapRecognizer setNumberOfTouchesRequired:2];
+        [self configureGestureRecognizer:twoFingerTapRecognizer];
+        [[self viewForGestures] addGestureRecognizer:twoFingerTapRecognizer];
+    }
+    return twoFingerTapRecognizer;
 }
 
--(UISwipeGestureRecognizer*)leftSwipeRecognizer;
+-(UIPinchGestureRecognizer*)pinchRecognizer
 {
-	if (leftSwipeRecognizer == nil) {
-		leftSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
-		[leftSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionLeft];
-		[self configureGestureRecognizer:leftSwipeRecognizer];
-		[self addGestureRecognizer:leftSwipeRecognizer];
-	}
-	return leftSwipeRecognizer;
+    if (pinchRecognizer == nil) {
+        pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedPinch:)];
+        [self configureGestureRecognizer:pinchRecognizer];
+        [[self viewForGestures] addGestureRecognizer:pinchRecognizer];
+    }
+    return pinchRecognizer;
 }
 
--(UISwipeGestureRecognizer*)rightSwipeRecognizer;
+-(UISwipeGestureRecognizer*)leftSwipeRecognizer
 {
-	if (rightSwipeRecognizer == nil) {
-		rightSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
-		[rightSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionRight];
-		[self configureGestureRecognizer:rightSwipeRecognizer];
-		[self addGestureRecognizer:rightSwipeRecognizer];
-	}
-	return rightSwipeRecognizer;
-}
--(UISwipeGestureRecognizer*)upSwipeRecognizer;
-{
-	if (upSwipeRecognizer == nil) {
-		upSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
-		[upSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionUp];
-		[self configureGestureRecognizer:upSwipeRecognizer];
-		[self addGestureRecognizer:upSwipeRecognizer];
-	}
-	return upSwipeRecognizer;
-}
--(UISwipeGestureRecognizer*)downSwipeRecognizer;
-{
-	if (downSwipeRecognizer == nil) {
-		downSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
-		[downSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionDown];
-		[self configureGestureRecognizer:downSwipeRecognizer];
-		[self addGestureRecognizer:downSwipeRecognizer];
-	}
-	return downSwipeRecognizer;
+    if (leftSwipeRecognizer == nil) {
+        leftSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
+        [leftSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionLeft];
+        [self configureGestureRecognizer:leftSwipeRecognizer];
+        [[self viewForGestures] addGestureRecognizer:leftSwipeRecognizer];
+    }
+    return leftSwipeRecognizer;
 }
 
--(UILongPressGestureRecognizer*)longPressRecognizer;
+-(UISwipeGestureRecognizer*)rightSwipeRecognizer
 {
-	if (longPressRecognizer == nil) {
-		longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedLongPress:)];
-		[self configureGestureRecognizer:longPressRecognizer];
-		[self addGestureRecognizer:longPressRecognizer];
-	}
-	return longPressRecognizer;
+    if (rightSwipeRecognizer == nil) {
+        rightSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
+        [rightSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionRight];
+        [self configureGestureRecognizer:rightSwipeRecognizer];
+        [[self viewForGestures] addGestureRecognizer:rightSwipeRecognizer];
+    }
+    return rightSwipeRecognizer;
+}
+-(UISwipeGestureRecognizer*)upSwipeRecognizer
+{
+    if (upSwipeRecognizer == nil) {
+        upSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
+        [upSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionUp];
+        [self configureGestureRecognizer:upSwipeRecognizer];
+        [[self viewForGestures] addGestureRecognizer:upSwipeRecognizer];
+    }
+    return upSwipeRecognizer;
+}
+-(UISwipeGestureRecognizer*)downSwipeRecognizer
+{
+    if (downSwipeRecognizer == nil) {
+        downSwipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSwipe:)];
+        [downSwipeRecognizer setDirection:UISwipeGestureRecognizerDirectionDown];
+        [self configureGestureRecognizer:downSwipeRecognizer];
+        [[self viewForGestures] addGestureRecognizer:downSwipeRecognizer];
+    }
+    return downSwipeRecognizer;
+}
+
+-(UILongPressGestureRecognizer*)longPressRecognizer
+{
+    if (longPressRecognizer == nil) {
+        longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedLongPress:)];
+        [self configureGestureRecognizer:longPressRecognizer];
+        [[self viewForGestures] addGestureRecognizer:longPressRecognizer];
+        if (singleTapRecognizer != nil) {
+            [singleTapRecognizer requireGestureRecognizerToFail:longPressRecognizer];
+        }
+        if (doubleTapRecognizer != nil) {
+            [doubleTapRecognizer requireGestureRecognizerToFail:longPressRecognizer];
+        }
+    }
+    return longPressRecognizer;
+}
+
+-(UIPanGestureRecognizer*)panRecognizer
+{
+    if (panRecognizer == nil) {
+        panRecognizer = [[DirectionPanGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedPan:)];
+        [self configureGestureRecognizer:panRecognizer];
+        id direction = [[self proxy] valueForKey:@"panDirection"];
+        if (direction) {
+            panRecognizer.direction = PanDirectionFromObject(direction);
+        }
+        [[self viewForGestures] addGestureRecognizer:panRecognizer];
+    }
+    return panRecognizer;
+}
+
+-(UIPanGestureRecognizer*)shoveRecognizer
+{
+    if (shoveRecognizer == nil) {
+        shoveRecognizer = [[DirectionPanGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedShove:)];
+        [self configureGestureRecognizer:shoveRecognizer];
+        shoveRecognizer.minimumNumberOfTouches = 2;
+        shoveRecognizer.maximumNumberOfTouches = 2;
+        shoveRecognizer.direction = DirectionPangestureRecognizerVertical;
+        id direction = [[self proxy] valueForKey:@"panDirection"];
+        if (direction) {
+            shoveRecognizer.direction = PanDirectionFromObject(direction);
+        }
+        [[self viewForGestures] addGestureRecognizer:shoveRecognizer];
+    }
+    return shoveRecognizer;
+}
+
+-(UIRotationGestureRecognizer*)rotateRecognizer
+{
+    if (rotationRecognizer == nil) {
+        rotationRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedRotation:)];
+        [self configureGestureRecognizer:rotationRecognizer];
+        [[self viewForGestures] addGestureRecognizer:rotationRecognizer];
+    }
+    return rotationRecognizer;
+}
+
+-(NSMutableDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)recognizer {    
+    UIView* theView = [recognizer startTouchedView];
+    UIGestureRecognizerState state = [recognizer state];
+    if ([recognizer state] == UIGestureRecognizerStateBegan || !theView) {
+        UIView* view = recognizer.view;
+        CGPoint loc = [recognizer locationInView:view];
+        theView = [view hitTest:loc withEvent:nil];
+        while (theView && !IS_OF_CLASS(theView, TiUIView)) {
+            theView = [theView superview];
+        }
+        if ([recognizer state] == UIGestureRecognizerStateBegan) {
+            [recognizer setStartTouchedView:(TiUIView*)theView];
+        }
+    } else if (state == UIGestureRecognizerStateEnded ||
+               state == UIGestureRecognizerStateCancelled) {
+        [recognizer setStartTouchedView:nil];
+    }
+    if (theView && theView != self) {
+        return [(TiUIView*)theView dictionaryFromGesture:recognizer];
+    }
+    return [TiUtils dictionaryFromGesture:recognizer inView:theView];
 }
 
 -(void)recognizedSingleTap:(UITapGestureRecognizer*)recognizer
 {
-	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
+	NSDictionary *event = [self dictionaryFromGesture:recognizer];
     if ([recognizer numberOfTouchesRequired] == 2) {
 		[proxy fireEvent:@"twofingertap" withObject:event checkForListener:NO];
 	}
     else
-        [proxy fireEvent:@"singletap" withObject:event checkForListener:NO];
+        [proxy fireEvent:@"singletap" withObject:event propagate:NO checkForListener:NO];
 }
 
 -(void)recognizedDoubleTap:(UITapGestureRecognizer*)recognizer
 {
-	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
+	NSDictionary *event = [self dictionaryFromGesture:recognizer];
     //Because double-tap suppresses touchStart and double-click, we must do this:
     if ([proxy _hasListeners:@"touchstart"])
     {
@@ -1972,56 +1984,53 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if ([proxy _hasListeners:@"dblclick"]) {
         [proxy fireEvent:@"dblclick" withObject:event checkForListener:NO];
     }
-    [proxy fireEvent:@"doubletap" withObject:event checkForListener:NO];
+    [proxy fireEvent:@"doubletap" withObject:event propagate:NO checkForListener:NO];
 }
 
 -(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer 
-{ 
-    NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                           NUMDOUBLE(recognizer.scale), @"scale", 
-                           NUMDOUBLE(recognizer.velocity), @"velocity", 
-                           nil]; 
-    [self.proxy fireEvent:@"pinch" withObject:event checkForListener:NO];
+{
+    [self fireGestureEvent:recognizer ofType:@"pinch"];
 }
 
 -(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer 
 { 
     if ([recognizer state] == UIGestureRecognizerStateBegan) {
-        NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
-        [self.proxy fireEvent:@"longpress" withObject:event checkForListener:NO];
+        [self.proxy fireEvent:@"longpress" withObject:[self dictionaryFromGesture:recognizer] propagate:NO checkForListener:NO];
     }
 }
 
--(NSString*) swipeStringFromGesture:(UISwipeGestureRecognizer *)recognizer
+-(void)fireGestureEvent:(UIGestureRecognizer*)recognizer ofType:(NSString*)type {
+    UIGestureRecognizerState state = [recognizer state];
+    NSDictionary* data = [self dictionaryFromGesture:recognizer];
+    if (state == UIGestureRecognizerStateBegan) {
+        [self.proxy fireEvent:[NSString stringWithFormat:@"%@start", type] withObject:data propagate:NO checkForListener:YES];
+    } else if (state == UIGestureRecognizerStateEnded ||
+               state == UIGestureRecognizerStateCancelled) {
+        [self.proxy fireEvent:[NSString stringWithFormat:@"%@end", type] withObject:data propagate:NO checkForListener:YES];
+    } else {
+        [self.proxy fireEvent:type withObject:data propagate:NO checkForListener:NO];
+    }
+}
+
+-(void)recognizedPan:(UIPanGestureRecognizer*)recognizer
 {
-    NSString* swipeString;
-	switch ([recognizer direction]) {
-		case UISwipeGestureRecognizerDirectionUp:
-			swipeString = @"up";
-			break;
-		case UISwipeGestureRecognizerDirectionDown:
-			swipeString = @"down";
-			break;
-		case UISwipeGestureRecognizerDirectionLeft:
-			swipeString = @"left";
-			break;
-		case UISwipeGestureRecognizerDirectionRight:
-			swipeString = @"right";
-			break;
-		default:
-			swipeString = @"unknown";
-			break;
-	}
-    return swipeString;
+    [self fireGestureEvent:recognizer ofType:@"pan"];
 }
 
 -(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
 {
-	NSMutableDictionary *event = [[TiUtils dictionaryFromGesture:recognizer inView:self] mutableCopy];
-	[event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
-	[proxy fireEvent:@"swipe" withObject:event checkForListener:NO];
-	[event release];
+    NSDictionary *event = [self dictionaryFromGesture:recognizer];
+    [proxy fireEvent:@"swipe" withObject:event propagate:NO checkForListener:NO];
+}
 
+-(void)recognizedRotation:(UIRotationGestureRecognizer*)recognizer
+{
+    [self fireGestureEvent:recognizer ofType:@"rotate"];
+}
+
+-(void)recognizedShove:(UIPanGestureRecognizer*)recognizer
+{
+    [self fireGestureEvent:recognizer ofType:@"shove"];
 }
 
 #pragma mark Touch Events
@@ -2057,6 +2066,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	// on the view, we'd never get this event
 	if (hitView == [self viewForHitTest] && (touchPassThrough || (hasTouchListeners == NO && self.userInteractionEnabled==NO)))
 	{
+        if (touchPassThrough) {
+            //still send touchstart as it might be usefull
+            [self handleTouchEvent:@"touchstart" forTouch:[[event allTouches] anyObject]];
+        }
 		return nil;
 	}
 	
@@ -2076,14 +2089,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 }
 
 // TODO: Revisit this design decision in post-1.3.0
--(void)handleControlEvents:(UIControlEvents)events
-{
-	// For subclasses (esp. buttons) to override when they have event handlers.
-	TiViewProxy* parentProxy = [[self viewProxy] parent];
-	if ([parentProxy viewAttached] && [parentProxy canHaveControllerParent]) {
-		[[parentProxy view] handleControlEvents:events];
-	}
-}
+//-(void)handleControlEvents:(UIControlEvents)events
+//{
+//	// For subclasses (esp. buttons) to override when they have event handlers.
+//	TiViewProxy* parentProxy = (TiViewProxy*)[[self viewProxy] parent];
+//	if ([parentProxy viewAttached] && [parentProxy canHaveControllerParent]) {
+//		[[parentProxy view] handleControlEvents:events];
+//	}
+//}
 
 // For subclasses
 -(BOOL)touchedContentViewWithEvent:(UIEvent *)event
@@ -2093,7 +2106,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(BOOL) enabledForBgState
 {
-    return [self interactionEnabled];
+    return _customUserInteractionEnabled;
 }
 
 -(void)setViewState:(UIControlState)state
@@ -2102,7 +2115,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     viewState = state;
     if (needsUpdate)
     {
-        [self setBgState:UIControlStateNormal];
+        [self setHighlighted:NO];
     }
 }
 
@@ -2113,8 +2126,9 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 //        if (parentView && [parentView dispatchPressed]) {
 //            return [parentView realStateForState:state];
 //        }
-        if (viewState != -1)
+        if (viewState != -1) {
             state = viewState;
+        }
         return state;
     }
     return UIControlStateDisabled;
@@ -2125,24 +2139,19 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     [self setHighlighted:highlighted];
 }
 
--(NSDictionary*)dictionaryFromTouch:(UITouch*)touch
+-(NSMutableDictionary*)dictionaryFromTouch:(UITouch*)touch
 {
     return [TiUtils dictionaryFromTouch:touch inView:self];
-}
-
--(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture
-{
-    return [TiUtils dictionaryFromGesture:gesture inView:self];
 }
 
 -(void)handleTouchEvent:(NSString*)event forTouch:(UITouch*)touch
 {
     if ([self interactionEnabled])
 	{
-		if ([proxy _hasListeners:event])
+        if ([self.viewProxy _hasListeners:event checkParent:YES])
 		{
             NSDictionary *evt = [self dictionaryFromTouch:touch];
-			[proxy fireEvent:event withObject:evt checkForListener:NO];
+            [proxy fireEvent:event withObject:evt propagate:YES checkForListener:NO];
 //			[self handleControlEvents:UIControlEventTouchDown];
 		}
 	}
@@ -2208,28 +2217,27 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         BOOL hasClick = [proxy _hasListeners:@"click"];
 		if (hasTouchEnd || hasDblclick || hasClick)
 		{
+            CGPoint localPoint = [touch locationInView:self];
+            BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
+                            localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
             NSDictionary *evt = [self dictionaryFromTouch:touch];
             if (hasTouchEnd) {
                 [proxy fireEvent:@"touchend" withObject:evt checkForListener:NO];
-                [self handleControlEvents:UIControlEventTouchCancel];
+//                [self handleControlEvents:UIControlEventTouchCancel];
             }
             
             // Click handling is special; don't propagate if we have a delegate,
             // but DO invoke the touch delegate.
             // clicks should also be handled by any control the view is embedded in.
-            if (hasDblclick && [touch tapCount] == 2) {
+            if (!outside && hasDblclick && [touch tapCount] == 2) {
                 [proxy fireEvent:@"dblclick" withObject:evt checkForListener:NO];
                 return;
             }
-            if (hasClick)
+            if (!outside && hasClick)
             {
-                CGPoint localPoint = [touch locationInView:self];
-                BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
-                                localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
-                if (!outside && touchDelegate == nil) {
+                if (touchDelegate == nil) {
                     [proxy fireEvent:@"click" withObject:evt checkForListener:NO];
-                    return;
-                } 
+                }
             }
 		}
 	}
@@ -2237,7 +2245,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:UIControlStateNormal];
+//    [self setBgState:UIControlStateNormal];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
@@ -2264,11 +2272,26 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
 }
 
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    //tryout should it be possible?
+    if (IS_OF_CLASS(gestureRecognizer, UISwipeGestureRecognizer) &&
+        IS_OF_CLASS(otherGestureRecognizer, UIPanGestureRecognizer)) {
+        return NO;
+    }
+    return YES;
+//    return gestureRecognizer.delegate &&
+//    otherGestureRecognizer.delegate &&
+//    gestureRecognizer.delegate == otherGestureRecognizer.delegate;
+}
+
 -(void)configureGestureRecognizer:(UIGestureRecognizer*)gestureRecognizer
 {
+    [gestureRecognizer setTiGesture:YES];
     [gestureRecognizer setDelaysTouchesBegan:NO];
     [gestureRecognizer setDelaysTouchesEnded:NO];
     [gestureRecognizer setCancelsTouchesInView:NO];
+    [gestureRecognizer setDelegate:(id<UIGestureRecognizerDelegate>)self];
 }
 
 - (UIGestureRecognizer *)gestureRecognizerForEvent:(NSString *)event
@@ -2297,8 +2320,17 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if ([event isEqualToString:@"pinch"]) {
         return [self pinchRecognizer];
     }
+    if ([event isEqualToString:@"rotate"]) {
+        return [self rotateRecognizer];
+    }
+    if ([event isEqualToString:@"shove"]) {
+        return [self shoveRecognizer];
+    }
     if ([event isEqualToString:@"longpress"]) {
         return [self longPressRecognizer];
+    }
+    if ([event isEqualToString:@"pan"]) {
+        return [self panRecognizer];
     }
     return nil;
 }
@@ -2335,7 +2367,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
 }
 
--(void)listenerAdded:(NSString*)event count:(int)count
+-(void)listenerAdded:(NSString*)event count:(NSInteger)count
 {
 	if (count == 1 && [self viewSupportsBaseTouchEvents])
 	{
@@ -2344,7 +2376,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	}
 }
 
--(void)listenerRemoved:(NSString*)event count:(int)count
+-(void)listenerRemoved:(NSString*)event count:(NSInteger)count
 {
 	if (count == 0)
 	{
@@ -2355,12 +2387,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)sanitycheckListeners	//TODO: This can be optimized and unwound later.
 {
-	if(listenerArray == nil){
-		listenerArray = [[NSArray alloc] initWithObjects: @"singletap",
-						 @"doubletap",@"twofingertap",@"swipe",@"pinch",@"longpress",nil];
-	}
-	for (NSString * eventName in listenerArray) {
-		if ([proxy _hasListeners:eventName]) {
+	for (NSString * eventName in [self gestureListenersArray]) {
+		if ([[self viewProxy] _hasListenersIgnoreBubble:eventName]) {
 			[self handleListenerAddedWithEvent:eventName];
 		}
 	}
@@ -2379,7 +2407,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         }
         self.layer.opaque = NO;
         self.layer.mask.contentsScale = [image scale];
-        self.layer.mask.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [image size]);
+        self.layer.mask.contentsCenter = TiDimensionLayerContentCenter(imageCap.topCap, imageCap.leftCap, imageCap.topCap, imageCap.leftCap, [image size]);
         if (!CGPointEqualToPoint(self.layer.mask.contentsCenter.origin,CGPointZero)) {
             self.layer.mask.magnificationFilter = @"nearest";
         } else {
@@ -2393,6 +2421,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
+    isHiglighted = (_selected || isHiglighted);
     [self setHighlighted:isHiglighted animated:NO];
 }
 
@@ -2422,6 +2451,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)setSelected:(BOOL)isSelected
 {
+    isSelected = (_selected || isSelected);
     [self setSelected:isSelected animated:NO];
 }
 
@@ -2451,11 +2481,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     [self setAnimatedTransition:NO];
 }
 
-- (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{
+- (void)transitionFromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition animationBlock:(void (^)(void))animBlock completionBlock:(void (^)(void))block{
     [(TiAnimatableProxy*)viewOut.proxy addRunningAnimation:transition];
     [(TiAnimatableProxy*)viewIn.proxy addRunningAnimation:transition];
     
-    [TiTransitionHelper transitionfromView:viewOut toView:viewIn insideView:self withTransition:transition completionBlock:^{
+    [TiTransitionHelper transitionFromView:viewOut toView:viewIn insideView:self withTransition:transition prepareBlock:NULL animationBlock:animBlock completionBlock:^{
         [(TiAnimatableProxy*)viewOut.proxy removeRunningAnimation:transition];
         [(TiAnimatableProxy*)viewIn.proxy removeRunningAnimation:transition];
         if (block != nil) {
@@ -2531,6 +2561,22 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(UIViewController*)getContentController
 {
     return ([[self viewProxy] getContentController]);
+}
+
+-(void)setMaskFromView_:(id)arg
+{
+    TiViewProxy* viewProxy = [self viewProxy];
+    TiProxy* vp = [viewProxy createChildFromObject:arg];
+    TiProxy* current = [[self viewProxy] holdedProxyForKey:kTiViewShapeMaskKey];
+    if (IS_OF_CLASS(current, TiViewProxy)) {
+        [[[(TiViewProxy*)current view] layer] removeFromSuperlayer];
+        [[self viewProxy] removeHoldedProxyForKey:kTiViewShapeMaskKey];
+    }
+    if (IS_OF_CLASS(vp, TiViewProxy)) {
+        [[self viewProxy] addProxyToHold:vp forKey:kTiViewShapeMaskKey];
+        self.layer.mask = [[(TiViewProxy*)vp getAndPrepareViewForOpening] layer];
+    }
+    [self.layer setNeedsDisplay];
 }
 
 @end

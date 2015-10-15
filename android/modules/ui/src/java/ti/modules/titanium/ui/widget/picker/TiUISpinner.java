@@ -7,18 +7,18 @@
 
 package ti.modules.titanium.ui.widget.picker;
 
-import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
+import java.util.List;
+
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
+import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
-
 
 public class TiUISpinner extends TiUIPicker
 {
@@ -33,17 +33,21 @@ public class TiUISpinner extends TiUIPicker
 	{
 		this(proxy);
 		TiCompositeLayout layout = new TiCompositeLayout(activity, LayoutArrangement.HORIZONTAL, this);
-		layout.setEnableHorizontalWrap(true);
+		layout.setEnableHorizontalWrap(false);
+		LayoutParams params = getLayoutParams();
+        params.sizeOrFillWidthEnabled = true;
+        params.autoFillsWidth = true;
 		setNativeView(layout);
 	}
 
 	@Override
 	protected void refreshNativeView()
 	{
-		if (children == null || children.size() == 0) {
+        List<TiUIView> childrens = getChildren();
+		if (childrens == null || childrens.size() == 0) {
 			return;
 		}
-		for (TiUIView child : children) {
+		for (TiUIView child : childrens) {
 			refreshColumn((TiUISpinnerColumn)child);
 		}
 	}
@@ -70,7 +74,10 @@ public class TiUISpinner extends TiUIPicker
 			Log.w(TAG, "Ignoring effort to get selected row index for out-of-bounds columnIndex " + columnIndex);
 			return -1;
 		}
-		TiUIView child = children.get(columnIndex);
+		TiUIView child = null;
+        synchronized (children) {
+            child = children.get(columnIndex);
+        }
 		if (child instanceof TiUISpinnerColumn) {
 			return ((TiUISpinnerColumn)child).getSelectedRowIndex();
 		} else {
@@ -85,7 +92,10 @@ public class TiUISpinner extends TiUIPicker
 			Log.w(TAG, "Column " + columnIndex + " does not exist.  Ignoring effort to select a row in that column.");
 			return;
 		}
-		TiUIView child = children.get(columnIndex);
+		TiUIView child = null;
+        synchronized (children) {
+    		child = children.get(columnIndex);
+        }
 		if (child instanceof TiUISpinnerColumn) {
 			((TiUISpinnerColumn)child).selectRow(rowIndex);
 		} else {
@@ -103,51 +113,70 @@ public class TiUISpinner extends TiUIPicker
 	{
 		refreshColumn(columnIndex);
 	}
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue,
-			KrollProxy proxy)
-	{
-		if (TiC.PROPERTY_VISIBLE_ITEMS.equals(key) || TiC.PROPERTY_SELECTION_INDICATOR.equals(key)) {
-			propagateProperty(key, newValue);
-			if (TiC.PROPERTY_VISIBLE_ITEMS.equals(key)) {
-				forceRequestLayout();
-			}
-		} else {
-			super.propertyChanged(key, oldValue, newValue, proxy);
-		}
-	}
 
 	private void propagateProperty(String key, Object value)
 	{
-		if (children != null && children.size() > 0) {
-			for (TiUIView child : children) {
+	    List<TiUIView> childrens = getChildren();
+		if (childrens != null && childrens.size() > 0) {
+			for (TiUIView child : childrens) {
 				if (child instanceof TiUISpinnerColumn) {
 					child.getProxy().setPropertyAndFire(key, value);
 				}
 			}
 		}
 	}
+	
 	@Override
-	public void processProperties(KrollDict d)
-	{
-		super.processProperties(d);
-		if (d.containsKey(TiC.PROPERTY_VISIBLE_ITEMS)) {
-			propagateProperty(TiC.PROPERTY_VISIBLE_ITEMS, TiConvert.toInt(d, TiC.PROPERTY_VISIBLE_ITEMS));
-		}
-		if (d.containsKey(TiC.PROPERTY_SELECTION_INDICATOR)) {
-			propagateProperty(TiC.PROPERTY_SELECTION_INDICATOR, TiConvert.toBoolean(d, TiC.PROPERTY_SELECTION_INDICATOR));
-		}
-	}
+    protected void handlePreselectedRows(Object[] preselectedRows){
+        try {
+            List<TiUIView> childrens = getChildren();
+            for (int i = 0; i < preselectedRows.length; i++) {
+                Integer rowIndex = TiConvert.toInt(preselectedRows[i], -1);
+                if (rowIndex == 0 || rowIndex.intValue() < 0) {
+                    continue;
+                }
+                TiUIView child = childrens.get(i);
+                if (child instanceof TiUISpinnerColumn) {
+                    TiUISpinnerColumn column = (TiUISpinnerColumn)child;
+                    column.getWheelView().removeChangingListener(column);
+                    ((TiUISpinnerColumn)child).selectRow(rowIndex);
+                    column.getWheelView().addChangingListener(column);
+                }
+            }
+        } finally {
+        }
+    }
+	
+    @Override
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_VISIBLE_ITEMS:
+        case TiC.PROPERTY_SELECTION_INDICATOR:
+            propagateProperty(key, newValue);
+            if (changedProperty && TiC.PROPERTY_VISIBLE_ITEMS.equals(key)) {
+                forceRequestLayout();
+            }
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
+
 	@Override
 	public void add(TiUIView child, int index)
 	{
 		if (proxy.hasProperty(TiC.PROPERTY_VISIBLE_ITEMS)) {
-			child.getProxy().setProperty(TiC.PROPERTY_VISIBLE_ITEMS, TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_VISIBLE_ITEMS)), true);
+			child.getProxy().setPropertyAndFire(TiC.PROPERTY_VISIBLE_ITEMS, TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_VISIBLE_ITEMS)));
 		}
 		if (proxy.hasProperty(TiC.PROPERTY_SELECTION_INDICATOR)) {
-			child.getProxy().setProperty(TiC.PROPERTY_SELECTION_INDICATOR, TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_SELECTION_INDICATOR)), true);
+			child.getProxy().setPropertyAndFire(TiC.PROPERTY_SELECTION_INDICATOR, TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_SELECTION_INDICATOR)));
 		}
 		super.add(child, index);
+		if (child instanceof TiUISpinnerColumn) {
+            ((TiUISpinnerColumn)child).refreshNativeView();
+        }
 	}
 	public void forceRequestLayout()
 	{

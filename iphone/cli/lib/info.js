@@ -1,43 +1,103 @@
+/**
+ * Detects iOS development environment and displays it in the "titanium info" command.
+ *
+ * @module lib/info
+ *
+ * @copyright
+ * Copyright (c) 2014 by Appcelerator, Inc. All Rights Reserved.
+ *
+ * @license
+ * Licensed under the terms of the Apache Public License
+ * Please see the LICENSE included with this distribution for details.
+ */
+
 var appc = require('node-appc'),
-	__ = appc.i18n(__dirname).__,
 	fs = require('fs'),
+	ioslib = require('ioslib'),
+	iosPackageJson = appc.pkginfo.package(module),
+	manifestJson = appc.pkginfo.manifest(module),
 	moment = require('moment'),
-	path = require('path');
+	path = require('path'),
+	__ = appc.i18n(__dirname).__;
 
 exports.name = 'ios';
 
 exports.title = 'iOS';
 
 exports.detect = function (types, config, next) {
-	var tisdk = path.basename((function scan(dir) {
-		var file = path.join(dir, 'manifest.json');
-		if (fs.existsSync(file)) {
-			return dir;
+	ioslib.detect({
+		// env
+		xcodeSelect: config.get('osx.executables.xcodeSelect'),
+		security: config.get('osx.executables.security'),
+		// provisioning
+		profileDir: config.get('ios.profileDir'),
+		// xcode
+		searchPath: config.get('paths.xcode'),
+		minIosVersion: iosPackageJson.minIosVersion,
+		minWatchosVersion: iosPackageJson.minWatchosVersion,
+		supportedVersions: iosPackageJson.vendorDependencies.xcode
+	}, function (err, results) {
+		results.devices.unshift({
+			'udid': 'itunes',
+			'name': 'iTunes Sync'
+		});
+
+		results.tisdk = path.basename((function scan(dir) {
+			var file = path.join(dir, 'manifest.json');
+			if (fs.existsSync(file)) {
+				return dir;
+			}
+			dir = path.dirname(dir);
+			return dir != '/' && scan(dir);
+		}(__dirname)));
+
+		if (results.issues.length) {
+			this.issues = this.issues.concat(results.issues);
 		}
-		dir = path.dirname(dir);
-		return dir != '/' && scan(dir);
-	}(__dirname)));
 
-	var mod = require('./detect');
+		// improve error messages
+		this.issues.forEach(function (issue) {
+			switch (issue.id) {
+				case 'IOS_SECURITY_EXECUTABLE_NOT_FOUND':
+					issue.message += '\n' + __("If you know where this executable is, you can tell the Titanium CLI where it located by running 'titanium config osx.executables.security /path/to/security'.");
+					break;
+				case 'IOS_XCODE_SELECT_EXECUTABLE_NOT_FOUND':
+					issue.message += '\n' + __("If you know where this executable is, you can tell the Titanium CLI where it located by running 'titanium config osx.executables.xcodeSelect /path/to/xcode-select'.");
+					break;
+				case 'IOS_XCODE_TOO_OLD':
+					issue.message = __('Xcode %s is too old and is no longer supported by Titanium SDK %s.', '__' + issue.xcodeVer + '__', manifestJson.version) + '\n' +
+						__('The minimum supported Xcode version by Titanium SDK %s is Xcode %s.', manifestJson.version, issue.minSupportedVer);
+					break;
+				case 'IOS_XCODE_TOO_NEW':
+					issue.message = __('Xcode %s may or may not work with Titanium SDK %s.', '__' + issue.xcodeVer + '__', manifestJson.version) + '\n' +
+						__('The maximum supported Xcode version by Titanium SDK %s is Xcode %s.', manifestJson.version, issue.maxSupportedVer);
+					break;
+				case 'IOS_NO_WWDR_CERT_FOUND':
+					issue.message += '\n' + __('Download and install the certificate from %s', '__http://appcelerator.com/ios-wwdr__');
+					break;
+				case 'IOS_NO_KEYCHAINS_FOUND':
+					issue.message += '\n' + __('Titanium will most likely not be able to detect any developer or distribution certificates.');
+					break;
+				case 'IOS_NO_VALID_DEV_CERTS_FOUND':
+					issue.message += '\n' + __('You will need to login into %s with your Apple Download account, then create, download, and install a certificate.', '__http://appcelerator.com/ios-dev-certs__');
+					break;
+				case 'IOS_NO_VALID_DIST_CERTS_FOUND':
+					issue.message += '\n' + __('You will need to login into %s with your Apple Download account, then create, download, and install a certificate.', '__http://appcelerator.com/ios-dist-certs__');
+					break;
+				case 'IOS_NO_VALID_DEVELOPMENT_PROVISIONING_PROFILES':
+					issue.message += '\n' + __('You will need to login into %s with your Apple Download account, then create, download, and install a profile.', '__http://appcelerator.com/ios-dev-certs__');
+					break;
+				case 'IOS_NO_VALID_ADHOC_PROVISIONING_PROFILES':
+					issue.message += '\n' + __('You will need to login into %s with your Apple Download account, then create, download, and install a profile.', '__http://appcelerator.com/ios-dist-certs__');
+					break;
+				case 'IOS_NO_VALID_DISTRIBUTION_PROVISIONING_PROFILES':
+					issue.message += '\n' + __('You will need to login into %s with your Apple Download account, then create, download, and install a profile.', '__http://appcelerator.com/ios-dist-certs__');
+					break;
+			}
+		});
 
-	// detect ios environment
-	mod.detect(config, null, function (result) {
-		// detect devices
-		mod.detectDevices(function (err, devices) {
-			// detect emulators
-			mod.detectSimulators(config, function (err, simulators) {
-				result.tisdk = tisdk;
-				result.devices = devices;
-				result.simulators = simulators;
-
-				this.data = result;
-				if (result.issues.length) {
-					this.issues = this.issues.concat(result.issues);
-				}
-
-				next(null, { ios: result });
-			}.bind(this));
-		}.bind(this));
+		this.data = results;
+		next(null, { ios: results });
 	}.bind(this));
 };
 
@@ -50,13 +110,32 @@ exports.render = function (logger, config, rpad, styleHeading, styleValue, style
 	if (Object.keys(data.xcode).length) {
 		Object.keys(data.xcode).sort().reverse().forEach(function (ver) {
 			var x = data.xcode[ver];
-			logger.log(
-				'  ' + (x.version + ' (build ' + x.build + ')' + (x.selected ? ' - Xcode default' : '')).cyan + '\n' +
-				'  ' + rpad('  ' + __('Install Location'))                  + ' = ' + styleValue(x.path) + '\n' +
-				'  ' + rpad('  ' + __('iOS SDKs'))                          + ' = ' + styleValue(x.sdks.length ? x.sdks.join(', ') : 'none') + '\n' +
-				'  ' + rpad('  ' + __('iOS Simulators'))                    + ' = ' + styleValue(x.sims.length ? x.sims.join(', ') : 'none') + '\n' +
-				'  ' + rpad('  ' + __('Supported by TiSDK %s', data.tisdk)) + ' = ' + styleValue(x.supported == 'maybe' ? 'maybe' : x.supported ? 'yes' : 'no')
-			);
+			logger.log('  ' + (x.version + ' (build ' + x.build + ')' + (x.selected ? ' - Xcode default' : '')).cyan);
+			logger.log('  ' + rpad('  ' + __('Install Location'))                  + ' = ' + styleValue(x.path));
+			logger.log('  ' + rpad('  ' + __('iOS SDKs'))                          + ' = ' + styleValue(x.sdks.length ? x.sdks.join(', ') : 'none'));
+			logger.log('  ' + rpad('  ' + __('iOS Simulators'))                    + ' = ' + styleValue(x.sims.length ? x.sims.join(', ') : 'none'));
+
+			if (x.watchos) {
+				logger.log('  ' + rpad('  ' + __('Watch SDKs'))                    + ' = ' + styleValue(x.watchos.sdks.length ? x.watchos.sdks.join(', ') : 'none'));
+				logger.log('  ' + rpad('  ' + __('Watch Simulators'))              + ' = ' + styleValue(x.watchos.sims.length ? x.watchos.sims.join(', ') : 'none'));
+			} else {
+				logger.log('  ' + rpad('  ' + __('Watch SDKs'))                    + ' = ' + styleValue(__('not supported')));
+				logger.log('  ' + rpad('  ' + __('Watch Simulators'))              + ' = ' + styleValue(__('not supported')));
+			}
+
+			logger.log('  ' + rpad('  ' + __('Supported by TiSDK %s', data.tisdk)) + ' = ' + styleValue(x.supported == 'maybe' ? 'maybe' : x.supported ? 'yes' : 'no'));
+
+			if (Object.keys(x.teams).length) {
+				Object.keys(x.teams).forEach(function (id, i) {
+					if (i === 0) {
+						logger.log('  ' + rpad('  ' + __('Teams'))                 + ' = ' + styleValue(id) + ' ' + x.teams[id].name + ' - ' + x.teams[id].type + (' (' + x.teams[id].status + ')').grey);
+					} else {
+						logger.log('  ' + rpad('       ')                          + ' = ' + styleValue(id) + ' ' + x.teams[id].name + ' - ' + x.teams[id].type + (' (' + x.teams[id].status + ')').grey);
+					}
+				});
+			} else {
+				logger.log('  ' + rpad('  ' + __('Teams'))                         + ' = ' + styleValue(__('none')));
+			}
 		});
 		logger.log();
 	} else {
@@ -139,35 +218,51 @@ exports.render = function (logger, config, rpad, styleHeading, styleValue, style
 
 	// provisioning profiles
 	logger.log(styleHeading(__('Development iOS Provisioning Profiles')));
-	printProfiles(data.provisioningProfiles.development);
+	printProfiles(data.provisioning.development);
 
 	logger.log(styleHeading(__('Distribution iOS Provisioning Profiles')));
-	printProfiles(data.provisioningProfiles.distribution);
+	printProfiles(data.provisioning.distribution);
 
 	logger.log(styleHeading(__('Ad Hoc iOS Provisioning Profiles')));
-	printProfiles(data.provisioningProfiles.adhoc);
+	printProfiles(data.provisioning.adhoc);
 
 	logger.log(styleHeading(__('iOS Simulators')));
-	if (data.simulators && data.simulators.length) {
-		logger.log(data.simulators.map(function (sim) {
-			var features = '';
-			return '  ' + sim.name.cyan + '\n' + [
-				'  ' + rpad('  ' + __('Type'))         + ' = ' + styleValue(sim.type),
-				'  ' + rpad('  ' + __('iOS Versions')) + ' = ' + styleValue(sim.versions.join(', ')),
-				'  ' + rpad('  ' + __('Architecture')) + ' = ' + styleValue(sim['64bit'] ? '64-bit' : '32-bit'),
-				'  ' + rpad('  ' + __('Features'))     + ' = ' + styleValue(sim.retina ? 'retina' + (sim.tall ? ', tall' : '') : (sim.tall ? 'tall' : 'n/a'))
-			].join('\n');
-		}).join('\n') + '\n');
+	if (data.simulators.ios && Object.keys(data.simulators.ios).length) {
+		Object.keys(data.simulators.ios).sort().forEach(function (ver) {
+			logger.log(String(ver).grey);
+			logger.log(data.simulators.ios[ver].map(function (sim) {
+				return '  ' + sim.name.cyan + (sim.name !== sim.deviceName ? ' (' + sim.deviceName + ')' : '') + (' (' + sim.family + ')').grey + '\n' + [
+					'  ' + rpad('  ' + __('UDID'))                + ' = ' + styleValue(sim.udid),
+					'  ' + rpad('  ' + __('Supports Watch Apps')) + ' = ' + styleValue(Object.keys(sim.supportsWatch).filter(function (x) { return sim.supportsWatch[x]; }).length ? __('yes') : __('no'))
+				].join('\n');
+			}).join('\n') + '\n');
+		});
+	} else {
+		logger.log('  ' + __('None').grey + '\n');
+	}
+
+	logger.log(styleHeading(__('WatchOS Simulators')));
+	if (data.simulators.watchos && Object.keys(data.simulators.watchos).length) {
+		Object.keys(data.simulators.watchos).sort().forEach(function (ver) {
+			logger.log(String(ver).grey);
+			logger.log(data.simulators.watchos[ver].map(function (sim) {
+				return '  ' + sim.name.cyan + (sim.name !== sim.deviceName ? ' (' + sim.deviceName + ')' : '') + (' (' + sim.family + ')').grey + '\n' + [
+					'  ' + rpad('  ' + __('UDID')) + ' = ' + styleValue(sim.udid)
+				].join('\n');
+			}).join('\n') + '\n');
+		});
 	} else {
 		logger.log('  ' + __('None').grey + '\n');
 	}
 
 	logger.log(styleHeading(__('Connected iOS Devices')));
-	var iosDevices = data.devices && data.devices.filter(function (device) { return device.id != 'itunes'; });
-	if (iosDevices.length) {
-		logger.log(iosDevices.map(function (device) {
+	var devices = data.devices.filter(function (device) {
+		return device.udid !== 'itunes';
+	});
+	if (devices.length) {
+		logger.log(devices.map(function (device) {
 			return '  ' + device.name.cyan + '\n' + [
-				'  ' + rpad('  ' + __('ID'))               + ' = ' + styleValue(device.id),
+				'  ' + rpad('  ' + __('UDID'))             + ' = ' + styleValue(device.udid),
 				'  ' + rpad('  ' + __('Type'))             + ' = ' + styleValue(device.deviceClass + ' (' + device.deviceColor + ')'),
 				'  ' + rpad('  ' + __('iOS Version'))      + ' = ' + styleValue(device.productVersion),
 				'  ' + rpad('  ' + __('CPU Architecture')) + ' = ' + styleValue(device.cpuArchitecture)

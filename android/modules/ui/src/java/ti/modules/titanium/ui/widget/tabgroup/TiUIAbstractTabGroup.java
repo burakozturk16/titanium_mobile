@@ -12,6 +12,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.ActivityProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.TabGroupProxy;
@@ -51,20 +52,22 @@ public abstract class TiUIAbstractTabGroup extends TiUIView {
 	 */
 	public abstract TabProxy getSelectedTab();
 	
+	
 	@Override
-	public void processProperties(KrollDict d)
-	{
-		if (d.containsKey(TiC.PROPERTY_ACTIVITY)) {
-			Object activityObject = d.get(TiC.PROPERTY_ACTIVITY);
-			ActivityProxy activityProxy = getProxy().getActivityProxy();
-			if (activityObject instanceof HashMap<?, ?> && activityProxy != null) {
-				@SuppressWarnings("unchecked")
-				KrollDict options = new KrollDict((HashMap<String, Object>) activityObject);
-				activityProxy.handleCreationDict(options);
-			}
-		}
-
-		super.processProperties(d);
-	}
-
+    public void propertySet(String key, Object newValue, Object oldValue,
+            boolean changedProperty) {
+        switch (key) {
+        case TiC.PROPERTY_ACTIVITY:
+            ActivityProxy activityProxy = getProxy().getActivityProxy();
+            if (newValue instanceof HashMap<?, ?> && activityProxy != null) {
+                @SuppressWarnings("unchecked")
+                KrollDict options = new KrollDict((HashMap<String, Object>) newValue);
+                activityProxy.handleCreationDict(options);
+            }
+            break;
+        default:
+            super.propertySet(key, newValue, oldValue, changedProperty);
+            break;
+        }
+    }
 }

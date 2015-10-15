@@ -38,5 +38,6 @@
  @param animated _YES_ if window close is anumated, _NO_ otherwise.
  */
 -(void)windowClosing:(TiWindowProxy*)window animated:(BOOL)animated;
+-(void)windowSetUpDecoration:(TiWindowProxy*)window animated:(BOOL)animated;
 
 @end

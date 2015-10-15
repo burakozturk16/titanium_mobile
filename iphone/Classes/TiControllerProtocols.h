@@ -8,34 +8,19 @@
 #import <Foundation/Foundation.h>
 #import "TiUtils.h"
 
+@class TiViewProxy;
+
 /**
  Protocol for views that can receive keyboard focus.
  */
 @protocol TiKeyboardFocusableView
 
 #pragma mark Public Titanium APIs.
-
-/**
- Tells the view to focus.
- @param args Unused.
- */
-- (void)focus:(id)args;
-
 /**
  Tells the view to stop generating focus/blur events. This should not be
  JS-accessable, and is meant to handle tableview and layout issues.
  */
 @property(nonatomic,readwrite,assign)	BOOL suppressFocusEvents;
-
-/**
- Tells the view to blur.
- @param args Unused.
- */
-- (void)blur:(id)args;
-/**
- Tells if this proxy is currently focused
- */
-- (BOOL)focused:(id)unused;
 
 #pragma mark Private internal APIs.
 
@@ -43,11 +28,7 @@
  Returns keyboard accessory view.
  */
 @property(nonatomic,readonly) UIView * keyboardAccessoryView;
-
-/**
- Returns keyboard accessory height.
- */
-@property(nonatomic,readonly) CGFloat keyboardAccessoryHeight;
+@property(nonatomic,readonly) TiViewProxy * keyboardAccessoryProxy;
 
 @end
 
@@ -101,6 +82,7 @@
 @protocol TiControllerContainment <NSObject>
 @required
 -(BOOL)canHostWindows;
+-(UIView *)hostingView;
 //Called by light weight windows from their windowWillOpen, windowWillClose, windowDidOpen, windowDidClose methods
 -(void)willOpenWindow:(id<TiWindowProtocol>)theWindow;
 -(void)willCloseWindow:(id<TiWindowProtocol>)theWindow;
@@ -127,8 +109,6 @@
 //Keyboard stuff
 -(BOOL)keyboardVisible;
 -(void)dismissKeyboard;
--(void)didKeyboardFocusOnProxy:(TiViewProxy<TiKeyboardFocusableView> *)visibleProxy;
--(void)didKeyboardBlurOnProxy:(TiViewProxy<TiKeyboardFocusableView> *)blurredProxy;
 
 //ViewController stuff
 -(TiOrientationFlags)getDefaultOrientations;

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -185,9 +184,9 @@ public class TableViewRowProxy extends ViewProxy
 	}
 
 	@Override
-	public void setProperty(String name, Object value, boolean fireChange)
+    public void setPropertyAndFire(String name, Object value)
 	{
-		super.setProperty(name, value, fireChange);
+		super.setPropertyAndFire(name, value);
 		if (tableViewItem != null) {
 			if (TiApplication.isUIThread()) {
 				tableViewItem.setRowData(this);

@@ -45,7 +45,7 @@ public final class <%- classname %>AppInfo implements ITiAppInfo
 	}
 
 	public String getDescription() {
-		return "<%- tiapp.description %>";
+		return "<%- tiapp.description.replace(/\"/g, '\\"') %>";
 	}
 
 	public String getIcon() {
@@ -66,5 +66,9 @@ public final class <%- classname %>AppInfo implements ITiAppInfo
 
 	public String getBuildType() {
 		return "<%- buildType %>";
+	}
+
+	public long getBuildDate() {
+		return <%- buildDate %>L;
 	}
 }

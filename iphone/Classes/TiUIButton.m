@@ -95,7 +95,7 @@
 		style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:defaultType];
 		UIView *btn = [TiButtonUtil buttonWithType:style];
 		button = (UIButton*)[btn retain];
-		[button titleLabel].lineBreakMode = UILineBreakModeWordWrap; //default wordWrap to True
+		[button titleLabel].lineBreakMode = NSLineBreakByWordWrapping; //default wordWrap to True
         [[[button titleLabel] layer] setShadowRadius:0]; //default like label
 		[self addSubview:button];
 		if (style==UIButtonTypeCustom)
@@ -117,11 +117,18 @@
 	return [self button];
 }
 
+-(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
+{
+    [button setFrame:bounds];
+    [super frameSizeChanged:frame bounds:bounds];
+}
+
+
 #pragma mark Public APIs
 
 -(void)setStyle_:(id)style_
 {
-	int s = [TiUtils intValue:style_ def:UIButtonTypeCustom];
+	NSInteger s = [TiUtils intValue:style_ def:UIButtonTypeCustom];
 	if (s == style)
 	{
 		return;
@@ -167,12 +174,14 @@
 -(void)setSelected_:(id)value
 {
 	[[self button] setSelected:[TiUtils boolValue:value]];
+    [super setSelected_:value];
 }
 
 
 -(void)setTitle_:(id)value
 {
 	[[self button] setTitle:[TiUtils stringValue:value] forState:UIControlStateNormal];
+    [(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 //-(void)setBackgroundImage_:(id)value
@@ -397,9 +406,15 @@
 {
 	BOOL shouldWordWrap = [TiUtils boolValue:value def:YES];
 	if (shouldWordWrap)
-		[[button titleLabel] setLineBreakMode:UILineBreakModeWordWrap];
+		[[button titleLabel] setLineBreakMode:NSLineBreakByWordWrapping];
 	else 
-		[[button titleLabel] setLineBreakMode:UILineBreakModeTailTruncation];
+		[[button titleLabel] setLineBreakMode:NSLineBreakByTruncatingTail];
+    [button setNeedsLayout];
+}
+
+-(void)setEllipsize_:(id)value
+{
+    [[button titleLabel] setLineBreakMode:[TiUtils intValue:value]];
     [button setNeedsLayout];
 }
 

@@ -2,7 +2,6 @@ package org.appcelerator.titanium.view;
 
 import java.util.WeakHashMap;
 
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 
@@ -14,10 +13,10 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
@@ -27,9 +26,6 @@ import android.util.Pair;
 public class OneStateDrawable extends Drawable {
 	
 	
-//	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
-	private static final String TAG = "OneStateDrawable";
-    public static final int DENSITY_NONE = 0;
 	private Rect bounds = new Rect();
 	
 	private static WeakHashMap<String, Pair<Canvas, Bitmap>> canvasStore;
@@ -54,6 +50,7 @@ public class OneStateDrawable extends Drawable {
 	public OneStateDrawable(TiBackgroundDrawable parent) 
 	{
 		this.parent = parent;
+		paint.setAntiAlias(true);
 	}
 
 
@@ -85,11 +82,11 @@ public class OneStateDrawable extends Drawable {
 		if (needsDrawing && !bounds.isEmpty()) {
 			Path path = parent.getPath();
 			if (path != null){
-				try {
-					canvas.clipPath(path);
-				} catch (Exception e) {
-					Log.w(TAG, "clipPath failed on canvas: " + e.getMessage(), Log.DEBUG_MODE);
-				}
+//				try {
+//					canvas.clipPath(path);
+//				} catch (Exception e) {
+//					Log.w(TAG, "clipPath failed on canvas: " + e.getMessage(), Log.DEBUG_MODE);
+//				}
 				if (color != Color.TRANSPARENT) {
 					paint.setColor(color);
 					canvas.drawPath(path, paint);		
@@ -179,7 +176,10 @@ public class OneStateDrawable extends Drawable {
 
 	@Override
 	public int getOpacity() {
-		return 0;
+	    if (alpha == 0 || color == Color.TRANSPARENT) {
+	        return PixelFormat.OPAQUE;
+	    }
+		return alpha;
 	}
 	
 	private void applyAlphaToDrawable (Drawable drawable)
@@ -244,6 +244,10 @@ public class OneStateDrawable extends Drawable {
 		applyAlphaToDrawable(colorDrawable);
 		this.color = color;
 		updateNeedsDrawing();
+	}
+	
+	public boolean hasOnlyColor() {
+	    return imageDrawable == null && gradientDrawable == null;
 	}
 	
 	public int getColor()

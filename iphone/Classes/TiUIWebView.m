@@ -17,11 +17,10 @@
 #import "TiBlob.h"
 #import "TiFile.h"
 #import "Mimetypes.h"
-#import "Base64Transcoder.h"
 #import "APSHTTPResponse.h"
 
 extern NSString * const TI_APPLICATION_ID;
-static NSString * const kMCTSJavascript = @"Ti.App={};Ti.API={};Ti.App._listeners={};Ti.App._listener_id=1;Ti.App.id=Ti.appId;Ti.App._xhr=XMLHttpRequest;"
+static NSString * const kTitaniumJavascript = @"Ti.App={};Ti.API={};Ti.App._listeners={};Ti.App._listener_id=1;Ti.App.id=Ti.appId;Ti.App._xhr=XMLHttpRequest;"
 		"Ti._broker=function(module,method,data){try{var url='app://'+Ti.appId+'/_TiA0_'+Ti.pageToken+'/'+module+'/'+method+'?'+Ti.App._JSON(data,1);"
 			"var xhr=new Ti.App._xhr();xhr.open('GET',url,false);xhr.send()}catch(X){}};"
 		"Ti._hexish=function(a){var r='';var e=a.length;var c=0;var h;while(c<e){h=a.charCodeAt(c++).toString(16);r+='\\\\u';var l=4-h.length;while(l-->0){r+='0'};r+=h}return r};"
@@ -64,11 +63,12 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 @interface LocalProtocolHandler : NSURLProtocol
 @end
- 
+
 @implementation TiUIWebView
 {
     APSHTTPRequest* _currentRequest;
     BOOL _asyncLoad;
+    NJKWebViewProgress* _progressProxy;
 }
 @synthesize reloadData, reloadDataProperties;
 
@@ -78,6 +78,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	if (self != nil)
 	{
         _asyncLoad = NO;
+        willHandleTouches = NO;
 	}
 	return self;
 }
@@ -107,6 +108,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	RELEASE_TO_NIL(reloadDataProperties);
 	RELEASE_TO_NIL(lastValidLoad);
     RELEASE_TO_NIL(_currentRequest);
+    RELEASE_TO_NIL(_progressProxy)
 	[super dealloc];
 }
 
@@ -122,32 +124,27 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     return webview;
 }
 
-//-(UIView*)viewForGestures
-//{
-//    return webview;
-//}
+-(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+	/*	webview is a little _special_ and refuses to share events.
+	 *	As such, we have to take the events away if we have event listeners
+	 *	Or let webview has his entire cake. Through experimenting, if the
+	 *	webview is interested, a subview or subsubview will be the target.
+	 */
 
-//-(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-//{
-//	/*	webview is a little _special_ and refuses to share events.
-//	 *	As such, we have to take the events away if we have event listeners
-//	 *	Or let webview has his entire cake. Through experimenting, if the
-//	 *	webview is interested, a subview or subsubview will be the target.
-//	 */
-//
-//	UIView *view = [super hitTest:point withEvent:event];
-//	if ( ([self hasTouchableListener]) && willHandleTouches )
-//	{
-//		UIView *superview = [view superview];
-//		UIView *superduperview = [superview superview];
-//		if ((view == webview) || (superview == webview) || (superduperview == webview))
-//		{
-//			return self;
-//		}
-//	}
-//	
-//	return view;
-//}
+	UIView *view = [super hitTest:point withEvent:event];
+	if ( ([self hasTouchableListener]) && willHandleTouches )
+	{
+		UIView *superview = [view superview];
+		UIView *superduperview = [superview superview];
+		if ((view == webview) || (superview == webview) || (superduperview == webview))
+		{
+			return self;
+		}
+	}
+	
+	return view;
+}
 
 -(void)setWillHandleTouches_:(id)args
 {
@@ -165,10 +162,16 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		webview = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, 10, 1)];
 		webview.delegate = self;
 		webview.opaque = NO;
+        [webview scrollView].delegate = self;
 		webview.backgroundColor = [UIColor whiteColor];
 		webview.contentMode = UIViewContentModeRedraw;
 		webview.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 		[self addSubview:webview];
+        
+        _progressProxy = [[NJKWebViewProgress alloc] init]; // instance variable
+        webview.delegate = _progressProxy;
+        _progressProxy.webViewProxyDelegate = self;
+        _progressProxy.progressDelegate = self;
 
 		BOOL hideLoadIndicator = [TiUtils boolValue:[self.proxy valueForKey:@"hideLoadIndicator"] def:NO];
 		
@@ -259,17 +262,17 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	return [NSURL URLWithString:[[NSString stringWithFormat:@"app://%@/%@",TI_APPLICATION_ID,path] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 }
 
-- (NSString *)_mctsInjection
+- (NSString *)_titaniumInjection
 {
 	if (pageToken==nil) {
-		pageToken = [[NSString stringWithFormat:@"%d",[self hash]] retain];
+		pageToken = [[NSString stringWithFormat:@"%lu",(unsigned long)[self hash]] retain];
 		[(TiUIWebViewProxy*)self.proxy setPageToken:pageToken];
 	}
 	NSMutableString *html = [[[NSMutableString alloc] init] autorelease];
 	[html appendString:@"<script id='__ti_injection'>"];
 	NSString *ti = [NSString stringWithFormat:@"%@%s",@"Ti","tanium"];
 	[html appendFormat:@"window.%@={};window.Ti=%@;Ti.pageToken=%@;Ti.appId='%@';",ti,ti,pageToken,TI_APPLICATION_ID];
-	[html appendString:kMCTSJavascript];
+	[html appendString:kTitaniumJavascript];
 	[html appendString:@"</script>"];
 	return html;
 }
@@ -279,7 +282,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	if ([content length] == 0) {
 		return content;
 	}
-	// attempt to make well-formed HTML and inject in our MCTS bridge code
+	// attempt to make well-formed HTML and inject in our Titanium bridge code
 	// However, we only do this if the content looks like HTML
 	NSRange range = [content rangeOfString:@"<html"];
 	if (range.location == NSNotFound) {
@@ -316,7 +319,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	if (baseURL == nil) {
 		baseURL = [NSURL fileURLWithPath:[TiHost resourcePath]];
 	}
-	content = [[self class] content:content withInjection:[self _mctsInjection]];
+	content = [[self class] content:content withInjection:[self _titaniumInjection]];
 	
 	[self ensureLocalProtocolHandler];
 	[[self webview] loadData:[content dataUsingEncoding:encoding] MIMEType:mimeType textEncodingName:textEncodingName baseURL:baseURL];
@@ -512,51 +515,6 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	[[self webview] setMultipleTouchEnabled:value];
 }
 
--(void)setDisableBounce_:(id)value
-{
-	BOOL bounces = ![TiUtils boolValue:value];
-	[[self scrollview] setBounces:bounces];
-}
-
--(void)setScrollsToTop_:(id)value
-{
-	BOOL scrollsToTop = [TiUtils boolValue:value def:YES];
-	[[self scrollview] setScrollsToTop:scrollsToTop];
-}
-
-
--(void)setShowHorizontalScrollIndicator_:(id)value
-{
-	[[self scrollview] setShowsHorizontalScrollIndicator:[TiUtils boolValue:value]];
-}
-
--(void)setShowVerticalScrollIndicator_:(id)value
-{
-	[[self scrollview] setShowsVerticalScrollIndicator:[TiUtils boolValue:value]];
-}
-
--(void)setScrollIndicatorStyle_:(id)value
-{
-	[[self scrollview] setIndicatorStyle:[TiUtils intValue:value def:UIScrollViewIndicatorStyleDefault]];
-}
-
--(void)setScrollingEnabled_:(id)enabled
-{
-    BOOL scrollingEnabled = [TiUtils boolValue:enabled def:YES];
-    [[self scrollview] setScrollEnabled:scrollingEnabled];
-    [[self proxy] replaceValue:NUMBOOL(scrollingEnabled) forKey:@"scrollingEnabled" notification:NO];
-}
-
--(void)setHorizontalBounce_:(id)value
-{
-	[[self scrollview] setAlwaysBounceHorizontal:[TiUtils boolValue:value]];
-}
-
--(void)setVerticalBounce_:(id)value
-{
-	[[self scrollview] setAlwaysBounceVertical:[TiUtils boolValue:value]];
-}
-
 -(void)setAllowsInlineMediaPlayback_:(id)value
 {
 	BOOL result = [TiUtils boolValue:value def:YES];
@@ -574,7 +532,6 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	BOOL result = [TiUtils boolValue:value def:YES];
 	[[self webview] setMediaPlaybackRequiresUserAction:result];
 }
-
 
 - (void)setUrl_:(id)args
 {
@@ -616,13 +573,11 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 -(void)setHandlePlatformUrl_:(id)arg
 {
-    [[self proxy] replaceValue:arg forKey:@"handlePlatformUrl" notification:NO];
     willHandleUrl = [TiUtils boolValue:arg];
 }
 
 -(void)setAsyncLoad_:(id)arg
 {
-    [[self proxy] replaceValue:arg forKey:@"asyncLoad" notification:NO];
     _asyncLoad = [TiUtils boolValue:arg def:NO];
 }
 
@@ -748,24 +703,14 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	}
 	
 	NSString *toEncode = [NSString stringWithFormat:@"%@:%@",username,password];
-	const char *data = [toEncode UTF8String];
-	size_t len = [toEncode length];
-
-	char *base64Result;
-    size_t theResultLength;
-	bool result = Base64AllocAndEncodeData(data, len, &base64Result, &theResultLength);
-	if (result)
-	{
-		NSData *theData = [NSData dataWithBytes:base64Result length:theResultLength];
-		free(base64Result);
-		NSString *string = [[[NSString alloc] initWithData:theData encoding:NSUTF8StringEncoding] autorelease];
-		RELEASE_TO_NIL(basicCredentials);
-		basicCredentials = [[NSString stringWithFormat:@"Basic %@",string] retain];
-		if (url!=nil)
-		{
-			[self setUrl_:[NSArray arrayWithObject:[url absoluteString]]];
-		}
-	}    
+    NSString *authString = [TiUtils base64encode:[[NSString stringWithFormat:@"%@:%@",username, password] dataUsingEncoding:NSUTF8StringEncoding]];
+    RELEASE_TO_NIL(basicCredentials);
+    
+    basicCredentials = [[NSString stringWithFormat:@"Basic %@",authString] retain];
+    if (url!=nil)
+    {
+        [self setUrl_:[NSArray arrayWithObject:[url absoluteString]]];
+    }
 }
 
 -(NSString*)stringByEvaluatingJavaScriptFromString:(NSString *)code
@@ -834,7 +779,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 			reloadMethod = @selector(setUrl_:);
 		}
 		if ([scheme isEqualToString:@"file"] || [scheme isEqualToString:@"app"]) {
-			[NSURLProtocol setProperty:[self _mctsInjection] forKey:kContentInjection inRequest:(NSMutableURLRequest *)request];
+			[NSURLProtocol setProperty:[self _titaniumInjection] forKey:kContentInjection inRequest:(NSMutableURLRequest *)request];
 		}
         
        if ([self shoudTryToAuth:navigationType] && !_currentRequest) {
@@ -866,6 +811,12 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 - (void)webViewDidStartLoad:(UIWebView *)webView
 {
+    if ([[self viewProxy] _hasListeners:@"startload" checkParent:NO])
+    {
+        [self.proxy fireEvent:@"startload" withObject:@{
+                                                        @"url":[[webview request] URL]
+                                                        } propagate:NO checkForListener:NO];
+    }
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView
@@ -876,13 +827,18 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     NSString* urlAbs = [url absoluteString];
     [[self proxy] replaceValue:urlAbs forKey:@"url" notification:NO];
 	
-    if ([self.proxy _hasListeners:@"load"]) {
+    if ([[self viewProxy] _hasListeners:@"load" checkParent:NO])
+    {
         if (![urlAbs isEqualToString:lastValidLoad]) {
             NSDictionary *event = url == nil ? nil : [NSDictionary dictionaryWithObject:[self url] forKey:@"url"];
-            [self.proxy fireEvent:@"load" withObject:event];
+            [self.proxy fireEvent:@"load" withObject:event propagate:NO checkForListener:NO];
             [lastValidLoad release];
             lastValidLoad = [urlAbs retain];
         }
+    }
+    if ([[self viewProxy] _hasListeners:@"afterload" checkParent:NO])
+    {
+        [self.proxy fireEvent:@"afterload" withObject:@{@"url":url} propagate:NO checkForListener:NO];
     }
     [webView setNeedsDisplay];
     ignoreNextRequest = NO;
@@ -909,7 +865,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 	NSLog(@"[ERROR] Error loading: %@, Error: %@",offendingUrl,error);
 
-	if ([self.proxy _hasListeners:@"error"])
+    if ([[self viewProxy] _hasListeners:@"error" checkParent:NO])
 	{
 		NSString * message = [TiUtils messageFromError:error];
 		NSMutableDictionary *event = [NSMutableDictionary dictionaryWithObject:message forKey:@"message"];
@@ -933,10 +889,20 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 		[event setObject:[NSNumber numberWithInteger:returnErrorCode] forKey:@"errorCode"];
 		[event setObject:offendingUrl forKey:@"url"];
-		[self.proxy fireEvent:@"error" withObject:event errorCode:returnErrorCode message:message];
+		[self.proxy fireEvent:@"error" withObject:event propagate:NO reportSuccess:YES errorCode:returnErrorCode message:message checkForListener:NO];
 	}
 }
 
+-(void)webViewProgress:(NJKWebViewProgress *)webViewProgress updateProgress:(float)progress
+{
+    if ([[self viewProxy] _hasListeners:@"loadprogress" checkParent:NO])
+    {
+        [self.proxy fireEvent:@"loadprogress" withObject:@{
+//                                                           @"url":[[webview request] URL],
+                                                           @"progress":@(progress)
+                                                        } propagate:NO checkForListener:NO];
+    }
+}
 #pragma mark TiEvaluator
 
 - (void)evalFile:(NSString*)path
@@ -964,6 +930,9 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		[webview stringByEvaluatingJavaScriptFromString:js];
 	}
 }
+
+
+
 
 @end
 
@@ -1030,6 +999,9 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 {
 	// NO-OP
 }
+
+
+
 
 @end
 

@@ -9,38 +9,38 @@
 #import "TiUILabelProxy.h"
 #import "TiUILabel.h"
 #import "TiUtils.h"
-#import "DTCoreText.h"
-#import "NSString+DTUtilities.h"
+#import "DTCoreText/DTCoreText.h"
 
 #define kDefaultFontSize 12.0
 
-static inline CTTextAlignment UITextAlignmentToCTTextAlignment(UITextAlignment alignment)
-{
-    switch (alignment) {
-        case UITextAlignmentLeft:
-            return kCTLeftTextAlignment;
-        case UITextAlignmentRight:
-            return kCTRightTextAlignment;
-        default:
-            return kCTCenterTextAlignment;
-            break;
-    }
-}
+//static inline CTTextAlignment UITextAlignmentToCTTextAlignment(UITextAlignment alignment)
+//{
+//    switch (alignment) {
+//        case UITextAlignmentLeft:
+//            return kCTLeftTextAlignment;
+//        case UITextAlignmentRight:
+//            return kCTRightTextAlignment;
+//        default:
+//            return kCTCenterTextAlignment;
+//            break;
+//    }
+//}
 
-static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode linebreak)
+
+static inline CTLineBreakMode NSLineBreakModeToCTLineBreakMode(NSLineBreakMode linebreak)
 {
     switch (linebreak) {
-        case UILineBreakModeClip:
+        case NSLineBreakByClipping:
             return kCTLineBreakByClipping;
-        case UILineBreakModeCharacterWrap:
+        case NSLineBreakByCharWrapping:
             return kCTLineBreakByCharWrapping;
-        case UILineBreakModeHeadTruncation:
+        case NSLineBreakByTruncatingHead:
             return kCTLineBreakByTruncatingHead;
-        case UILineBreakModeTailTruncation:
+        case NSLineBreakByTruncatingTail:
             return kCTLineBreakByTruncatingTail;
-        case UILineBreakModeMiddleTruncation:
+        case NSLineBreakByTruncatingMiddle:
             return kCTLineBreakByTruncatingMiddle;
-        case UILineBreakModeWordWrap:
+        case NSLineBreakByWordWrapping:
         default:
             return kCTLineBreakByWordWrapping;
             break;
@@ -52,23 +52,39 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     UIEdgeInsets _padding;
 }
 
-+(NSSet*)transferableProperties
-{
-    NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"text",@"html",
-                                              @"color", @"highlightedColor", @"autoLink",
-                                              @"verticalAlign", @"textAlign", @"font",
-                                              @"minimumFontSize", @"backgroundPaddingLeft",
-                                              @"backgroundPaddingRight", @"backgroundPaddingBottom", @"backgroundPaddingTop", @"shadowOffset",
-                                              @"shadowRadius", @"shadowColor",
-                                              @"padding",
-                                              @"wordWrap", @"borderWidth", @"maxLines",
-                                              @"ellipsize", @"multiLineEllipsize", nil]];
-}
-
 -(NSString*)apiName
 {
     return @"Ti.UI.Label";
+}
+
+-(NSString*)defaultSystemFontFamily
+{
+    static NSString *defaultSystemFontFamily = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        defaultSystemFontFamily = [UIFont systemFontOfSize:[UIFont systemFontSize]].familyName;
+    });
+    return defaultSystemFontFamily;
+}
+
+
+static NSDictionary* htmlOptions;
+-(NSDictionary *)htmlOptions
+{
+    if (htmlOptions == nil)
+    {
+        htmlOptions = [@{
+                        DTDefaultTextAlignment:@(kCTLeftTextAlignment),
+                        DTDefaultFontStyle:@(0),
+                        DTIgnoreLinkStyleOption:@(NO),
+                        DTDefaultFontFamily:[self defaultSystemFontFamily],
+                        NSFontAttributeName:[self defaultSystemFontFamily],
+                        NSTextSizeMultiplierDocumentOption:@(17 / kDefaultFontSize),
+                        DTUseiOS6Attributes:@YES,
+                        DTDocumentPreserveTrailingSpaces:@(YES),
+                        DTDefaultLineBreakMode:@(kCTLineBreakByWordWrapping)} retain];
+    }
+    return htmlOptions;
 }
 
 -(id)init
@@ -76,22 +92,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (self = [super init]) {
         _padding = UIEdgeInsetsZero;
         attributeTextNeedsUpdate = YES;
-        options = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
-//                    NSHTMLTextDocumentType, NSDocumentTypeDocumentAttribute,
-                    [NSNumber numberWithInt:kCTLeftTextAlignment], DTDefaultTextAlignment,
-                    [NSNumber numberWithInt:0], DTDefaultFontStyle,
-                    @(NO), DTIgnoreLinkStyleOption,
-                    @"Helvetica", DTDefaultFontFamily,
-                    @"Helvetica", NSFontAttributeName,
-                    [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
-                    [NSNumber numberWithInt:kCTLineBreakByWordWrapping], DTDefaultLineBreakMode, nil] retain];
-        if ([TiUtils isIOS6OrGreater])
-        {
-            [options setObject:@YES forKey:DTUseiOS6Attributes];
-            if ([TiUtils isIOS7OrGreater])
-            {
-            }
-        }
+        options = [[self htmlOptions] mutableCopy];
     }
     return self;
 }
@@ -114,23 +115,26 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     }
     
     RELEASE_TO_NIL(_realLabelContent);
-    switch (_contentType) {
-        case kContentTypeHTML:
-        {
-//            if ([TiUtils isIOS7OrGreater]) {
-//                _realLabelContent = [[NSAttributedString alloc] initWithData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil error:nil];
-//            }
-//            else {
+    if (contentString) {
+        switch (_contentType) {
+            case kContentTypeHTML:
+            {
+                //            if ([TiUtils isIOS7OrGreater]) {
+                //                _realLabelContent = [[NSAttributedString alloc] initWithData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil error:nil];
+                //            }
+                //            else {
                 _realLabelContent = [[NSAttributedString alloc] initWithHTMLData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil];
-//            }
-            break;
-        }
-        default:
-        {
-            _realLabelContent = [contentString retain];
-            break;
+                //            }
+                break;
+            }
+            default:
+            {
+                _realLabelContent = [contentString retain];
+                break;
+            }
         }
     }
+   
     if (view!=nil) {
         [(TiUILabel*)view setAttributedTextViewContent];
     }
@@ -148,18 +152,18 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 {
     configSet = YES;
     [(TiUILabel*)view setPadding:_padding];
-    [(TiUILabel *)[self view] setReusing:NO];
+//    [(TiUILabel *)[self view] setReusing:NO];
     if (attributeTextNeedsUpdate)
         [self updateAttributeText];
     [super configurationSet:recursive];
 }
 
 
-- (void)prepareForReuse
-{
-    [(TiUILabel *)[self view] setReusing:YES];
-    [super prepareForReuse];
-}
+//- (void)prepareForReuse
+//{
+//    [(TiUILabel *)[self view] setReusing:YES];
+//    [super prepareForReuse];
+//}
 
 -(void)setPadding:(id)value
 {
@@ -167,6 +171,11 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (view != nil)
         [(TiUILabel*)view setPadding:_padding];
     [self contentsWillChange];
+    [self replaceValue:value forKey:@"padding" notification:NO];
+}
+
+-(id)padding {
+    return [self valueForUndefinedKey:@"padding"];
 }
 
 -(CGSize) suggestedSizeForSize:(CGSize)size
@@ -182,7 +191,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             maxSize.width -= _padding.left + _padding.right;
             if ([_realLabelContent isKindOfClass:[NSAttributedString class]])
             {
-                int numberOfLines = 0;
+                NSInteger numberOfLines = 0;
                 if ([self valueForKey:@"maxLines"])
                 {
                     numberOfLines = [TiUtils intValue:[self valueForKey:@"maxLines"]];
@@ -191,7 +200,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             }
             else
             {
-                UILineBreakMode breakMode = UILineBreakModeWordWrap;
+                NSLineBreakMode breakMode = NSLineBreakByWordWrapping;
                 if ([self valueForKey:@"ellipsize"])
                     breakMode = [TiUtils intValue:[self valueForKey:@"ellipsize"]];
                 id fontValue = [self valueForKey:@"font"];
@@ -204,12 +213,12 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 {
                     font = [UIFont systemFontOfSize:17];
                 }
-                int numberOfLines = 0;
+                NSInteger numberOfLines = 0;
                 if ([self valueForKey:@"maxLines"])
                 {
                     numberOfLines = [TiUtils intValue:[self valueForKey:@"maxLines"]];
                 }
-                font.lineHeight;
+//                font.lineHeight;
                 result = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
                 if (numberOfLines > 0)
                 {
@@ -313,8 +322,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (webFont.family)
         [options setValue:webFont.family forKey:DTDefaultFontFamily];
     else {
-        [options setObject:@"Helvetica" forKey:NSFontAttributeName];
-        [options setValue:@"Helvetica" forKey:DTDefaultFontFamily];
+        [options setObject:[self defaultSystemFontFamily] forKey:NSFontAttributeName];
+        [options setValue:[self defaultSystemFontFamily] forKey:DTDefaultFontFamily];
     }
     [options setValue:[NSNumber numberWithFloat:(webFont.size / kDefaultFontSize)] forKey:NSTextSizeMultiplierDocumentOption];
     
@@ -325,7 +334,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 -(void)setTextAlign:(id)alignment
 {
-    [options setValue:[NSNumber numberWithInt:UITextAlignmentToCTTextAlignment([TiUtils textAlignmentValue:alignment])] forKey:DTDefaultTextAlignment];
+    [options setValue:NUMINTEGER(DTNSTextAlignmentToCTTextAlignment([TiUtils textAlignmentValue:alignment])) forKey:DTDefaultTextAlignment];
     
     //we need to reset the text to update default paragraph settings
 	[self replaceValue:alignment forKey:@"textAlign" notification:YES];
@@ -343,10 +352,10 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 -(void)setMultiLineEllipsize:(id)value
 {
-    int multilineBreakMode = [TiUtils intValue:value];
-    if (multilineBreakMode != UILineBreakModeWordWrap)
+    NSInteger multilineBreakMode = [TiUtils intValue:value];
+    if (multilineBreakMode != NSLineBreakByWordWrapping)
     {
-        [options setValue:[NSNumber numberWithInt:UILineBreakModeToCTLineBreakMode(multilineBreakMode)]  forKey:DTDefaultLineBreakMode];
+        [options setValue:NUMINTEGER(NSLineBreakModeToCTLineBreakMode(multilineBreakMode)) forKey:DTDefaultLineBreakMode];
         
         //we need to update the text
         [self updateAttributeText];
@@ -355,24 +364,10 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 }
 
 - (void)setAttributedTextViewContent:(id)newContentString ofType:(ContentType)contentType {
-    if (newContentString == nil) {
-        RELEASE_TO_NIL(contentString);
-        RELEASE_TO_NIL(_realLabelContent);
-        _contentHash = 0;
-        [self updateAttributeText];
+    if ((newContentString == nil && contentString == nil) || [newContentString isEqual:contentString])
+    {
         return;
     }
-    
-    // we don't preserve the string but compare it's hash
-    //NSString hash method is wrong and can return same value
-    // for 2 different strings
-	NSUInteger newHash = [newContentString md5Checksum];
-	
-	if (newHash == _contentHash)
-	{
-		return;
-	}
-    _contentHash = newHash;
     RELEASE_TO_NIL(contentString);
     contentString = [newContentString retain];
     _contentType = contentType;
@@ -387,13 +382,13 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 -(id)characterIndexAtPoint:(id)args
 {
-    int result = -1;
+    NSInteger result = -1;
     if (view!=nil) {
         ENSURE_SINGLE_ARG(args, NSDictionary)
         CGPoint point = [TiUtils pointValue:args];
         result = [(TiUILabel*)view characterIndexAtPoint:point];
     }
-    return NUMINT(result);
+    return NUMINTEGER(result);
 }
 
 

@@ -7,12 +7,21 @@
 #import "TiProxy.h"
 #import "TiGradient.h"
 #import "LayoutConstraint.h"
-#import "TiSelectableBackgroundLayer.h"
+//#import "TiSelectableBackgroundLayer.h"
 #import "TouchDelegate_Views.h"
 
 @class TiTransition;
+#ifdef TI_USE_AUTOLAYOUT
+#import "TiLayoutView.h"
+#endif
 //By declaring a scrollView protocol, TiUITextWidget can access 
 @class TiUIView;
+@class TiSelectableBackgroundLayer;
+@class TiBorderLayer;
+
+@interface UntouchableView : UIView
+
+@end
 /**
  The protocol for scrolling.
  */
@@ -41,18 +50,25 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 @class TiViewProxy;
 @class ADTransition;
 @class TiViewAnimationStep;
-
+@class TiRect;
+@class DirectionPanGestureRecognizer;
 /**
  Base class for all Titanium views.
  @see TiViewProxy
  */
-@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing, TouchDelegate>
+#ifdef TI_USE_AUTOLAYOUT
+@interface TiUIView : TiLayoutView<TiProxyDelegate, TouchDelegate>
+#else
+@interface TiUIView : UIView<TiProxyDelegate, TouchDelegate, LayoutAutosizing>
+#endif
 {
 @protected
     BOOL configurationSet;
     NSMutableArray* childViews;
     UIControlState viewState;
-@private
+	BOOL _tintColorImage;
+    TiCap imageCap;
+//@private
 	TiProxy *proxy;
 		
 	id transformMatrix;
@@ -75,16 +91,15 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	UISwipeGestureRecognizer*		rightSwipeRecognizer;
 	UISwipeGestureRecognizer*		upSwipeRecognizer;
 	UISwipeGestureRecognizer*		downSwipeRecognizer;
-	UILongPressGestureRecognizer*	longPressRecognizer;
+    UILongPressGestureRecognizer*	longPressRecognizer;
+    DirectionPanGestureRecognizer*         panRecognizer;
+    DirectionPanGestureRecognizer*         shoveRecognizer;
+    UIRotationGestureRecognizer*    rotationRecognizer;
 	
 	//Resizing handling
 	CGSize oldSize;
     
     float backgroundOpacity;
-    TiDimension leftCap;
-    TiDimension topCap;
-    TiDimension bottomCap;
-    TiDimension rightCap;
 	NSRecursiveLock *transferLock;
 }
 
@@ -149,12 +164,14 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  Performs view's initialization procedure.
  */
 -(void)initializeState;
+- (void) initialize;
 
 /**
  Performs view's configuration procedure.
  */
 -(void)configurationStart;
 -(void)configurationSet;
+-(BOOL)isConfigurationSet;
 
 -(void)setTransform_:(id)matrix;
 -(void) setBackgroundColor_:(id)color;
@@ -172,21 +189,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys;
 
 -(NSArray*) childViews;
-/*
- Tells the view to change its proxy to the new one provided.
- @param newProxy The new proxy to set on the view.
- @param deep true for deep transfer
- */
--(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep;
--(void)transferProxy:(TiViewProxy*)newProxy;
--(void)transferProxy:(TiViewProxy*)newProxy withBlockBefore:(void (^)(TiViewProxy* proxy))blockBefore
-      withBlockAfter:(void (^)(TiViewProxy* proxy))blockAfter deep:(BOOL)deep;
-/*
- Returns whether the view tree matches proxy tree for later transfer.
- @param proxy The proxy to validate view tree with.
- @param deep true for deep validation
- */
--(BOOL)validateTransferToProxy:(TiViewProxy*)proxy deep:(BOOL)deep;
+
 
 /**
  Tells the view to update its touch handling state.
@@ -233,17 +236,22 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  */
 -(BOOL)hasTouchableListener;
 
--(void)handleControlEvents:(UIControlEvents)events;
+//-(void)handleControlEvents:(UIControlEvents)events;
 
 -(void)setVisible_:(id)visible;
+-(void)setSelected_:(id)arg;
+-(void)setTintColor_:(id)color;
 
 -(void)setBackgroundImage_:(id)value;
 
+@property(nonatomic,readwrite,assign)	BOOL alwaysUseBackgroundLayer;
 -(UIView *)backgroundWrapperView;
 -(void)setBgState:(UIControlState)state;
 @property (nonatomic, readonly) TiSelectableBackgroundLayer* backgroundLayer;
+@property (nonatomic, readonly) TiBorderLayer* borderLayer;
 @property(nonatomic,assign) BOOL shouldHandleSelection;
 @property(nonatomic,assign) BOOL animateBgdTransition;
+@property(nonatomic,assign) BOOL canKeepBackgroundColor;
 
 -(void)checkBounds;
 -(void)updateBounds:(CGRect)newBounds;
@@ -271,8 +279,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer;
 -(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer;
 -(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer;
-
--(NSString*) swipeStringFromGesture:(UISwipeGestureRecognizer *)recognizer;
+-(void)recognizedPan:(UIPanGestureRecognizer *)recognizer;
+-(void)recognizedRotation:(UIPanGestureRecognizer *)recognizer;
+-(void)recognizedShove:(UIRotationGestureRecognizer *)recognizer;
 
 -(void)detach;
 
@@ -280,7 +289,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)setHighlighted:(BOOL)isHiglighted animated:(BOOL)animated;
 -(void)setSelected:(BOOL)isSelected;
 -(void)setSelected:(BOOL)isSelected animated:(BOOL)animated;
-- (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block;
+- (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(TiTransition *)transition animationBlock:(void (^)(void))animationBlock completionBlock:(void (^)(void))block;
 - (void)blurBackground:(id)args;
 -(UIControlState)realStateForState:(UIControlState)state;
 -(BOOL) enabledForBgState;
@@ -289,10 +298,11 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(UIView*)parentViewForChildren;
 -(void)onCreateCustomBackground;
 
--(NSDictionary*)dictionaryFromTouch:(UITouch*)touch;
+-(NSMutableDictionary*)dictionaryFromTouch:(UITouch*)touch;
 
--(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture;
+-(NSMutableDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture;
 -(UIViewController*)getContentController;
+-(void)fillBoundsToRect:(TiRect*)rect;
 
 @end
 

@@ -98,7 +98,7 @@ public class TransitionCarousel extends Transition {
 	}
 	
 	@Override
-	public void transformView(View view, float position, boolean adjustScroll) {
+	public void transformView(View view, float position) {
 		if (Math.abs(position) >= nbFaces - 1)
 	    {
 			ViewHelper.setAlpha(view, 0);
@@ -117,12 +117,12 @@ public class TransitionCarousel extends Transition {
 		ViewHelper.setAlpha(view, alpha);
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			TiViewHelper.setPivotFloat(view, 0.5f, out?1.0f:0.0f);
-			if (!adjustScroll) TiViewHelper.setTranslationRelativeY(view, position * multiplier);
+			TiViewHelper.setTranslationRelativeY(view, position * multiplier);
 			ViewHelper.setRotationX(view, rot);
 		}
 		else {
 			TiViewHelper.setPivotFloat(view, out?1.0f:0.0f, 0.5f);
-			if (!adjustScroll) TiViewHelper.setTranslationRelativeX(view, position * multiplier);
+			TiViewHelper.setTranslationRelativeX(view, position * multiplier);
 			ViewHelper.setRotationY(view, rot);
 		}
 	}

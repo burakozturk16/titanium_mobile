@@ -24,6 +24,9 @@
 //    BOOL _hasOnStackChange;
     BOOL _swipeToClose;
     UIScreenEdgePanGestureRecognizer* popRecognizer;
+    CGRect barFrameBeforePush;
+//    BOOL transitionIsAnimating;
+//    BOOL transitionWithGesture;
 }
 @synthesize onstackchange;
 
@@ -55,7 +58,7 @@
 -(NSDictionary*)platformDefaultTransition
 {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @550 };
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @300 };
     }
     else {
         return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
@@ -72,11 +75,30 @@
     return @"Ti.UI.iOS.NavigationWindow";
 }
 
+//-(void)popGestureStateHandler:(UIGestureRecognizer *)recognizer
+//{
+//    UIGestureRecognizerState curState = recognizer.state;
+//    
+//    switch (curState) {
+//        case UIGestureRecognizerStateBegan:
+//            transitionWithGesture = YES;
+//            break;
+//        case UIGestureRecognizerStateEnded:
+//        case UIGestureRecognizerStateCancelled:
+//        case UIGestureRecognizerStateFailed:
+//            transitionWithGesture = NO;
+//            break;
+//        default:
+//            break;
+//    }
+//    
+//}
+
 #pragma mark - TiOrientationController
 
 -(TiOrientationFlags) orientationFlags
 {
-    for (id thisController in [[navController viewControllers] reverseObjectEnumerator])
+    for (id thisController in [[[self controller] viewControllers] reverseObjectEnumerator])
     {
         if (![thisController isKindOfClass:[TiViewController class]])
         {
@@ -150,6 +172,7 @@ else{\
             [_navigationDelegate manageNavigationController:(id)navController];
             _navigationDelegate.delegate = self;
             [_navigationDelegate setIsInteractive:_swipeToClose];
+//            [((UINavigationController*)navController).interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
         } else {
             navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
             ((ADTransitionController*)navController).delegate = self;
@@ -209,7 +232,7 @@ else{\
     UIViewController* winController = [self controllerForWindow:window];
     if (winController != nil) {
         TiWindowProxy *realWindow = rootWindow;
-        int index = [[navController viewControllers] indexOfObject:winController];
+        NSUInteger index = [[navController viewControllers] indexOfObject:winController];
         if (index > 0) {
             realWindow = (TiWindowProxy *)[[[navController viewControllers] objectAtIndex:(index-1)] proxy];
             TiThreadPerformOnMainThread(^{
@@ -259,19 +282,26 @@ else{\
 
 -(id)stackSize
 {
-    return [NSNumber numberWithInt:[[navController viewControllers] count]];
+    return NUMINTEGER([[navController viewControllers] count]);
 }
 
 -(void)windowClosing:(TiWindowProxy*)window animated:(BOOL)animated
 {
     //NO OP NOW
 }
-
+-(void)windowSetUpDecoration:(TiWindowProxy*)window animated:(BOOL)animated {
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        barFrameBeforePush = [[navController navigationBar] frame];
+    }
+}
 
 #pragma mark - UINavigationControllerDelegate
 
 - (void)navController:(id)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
+//    if (!transitionWithGesture) {
+//        transitionIsAnimating = YES;
+//    }
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if (current != theWindow) {
         
@@ -294,6 +324,11 @@ else{\
         
         BOOL transitionWithGesture = NO;
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+            if (!CGRectIsEmpty(barFrameBeforePush)) {
+//                CGRect frame = [[navController navigationBar] frame];
+//                frame.size = barFrameBeforePush.size;
+                [[navController navigationBar] setFrame:barFrameBeforePush];
+            }
             transitionWithGesture = _navigationDelegate.isInteracting;
             if (!transitionWithGesture) {
                 ADTransition* transition = [(ADTransitioningViewController*)(winclosing?[current hostingController]:viewController) transition];
@@ -319,6 +354,8 @@ else{\
 
 - (void)navController:(id)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
+//    transitionIsAnimating = NO;
+//    transitionWithGesture = NO;
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if (theWindow != current && current != nil) {
         UIViewController* oldController = [current hostingController];
@@ -340,7 +377,7 @@ else{\
         [_navigationDelegate setIsInteractive:[TiUtils boolValue:[current valueForKey:@"swipeToClose"] def:_swipeToClose]];
     }
     [self childOrientationControllerChangedFlags:current];
-    if (focussed) {
+    if ([self focussed]) {
         [current gainFocus];
     }
 }
@@ -376,9 +413,9 @@ else{\
 -(NSDictionary*)propsDictFromTransition:(ADTransition*)transition
 {
     if (!transition) return @{};
-    return @{@"duration": NUMINT([transition duration]*1000),
+    return @{@"duration": NUMINTEGER([transition duration]*1000),
              @"style": [TiTransitionHelper tiTransitionTypeForADTransition:transition],
-             @"substyle": NUMINT(transition.orientation),
+             @"substyle": NUMINTEGER(transition.orientation),
              @"reverse": NUMBOOL(transition.isReversed)};
 }
 
@@ -389,7 +426,7 @@ else{\
     if (onstackchange || hasEvent) {
         NSDictionary* dict = @{@"window": ((TiViewController*)viewController).proxy,
                                @"transition":[self propsDictFromTransition:transition],
-                               @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
+                               @"stackIndex":NUMINTEGER([[navController viewControllers] indexOfObject:viewController]),
                                @"animated": NUMBOOL(transition != nil)};
         if (onstackchange){
             NSMutableDictionary * event = [dict mutableCopy];
@@ -441,6 +478,7 @@ else{\
 
 - (void)_pushViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        barFrameBeforePush = [[navController navigationBar] frame];
 //        [(ADTransitioningViewController*)viewController setTransition:transition];
         [navController pushViewController:viewController animated:YES];
     } else {
@@ -530,6 +568,7 @@ else{\
 {
     if (navController != nil) {
         [[navController view] setFrame:bounds];
+        barFrameBeforePush = [[navController navigationBar] frame];
     }
 }
 
@@ -727,7 +766,7 @@ else{\
 }
 -(void)viewDidDisappear:(BOOL)animated
 {
-    if ([self viewAttached]) {
+    if (navController) {
         [navController viewDidDisappear:animated];
     }
     [super viewDidDisappear:animated];
@@ -800,6 +839,7 @@ else{\
 {
     if ([self viewAttached]) {
         [navController didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+        barFrameBeforePush = [[navController navigationBar] frame];
     }
     [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 }

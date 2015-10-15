@@ -135,11 +135,22 @@ public abstract class Transition {
 		isReversed = reversed;
 	}
 	
-	public void transformView(View view, float position, boolean adjustScroll) {
-		
-	}
 
 	public void transformView(View view, float position) {
-		transformView(view, position, false);
+	    boolean out = (position < 0);
+      if (!TransitionHelper.isPushSubType(subType)) {
+          out = !out;
+      }
+        float multiplier = 1.0f;
+        if (!TransitionHelper.isPushSubType(subType)) {
+            multiplier = -multiplier;
+        }
+        
+        if (TransitionHelper.isVerticalSubType(subType)) {
+            TiViewHelper.setTranslationRelativeY(view, position*multiplier);
+        }
+        else {
+            TiViewHelper.setTranslationRelativeX(view, position*multiplier);
+        }
 	}
 }

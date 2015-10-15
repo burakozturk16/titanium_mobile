@@ -106,13 +106,12 @@
 -(void)updatePositioning
 {
     for (TiViewProxy* theItem in _items) {
-        CGSize size = [[theItem view] bounds].size;
         CGPoint center = [[theItem view] center];
-        CGPoint anchor = [[[theItem view] layer] anchorPoint];
-        
+#ifndef TI_USE_AUTOLAYOUT
         LayoutConstraint* constraint = [theItem layoutProperties];
         constraint->centerX = TiDimensionDip(center.x);
         constraint->centerY = TiDimensionDip(center.y);
+#endif
     }
 }
 
@@ -261,14 +260,15 @@
 -(void)setCollisionMode:(id)args
 {
     ENSURE_SINGLE_ARG(args, NSNumber);
-    int newVal = [TiUtils intValue:args def:-1];
-    UICollisionBehaviorMode newMode = _mode;
+    NSInteger newVal = [TiUtils intValue:args def:-1];
+    UICollisionBehaviorMode newMode;
     switch (newVal) {
         case 0:
             newMode = UICollisionBehaviorModeItems;
             break;
         case 1:
             newMode = UICollisionBehaviorModeBoundaries;
+			break;
         default:
             newMode = UICollisionBehaviorModeEverything;
             break;

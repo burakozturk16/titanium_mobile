@@ -38,6 +38,7 @@ public class ButtonProxy extends ViewProxy
 	{
 		defaultValues.put(TiC.PROPERTY_TITLE, "");
 		defaultValues.put(TiC.PROPERTY_SELECTED, false);
+		defaultValues.put(TiC.PROPERTY_SELECTOR, true);
 	}
 
 	public ButtonProxy(TiContext tiContext)

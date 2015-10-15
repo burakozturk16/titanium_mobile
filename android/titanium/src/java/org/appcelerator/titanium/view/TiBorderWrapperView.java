@@ -17,6 +17,7 @@ import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
+import android.graphics.drawable.Drawable;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.MotionEvent;
@@ -35,14 +36,15 @@ public class TiBorderWrapperView extends MaskableView
 
 //	private int color = Color.TRANSPARENT;
 	private float[] radius = null;
-	private float borderWidth = 0;
-	private int alpha = -1;
+	private float borderWidth = -1;
+	private int borderAlpha = -1;
 	private RectF clipRect;
 	private Path clipPath;
 	private boolean clipChildren = true;
+	private boolean antiAlias = false;
 	private RectF mBorderPadding = null;
 	private TiViewProxy proxy;
-	private boolean mDrawableSizeChanged = false;
+//	private boolean mDrawableSizeChanged = false;
 	
 	private View borderDrawableHoldingView = null;
 	
@@ -52,6 +54,7 @@ public class TiBorderWrapperView extends MaskableView
 	{
 		super(context);
 		this.proxy = proxy;
+		this.setAddStatesFromChildren(true);
 		clipRect = new RectF();
 		
 		//we dont need it but this is a trick to get the mask to also mask the border
@@ -68,31 +71,35 @@ public class TiBorderWrapperView extends MaskableView
 					return false;
 				}
 			};
-			if (this.borderWidth == 0) {
-				this.borderWidth = TiUIHelper.getRawSize(1, null);
-			}
-			mDrawable = new TiBackgroundDrawable();
-			if (alpha < 1.0)
-				mDrawable.setAlpha(Math.round(alpha * 255));
+//			if (this.borderWidth == -1) {
+//				this.borderWidth = TiUIHelper.getRawSize(1, null);
+//			}
+			mDrawable = new TiBackgroundDrawable(true);
+			if (borderAlpha < 1.0)
+				mDrawable.setAlpha(Math.round(borderAlpha * 255));
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_REPEAT))
 				mDrawable.setImageRepeat(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT)));
-			mDrawable.setRadiusWidth(radius, borderWidth);
+			mDrawable.setRadius(radius);
 			mDrawable.setPadding(mBorderPadding);
 			
-			mDrawableSizeChanged = true;
-			if (mDrawable.isStateful()) {
-				mDrawable.setState(getDrawableState());
-            }
+//			mDrawableSizeChanged = true;
+			
 //			mDrawable.setVisible(getVisibility() == VISIBLE, false);
-			TiUIView. setBackgroundDrawable(borderDrawableHoldingView, mDrawable);
-			addView(borderDrawableHoldingView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+			TiUIView.setBackgroundDrawable(borderDrawableHoldingView, mDrawable);
+			
+			borderDrawableHoldingView.setEnabled(isEnabled());
+            if (mDrawable.isStateful()) {
+                mDrawable.setState(getDrawableState());
+            }
+			addView(borderDrawableHoldingView, new TiCompositeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 			invalidate();
+			
 		}
 		return mDrawable;
 	}
 	
 	protected void clipCanvas(Canvas canvas) {
-		if (!this.clipChildren) return;
+		if (!this.clipChildren || this.antiAlias) return;
 		if (radius != null) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -111,13 +118,11 @@ public class TiBorderWrapperView extends MaskableView
 		super.setClipChildren(clipChildren);
     }
 	
-//	@Override
-//    public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
-//		ViewParent result = super.invalidateChildInParent(location,dirty);
-//        return result;
-//    }
-	
-	
+	public void setAntiAlias(boolean antialias) {
+        this.antiAlias = antialias;
+    }
+    
+    
 
 	@Override
 	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
@@ -127,6 +132,8 @@ public class TiBorderWrapperView extends MaskableView
 	
 	@Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+	    //we must call super onlayout not to break anything
+	    super.onLayout(changed, l, t, r, b);
 		if (changed) updateBorderPath();
         int parentLeft = 0;
 		int parentRight = r - l;
@@ -148,7 +155,8 @@ public class TiBorderWrapperView extends MaskableView
     }
 	@Override
 	public void childDrawableStateChanged(View child) {
-		if (child != proxy.getFocusView()) return;
+	    super.childDrawableStateChanged(child);
+//		if (child != proxy.getFocusView()) return;
 		if (mDrawable != null && mDrawable.isStateful()) {
         	mDrawable.setState(child.getDrawableState());
         	invalidate();
@@ -166,6 +174,7 @@ public class TiBorderWrapperView extends MaskableView
 //        super.setVisibility(visibility);
 //        if (mDrawable != null) mDrawable.setVisible(visibility == VISIBLE, false);
 //    }
+
 	
 	@Override
 	protected void dispatchDraw(Canvas canvas)
@@ -216,6 +225,10 @@ public class TiBorderWrapperView extends MaskableView
 			clipRect.set(outerRect);
 		}
 		invalidate();
+
+//        if (TiC.LOLLIPOP_OR_GREATER) {
+//            invalidateOutline();
+//        }
 	}
 
 	private void drawBorder(Canvas canvas)
@@ -241,6 +254,16 @@ public class TiBorderWrapperView extends MaskableView
         	borderDrawableHoldingView.bringToFront();
         }
     }
+	
+	private void onColorSet() {
+	    if (this.borderWidth == -1) {
+            this.borderWidth = TiUIHelper.getRawSize(1, null);
+            if (mDrawable != null) 
+            {
+                mDrawable.setPathWidth(borderWidth);
+            }
+	    }
+	}
 
 	public void setColor(int color)
 	{
@@ -248,16 +271,30 @@ public class TiBorderWrapperView extends MaskableView
 		bgdDrawable.setDefaultColor(color);
 		bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
 		bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
-//		this.color = color;
-		if (this.borderWidth == 0) {
-			this.borderWidth = TiUIHelper.getRawSize(1, null);
-			if (mDrawable != null) 
-			{
-				mDrawable.setPathWidth(borderWidth);
-			}
-		}
+		onColorSet();
 		postInvalidate();
 	}
+	
+	public void setColorForState(int[] stateSet, int color)
+    {
+	    getOrCreateDrawable().setColorForState(stateSet, color);
+        onColorSet();
+        postInvalidate();
+    }
+	
+	public void setImageDrawableForState(int[] stateSet, Drawable drawable)
+    {
+	    getOrCreateDrawable().setImageDrawableForState(stateSet, drawable);
+        onColorSet();
+        postInvalidate();
+    }
+    
+    public void setGradientDrawableForState(int[] stateSet, Drawable drawable)
+    {
+        getOrCreateDrawable().setGradientDrawableForState(stateSet, drawable);
+        onColorSet();
+        postInvalidate();
+    }
 
 	public void setRadius(float[] radius)
 	{
@@ -284,7 +321,7 @@ public class TiBorderWrapperView extends MaskableView
 
 	public void setBorderAlpha(int alpha)
 	{
-		this.alpha = alpha;
+		this.borderAlpha = alpha;
 		if (mDrawable != null) {
 			mDrawable.setAlpha(alpha);
 		}

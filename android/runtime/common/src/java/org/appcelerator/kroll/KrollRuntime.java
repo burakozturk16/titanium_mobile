@@ -86,7 +86,8 @@ public abstract class KrollRuntime implements Handler.Callback
 			super(null, null, TAG, stackSize);
 			this.runtime = runtime;
 		}
-
+		
+		@Override
 		public void run()
 		{
 			Looper looper;
@@ -115,6 +116,7 @@ public abstract class KrollRuntime implements Handler.Callback
 
 	public static void init(Context context, KrollRuntime runtime)
 	{
+        KrollAssetHelper.init(context);
 		// Initialized the runtime if it isn't already initialized
 		if (runtimeState != State.INITIALIZED) {
 			int stackSize = runtime.getThreadStackSize(context);
@@ -126,7 +128,6 @@ public abstract class KrollRuntime implements Handler.Callback
 			runtime.thread.start();
 		}
 
-		KrollAssetHelper.init(context);
 	}
 
 	public static KrollRuntime getInstance()
@@ -502,7 +503,7 @@ public abstract class KrollRuntime implements Handler.Callback
 	}
 
 	public static void dispatchException(final String title, final String message, final String sourceName, final int line,
-		final String lineSource, final int lineOffset)
+		final String lineSource, final int lineOffset, final String callstack)
 	{
 		if (instance != null) {
 			HashMap<String, KrollExceptionHandler> handlers = instance.exceptionHandlers;
@@ -513,14 +514,14 @@ public abstract class KrollRuntime implements Handler.Callback
 					currentHandler = handlers.get(key);
 					if (currentHandler != null) {
 						currentHandler.handleException(new ExceptionMessage(title, message, sourceName, line, lineSource,
-							lineOffset));
+							lineOffset, callstack));
 					}
 				}
 			}
 
 			// Handle exception with defaultExceptionHandler
 			instance.primaryExceptionHandler.handleException(new ExceptionMessage(title, message, sourceName, line, lineSource,
-				lineOffset));
+				lineOffset, callstack));
 		}
 	}
 

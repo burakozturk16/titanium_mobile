@@ -10,14 +10,35 @@ description: |
 
     Currently, calendar permissions must be explicitly configured in `tiapp.xml` in order to access the
     calendar. See "Common Requirements" in
-    [tiapp.xml and timodule.xml Reference](http://docs.appcelerator.com/titanium/latest/#!/guide/tiapp.xml_and_timodule.xml_Reference).
+    [tiapp.xml and timodule.xml Reference](http://docs.appcelerator.com/platform/latest/#!/guide/tiapp.xml_and_timodule.xml_Reference).
 extends: Titanium.Module
 platforms: [android]
 since: "1.5"
 createable: false
-deprecated: {since: "3.2.0"}
+deprecated: 
+    since: "3.2.0"
+    notes: Use the [Titanium.Calendar](Titanium.Calendar) class instead.
 
 methods:
+  - name: hasCalendarPermissions
+    summary: Returns `true` if the app has calendar access
+    returns:
+        type: Boolean 
+    since: "5.1.0"  
+
+  - name: requestCalendarPermissions
+    summary: Requests for calendar access
+    description: |
+        This method allows the app to request for calendar access.
+        The request view will show if the permission is not accepted by user, and user did
+        not check the box "Never ask again" when denying the request. If user checks the box "Never ask again",
+        the user has to manually enable the permission in device settings.
+    parameters:
+      - name: callback
+        summary: Function to call upon user decision to grant calendar access.
+        type: Callback<CalendarPermissionResponse>
+    since: "5.1.0"
+
   - name: getCalendarById
     summary: Gets the calendar with the specified identifier.
     returns:
@@ -425,3 +446,23 @@ examples:
                 method: Ti.Android.Calendar.METHOD_EMAIL
             };
             event.createReminder(reminderDetails);
+---
+name: CalendarPermissionResponse
+summary: Argument passed to the callback when a request finishes successfully or erroneously.
+since: "5.1.0"
+platforms: [android]
+properties:
+  - name: success
+    summary: Indicates whether the request succeeded.
+    description: Returns `true` if request succeeded.
+    type: Boolean
+    
+  - name: error
+    summary: Error message, if any returned.
+    description: May be undefined if `success` is `true`.
+    type: String
+    
+  - name: code
+    summary: Error code, if any returned.
+    description: May be undefined if `success` is `true`.
+    type: Number

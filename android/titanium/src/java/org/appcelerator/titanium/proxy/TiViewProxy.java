@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
@@ -20,8 +19,10 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
+import org.appcelerator.kroll.common.TiMessenger.CommandNoReturn;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
+import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.animation.TiAnimator;
@@ -42,11 +43,11 @@ import android.util.DisplayMetrics;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.AsyncTask;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.ViewSwitcher;
 
@@ -106,6 +107,7 @@ import android.widget.ViewSwitcher;
 	TiC.PROPERTY_TOUCH_PASSTHROUGH,
 	TiC.PROPERTY_CLIP_CHILDREN,
 	TiC.PROPERTY_VIEW_MASK,
+	TiC.PROPERTY_TRANSLATION_Z
 })
 public abstract class TiViewProxy extends AnimatableProxy implements Handler.Callback
 {
@@ -115,7 +117,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	private static final int MSG_GETVIEW = MSG_FIRST_ID + 100;
 	private static final int MSG_ADD_CHILD = MSG_FIRST_ID + 102;
-	private static final int MSG_REMOVE_CHILD = MSG_FIRST_ID + 103;
 	private static final int MSG_BLUR = MSG_FIRST_ID + 104;
 	private static final int MSG_FOCUS = MSG_FIRST_ID + 105;
 	private static final int MSG_SHOW = MSG_FIRST_ID + 106;
@@ -124,12 +125,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static final int MSG_TOIMAGE = MSG_FIRST_ID + 109;
 	private static final int MSG_GETSIZE = MSG_FIRST_ID + 110;
 	private static final int MSG_GETRECT = MSG_FIRST_ID + 111;
-	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 112;
 	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 113;
 	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 114;
-	private static final int MSG_TRANSITION_VIEWS = MSG_FIRST_ID + 115;
 	private static final int MSG_BLUR_BACKGROUND = MSG_FIRST_ID + 116;
-	private static final int MSG_INSERT_VIEW_AT = MSG_FIRST_ID + 117;
 	private static final int MSG_HIDE_KEYBOARD = MSG_FIRST_ID + 118;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
@@ -137,10 +135,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	protected TiUIView view;
 	private boolean isDecorView = false;
 
-	private AtomicBoolean batchPropertyApply = new AtomicBoolean();
-
-	private static int defaultTransitionStyle = TransitionHelper.Types.kTransitionSwipe.ordinal();
-	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
+//	private static int defaultTransitionStyle = TransitionHelper.Types.kTransitionSwipe.ordinal();
+//	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
 	
 	protected ArrayList<HashMap> pendingTransitions;
 	protected Object pendingTransitionLock;
@@ -152,6 +148,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	 */
 	public TiViewProxy()
 	{
+	    super();
+	    mProcessInUIThread = true;
 		pendingTransitionLock = new Object();
 		pendingTransitions = new ArrayList<HashMap>();
 //		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
@@ -174,12 +172,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				AsyncResult result = (AsyncResult) msg.obj;
 				handleAdd((TiViewProxy) result.getArg(), msg.arg1);
 				result.setResult(null); //Signal added.
-				return true;
-			}
-			case MSG_REMOVE_CHILD : {
-				AsyncResult result = (AsyncResult) msg.obj;
-				handleRemove((TiViewProxy) result.getArg());
-				result.setResult(null); //Signal removed.
 				return true;
 			}
 			case MSG_BLUR : {
@@ -229,12 +221,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					if (v != null) {
 						TiDimension nativeWidth = new TiDimension(v.getWidth(), TiDimension.TYPE_WIDTH);
 						TiDimension nativeHeight = new TiDimension(v.getHeight(), TiDimension.TYPE_HEIGHT);
-
-						// TiDimension needs a view to grab the window manager, so we'll just use the decorview of the current window
-						View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
-
-						d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault(decorView));
-						d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault(decorView));
+						d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault());
+						d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault());
 					}
 				}
 				if (!d.containsKey(TiC.PROPERTY_WIDTH)) {
@@ -273,22 +261,24 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					if (v != null) {
 						int position[] = new int[2];
 						v.getLocationOnScreen(position);
+						Activity activity  = TiApplication.getAppCurrentActivity();
+						if (activity != null) {
+						    View decorView = activity.getWindow().getDecorView();
 
-						View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
+	                        DisplayMetrics dm = new DisplayMetrics();
+	                        TiApplication.getAppCurrentActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
+	                        
+	                        Rect rect = new Rect();
+	                        decorView.getWindowVisibleDisplayFrame(rect);
+	                        int statusHeight = rect.top;
+	                        
+	                        position[1] -= statusHeight; //we remove statusbar height 
 
-						DisplayMetrics dm = new DisplayMetrics();
-						TiApplication.getAppCurrentActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
-						
-						Rect rect = new Rect();
-						decorView.getWindowVisibleDisplayFrame(rect);
-				        int statusHeight = rect.top;
-				        
-						position[1] -= statusHeight; //we remove statusbar height 
-
-						d.put(TiC.PROPERTY_WIDTH, v.getMeasuredWidth());
-						d.put(TiC.PROPERTY_HEIGHT, v.getMeasuredHeight());
-						d.put(TiC.PROPERTY_X, position[0]);
-						d.put(TiC.PROPERTY_Y, position[1]);
+	                        d.put(TiC.PROPERTY_WIDTH, v.getMeasuredWidth());
+	                        d.put(TiC.PROPERTY_HEIGHT, v.getMeasuredHeight());
+	                        d.put(TiC.PROPERTY_X, position[0]);
+	                        d.put(TiC.PROPERTY_Y, position[1]);
+						}
 					}
 				}
 				if (!d.containsKey(TiC.PROPERTY_WIDTH)) {
@@ -301,15 +291,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				result.setResult(d);
 				return true;
 			}
-			case MSG_FINISH_APPLY_PROPS : {
-				handleFinishBatchPropertyApply();
-				return true;
-			}
-			case MSG_TRANSITION_VIEWS : {
-				ArrayList<Object> args = (ArrayList<Object>)msg.obj;
-				handleTransitionViews((TiViewProxy)args.get(0), (TiViewProxy)args.get(1), args.get(2));
-				return true;
-			}
+
+//			case MSG_TRANSITION_VIEWS : {
+//				ArrayList<Object> args = (ArrayList<Object>)msg.obj;
+//				handleTransitionViews((TiViewProxy)args.get(0), (TiViewProxy)args.get(1), args.get(2));
+//				return true;
+//			}
 			case MSG_BLUR_BACKGROUND : {
 				handleBlurBackground((HashMap) msg.obj);
 				return true;
@@ -432,6 +419,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
     public boolean viewInitialised() {
         return viewAttached() && viewRealised;
     }
+    
+    public boolean viewRealised() {
+        return viewRealised;
+    }
 
 	/**
 	 * @return the TiUIView associated with this proxy.
@@ -488,13 +479,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	public TiUIView forceCreateView(boolean enableModelListener, boolean processProperties)
+	public TiUIView forceCreateView(final boolean enableModelListener, final boolean processProperties)
 	{
 		this.view = null;
 		return getOrCreateView(enableModelListener, processProperties);
 	}
 	
-	public TiUIView forceCreateView(boolean enableModelListener)
+	public TiUIView forceCreateView(final boolean enableModelListener)
 	{
 		return forceCreateView(enableModelListener, true);
 	}
@@ -517,7 +508,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			oldProxy.setModelListener(null);
 		}
 		view = transferview;
-		modelListener = transferview;
+		setModelListener(transferview, false);
 		view.setProxy(this);
 	}
 	
@@ -531,14 +522,17 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return getOrCreateView(true);
 	}
 	
-	public TiUIView getOrCreateView(boolean enableModelListener)
+	public TiUIView getOrCreateView(final boolean enableModelListener)
 	{
 		return getOrCreateView(enableModelListener, true);
 	}
 
-	public TiUIView getOrCreateView(boolean enableModelListener, boolean processProperties)
+	public TiUIView getOrCreateView(final boolean enableModelListener, final boolean processProperties)
 	{
-		if (activity == null || view != null) {
+	    if (activity == null) {
+	        return null;
+	    }
+		if (view != null) {
 			return view;
 		}
 
@@ -549,12 +543,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return (TiUIView) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEW, (enableModelListener) ? 1 : 0, (processProperties) ? 1 : 0), 0);
 	}
 
-	protected TiUIView handleGetView(boolean enableModelListener)
+	protected TiUIView handleGetView(final boolean enableModelListener)
 	{
 		return handleGetView(enableModelListener, true);
 	}
 
-	protected TiUIView handleGetView(boolean enableModelListener, boolean processProperties)
+	protected TiUIView handleGetView(final boolean enableModelListener, final boolean processProperties)
 	{
 		Activity activity = getActivity();
 		if (view == null && activity != null) {
@@ -566,16 +560,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (isDecorView) {
 				if (activity != null) {
 					((TiBaseActivity)activity).setViewProxy(view.getProxy());
-				} else {
-					Log.w(TAG, "Activity is null", Log.DEBUG_MODE);
+//				} else {
+//					Log.w(TAG, "Activity is null", Log.DEBUG_MODE);
 				}
 			}
 			realizeViews(view, enableModelListener, processProperties);
-			if (processProperties == false && enableModelListener == false) {
-				view.registerForTouch();
-				view.registerForKeyPress();
-			}
-			viewRealised  = true;
 		}
 		return view;
 	}
@@ -590,12 +579,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		realizeViews(view, true, true);
 	}
 
-	public void realizeViews(TiUIView view, boolean enableModelListener)
+	public void realizeViews(TiUIView view, final boolean enableModelListener)
 	{
 		realizeViews(view, enableModelListener, true);
 	}
 
-	public void realizeViews(TiUIView view, boolean enableModelListener, boolean processProperties)
+	public void realizeViews(TiUIView view, final boolean enableModelListener, final boolean processProperties)
 	{
 		if (enableModelListener)
 		{
@@ -612,24 +601,32 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 		// Use a copy so bundle can be modified as it passes up the inheritance
 		// tree. Allows defaults to be added and keys removed.
+		
 		if (children != null) {
-			try {
-				for (KrollProxy p : children) {
-				    if (p instanceof TiViewProxy) {
-    					TiUIView cv = ((TiViewProxy) p).getOrCreateView(enableModelListener, processProperties);
-    					view.add(cv);
-    					if (p instanceof TiWindowProxy && !((TiWindowProxy)p).isOpenedOrOpening()) {
-    						((TiWindowProxy)p).onWindowActivityCreated();
-    						((TiViewProxy) p).focus();
-    					}
-				    }
-				}
-			} catch (ConcurrentModificationException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
+		    synchronized (children) {
+		        for (KrollProxy p : children) {
+                    if (p instanceof TiViewProxy) {
+                        TiUIView cv = ((TiViewProxy) p).getOrCreateView(enableModelListener, processProperties);
+                        view.add(cv);
+                        if (p instanceof TiWindowProxy && !((TiWindowProxy)p).isOpenedOrOpening()) {
+                            ((TiWindowProxy)p).onWindowActivityCreated();
+                            ((TiViewProxy) p).focus();
+                        }
+                    }
+                }
+	        }
 		}
-
-		handlePendingAnimation();
+		viewDidRealize(enableModelListener, processProperties);
+	}
+	
+	protected void viewDidRealize(final boolean enableModelListener, final boolean processProperties) {
+	    if (processProperties == false && enableModelListener == false) {
+            view.registerForTouch();
+            view.registerForKeyPress();
+        }
+        viewRealised  = true;
+	    view.didRealize();
+        handlePendingAnimation();
 	}
 	
 	public void realizeViews(TiUIView view)
@@ -637,27 +634,33 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		realizeViews(view, true);
 	}
 	
-	public void releaseViews(boolean activityFinishing)
+	public void releaseViews(final boolean activityFinishing)
 	{
 		if (view != null) {
 			view.blur();
-			for (KrollProxy child:getChildren()) { 
-	            if (child instanceof TiViewProxy) {
-	                ((TiViewProxy) child).releaseViews(activityFinishing);
+			if (children != null) {
+			    synchronized (children) {
+	                for (KrollProxy child : children) {
+	                    if (child instanceof TiViewProxy) {
+	                        ((TiViewProxy) child).releaseViews(activityFinishing);
+	                    }
+	                }
 	            }
-	        }
+			}
+			if (modelListener != null && modelListener.get() == view) {
+                modelListener = null;
+            }
 			view.release();
 			view = null;
 			viewRealised = false;
 		}
-		setModelListener(null);
-		KrollRuntime.suggestGC();
 	}
 	
-
-
-	
-
+	@Override
+    public void release() {
+        releaseViews(true);
+        super.release();
+    }
 	/**
 	 * Implementing classes should use this method to create and return the appropriate view.
 	 * @param activity the context activity.
@@ -666,20 +669,24 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	 */
 	public abstract TiUIView createView(Activity activity);
 	
-	protected void handleChildAdded(KrollProxy child, int index) {
+	protected void handleChildAdded(final KrollProxy child, final int index) {
+	    super.handleChildAdded(child, index);
 	    if (peekView() != null) {
-            if (TiApplication.isUIThread()) {
-                handleAdd((TiViewProxy) child, index);
-                return;
-            }
-            TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, index, 0), child);
-
+	        if (!TiApplication.isUIThread()) {
+	            getActivity().runOnUiThread(new Runnable() {
+	                @Override
+	                public void run() {
+	                    handleAdd((TiViewProxy) child, index);
+	                }
+	            });
+	            return;
+	        }
+            handleAdd((TiViewProxy) child, index);
         }
     }
 	
     public void handleAdd(TiViewProxy child, int index)
     {
-        child.setActivity(getActivity());
         if (child instanceof TiWindowProxy && !((TiWindowProxy)child).isOpenedOrOpening()) {
             TiWindowProxy childWin = (TiWindowProxy)child;
             childWin.onWindowActivityCreated();
@@ -695,31 +702,38 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
         }
     }
 
-	protected void handleChildRemoved(KrollProxy child) {
-	    if (peekView() != null) {
-            if (TiApplication.isUIThread()) {
-                handleRemove((TiViewProxy) child);
-                return;
-            }
-
-            TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_REMOVE_CHILD), child);
+	protected void handleChildRemoved(final KrollProxy child, final int index,
+            final boolean shouldDetach) {
+	    if (!(child instanceof TiViewProxy)) {
+	        return;
+	    }
+	    if (!TiApplication.isUIThread()) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    handleChildRemoved(child, index, shouldDetach);
+                }
+            });
+            return;
+		}
+	    if (view != null) {
+            view.remove(((TiViewProxy)child).peekView());
         }
+//        handleRemove((TiViewProxy) child, shouldDetach);
+	    super.handleChildRemoved(child, index, shouldDetach);
     }
-
-    public void handleRemove(TiViewProxy child)
-    {
-        if (view != null) {
-            view.remove(child.peekView());
-        }
-        if (child != null) {
-            child.releaseViews(false);
-            child.setActivity(null);
-        }
-    }
+//
+//    public void handleRemove(TiViewProxy child, final boolean shouldDetach)
+//    {
+//        if (view != null) {
+//            view.remove(child.peekView());
+//        }
+//    }
 
 	@Kroll.method
 	public void show(@Kroll.argument(optional=true) KrollDict options)
 	{
+		setProperty(TiC.PROPERTY_VISIBLE, true);
 		if (TiApplication.isUIThread()) {
 			handleShow(options);
 		} else {
@@ -730,14 +744,24 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	protected void handleShow(KrollDict options)
 	{
 		if (view != null) {
+			if (TiC.LOLLIPOP_OR_GREATER && TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, false)) {
+				View nativeView = view.getOuterView();
+				int width = nativeView.getWidth();
+				int height = nativeView.getHeight();
+				int radius = Math.max(width, height);
+				android.animation.Animator anim = ViewAnimationUtils.createCircularReveal(nativeView, width/2, height/2, 0, radius);
+				view.show();
+				anim.start();
+				return;
+			}
 			view.show();
 		}
-		setProperty(TiC.PROPERTY_VISIBLE, true);
 	}
 
 	@Kroll.method
 	public void hide(@Kroll.argument(optional=true) KrollDict options)
 	{
+		setProperty(TiC.PROPERTY_VISIBLE, false);
 		if (TiApplication.isUIThread()) {
 			handleHide(options);
 		} else {
@@ -751,12 +775,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (view != null) {
 			handlePendingAnimation(false);
 			view.hide();
-			setProperty(TiC.PROPERTY_VISIBLE, false);
 		}
 	}
 
 	@Override
-	protected TiAnimator createAnimator(){
+	protected TiAnimatorSet createAnimator(){
 		return new TiViewAnimator();
 	}
 	
@@ -778,7 +801,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (view == null) return;
 		if (pendingAnimations.size() > 0) {
 			if (forceQueue || !(TiApplication.isUIThread())) {
-				if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+				if (!TiC.HONEYCOMB_OR_GREATER) {
 					// Even this very small delay can help eliminate the bug
 					// whereby the animated view's parent suddenly becomes
 					// transparent (pre-honeycomb). cf. TIMOB-9813.
@@ -808,15 +831,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				}
 				pendingAnimation = pendingAnimations.remove(0);
 			}
-			
-			pendingAnimation.applyOptions();
 			((TiViewAnimator) pendingAnimation).simulateFinish(this);
 			return;
 		}
-//		else if (view.getWidth() == 0 && view.getHeight() == 0) {
-//			getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
-//			return;
-//		}
+		else if (view.getWidth() == 0 && view.getHeight() == 0) {
+			getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
+			return;
+		}
+		peekView().forceLayoutNativeView(true);
 		super.handlePendingAnimation();
 	}
 
@@ -840,11 +862,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (view != null) {
 			if (!view.blur()) {
 				if (children != null) {
-					for (KrollProxy child : children) {
-					    if (child instanceof TiViewProxy) {
-					        if (((TiViewProxy) child).handleBlur()) return true;
-					    }
-					}
+				    synchronized (children) {
+				        for (KrollProxy child : children) {
+	                        if (child instanceof TiViewProxy) {
+	                            if (((TiViewProxy) child).handleBlur()) return true;
+	                        }
+	                    }
+                    }
 				}
 			} else return true;
 		}
@@ -935,13 +959,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return view.toImage(scale);
 	}
 
-
-	@Override
-	public KrollProxy getParentForBubbling()
-	{
-		return getParent();
-	}
-
 	@Override
 	public void eventListenerAdded(String eventName, int count, KrollProxy proxy)
 	{
@@ -991,34 +1008,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method @Kroll.getProperty
 	public boolean getKeepScreenOn()
 	{
-		Boolean keepScreenOn = null;
-		View nv = getNativeView();
-		if (nv != null) {
-			keepScreenOn = nv.getKeepScreenOn();
-		}
+        View nv = getNativeView();
+        if (nv != null) {
+            return nv.getKeepScreenOn();
+        }
 
-		//Keep the proxy in the correct state
-		Object current = getProperty(TiC.PROPERTY_KEEP_SCREEN_ON);
-		if (current != null) {
-			boolean currentValue = TiConvert.toBoolean(current);
-			if (keepScreenOn == null) {
-				keepScreenOn = currentValue;
-			} else {
-				if (currentValue != keepScreenOn) {
-					setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, keepScreenOn);
-				} else {
-					keepScreenOn = currentValue;
-				}
-			}
-		} else {
-			if (keepScreenOn == null) {
-				keepScreenOn = false; // Android default
-			}
-
-			setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, keepScreenOn);
-		}
-
-		return keepScreenOn;
+        return false;// Android default
 	}
 
 	@Kroll.method @Kroll.setProperty(retain=false)
@@ -1103,36 +1098,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return destPoint;
 	}
 
-	public boolean inBatchPropertyApply()
-	{
-		return batchPropertyApply.get();
-	}
 
-	@Override
-	public void applyPropertiesInternal(Object arg, boolean force, boolean wait)
-	{
-		batchPropertyApply.set(true);
-		super.applyPropertiesInternal(arg, force, true);
-		if (TiApplication.isUIThread()) {
-			handleFinishBatchPropertyApply();
-		} else {
-			getMainHandler().sendEmptyMessage(MSG_FINISH_APPLY_PROPS);
-		}
-		batchPropertyApply.set(false);
-	}
-
-
-	protected void handleFinishBatchPropertyApply()
-	{
-		if (view == null) return;
-		if (view.iszIndexChanged()) {
-			view.forceLayoutNativeView(true);
-			view.setzIndexChanged(false);
-		} else {
-			view.forceLayoutNativeView(false);
-		}
-	}
-	
 	public View parentViewForChild(TiViewProxy child)
 	{
 		return getNativeView();
@@ -1209,12 +1175,20 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return true;
 	}
 	
-	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
-		if ((viewOut == null && viewIn == null) || (viewOut != null && !children.contains(viewOut))){
-			transitioning = false;
-			handlePendingTransition();
-			return;
-		}
+	@SuppressWarnings("null")
+    private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
+		
+	    boolean viewOutIsNotChild = false;
+        if (viewOut != null && children != null) {
+            synchronized (children) {
+                viewOutIsNotChild = !children.contains(viewOut);
+            }
+        }
+        if ((viewOut == null && viewIn == null) || viewOutIsNotChild) {
+            transitioning = false;
+            handlePendingTransition();
+            return;
+        }
 
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
@@ -1222,7 +1196,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 		if (viewToAddTo != null) {
 			if (viewIn!=null) viewIn.setActivity(getActivity());
-			final View viewToAdd = (viewIn!=null)?viewIn.getOrCreateView().getOuterView():null;
+			final View viewToAdd = (viewIn != null) ? viewIn.getOrCreateView().getOuterView() : null;
 			if (viewToAdd!=null) {
 				viewToAdd.setVisibility(View.GONE);
 				TiUIHelper.addView(viewToAddTo, viewToAdd, viewIn.peekView().getLayoutParams()); //make sure it s removed from its parent
@@ -1236,7 +1210,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						if (viewIn!=null) add(viewIn);
 						if (viewOut!=null) {
 							viewToAddTo.removeView(viewToHide);
-							remove(viewOut);
+                            removeProxy(viewOut, false);
 						}
 						transitioning = false;
 						handlePendingTransition();
@@ -1246,7 +1220,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						if (viewIn!=null) add(viewIn);
 						if (viewOut!=null) {
 							viewToAddTo.removeView(viewToHide);
-							remove(viewOut);
+							removeProxy(viewOut, false);
 						}
 						transitioning = false;
 						handlePendingTransition();
@@ -1294,7 +1268,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	@Kroll.method
-	public void transitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg)
+	public void transitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, @Kroll.argument(optional=true) final Object arg)
 	{
 		if (transitioning) {
 			synchronized (pendingTransitionLock) {
@@ -1307,22 +1281,28 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			return;
 		}
 		transitioning = true;
-		if (TiApplication.isUIThread()) {
-			handleTransitionViews(viewOut, viewIn, arg);
-		} else {
-			ArrayList<Object> args = new ArrayList<Object>();
-			args.add(viewOut);
-			args.add(viewIn);
-			args.add(arg);
-			getMainHandler().obtainMessage(MSG_TRANSITION_VIEWS, args).sendToTarget();
-		}
+		runInUiThread(new CommandNoReturn() {
+            @Override
+            public void execute() {
+                handleTransitionViews(viewOut, viewIn, arg);                
+            }
+        }, false);
+//		if (TiApplication.isUIThread()) {
+//			handleTransitionViews(viewOut, viewIn, arg);
+//		} else {
+//			ArrayList<Object> args = new ArrayList<Object>();
+//			args.add(viewOut);
+//			args.add(viewIn);
+//			args.add(arg);
+//			getMainHandler().obtainMessage(MSG_TRANSITION_VIEWS, args).sendToTarget();
+//		}
 	}
 	
 	
 	
 	private TiBlob handleBlurBackground(HashMap options)
 	{
-		peekView().blurBackground(options);
+	    getOrCreateView().blurBackground(options);
 		return null;
 	}
 	
@@ -1330,24 +1310,22 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method
 	public void blurBackground(Object arg, @Kroll.argument(optional=true) HashMap options)
 	{
-		if (peekView() != null) {
-			String[] properties = null;
-			if (arg instanceof String) {
-				properties = new String[]{(String) arg};
-			}
-			else if (arg instanceof Object[]) {
-				properties = TiConvert.toStringArray((Object[]) arg);
-			}
-			if (options == null) {
-				options = new KrollDict();
-			}
-			options.put("properties", properties);
-			if (TiApplication.isUIThread()) {
-				handleBlurBackground(options);
-			} else {
-				getMainHandler().obtainMessage(MSG_BLUR_BACKGROUND, options).sendToTarget();
-			}
-		} 
+		String[] properties = null;
+		if (arg instanceof String) {
+			properties = new String[]{(String) arg};
+		}
+		else if (arg instanceof Object[]) {
+			properties = TiConvert.toStringArray((Object[]) arg);
+		}
+		if (options == null) {
+			options = new KrollDict();
+		}
+		options.put("properties", properties);
+		if (TiApplication.isUIThread()) {
+			handleBlurBackground(options);
+		} else {
+			getMainHandler().obtainMessage(MSG_BLUR_BACKGROUND, options).sendToTarget();
+		}
 	}
 
 	@Kroll.method

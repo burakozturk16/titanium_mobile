@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -8,18 +8,16 @@
 
 #import "TiUIActivityIndicatorStyleProxy.h"
 
-
 @implementation TiUIActivityIndicatorStyleProxy
 
 -(NSString*)apiName
 {
-    return @"Ti.UI.iPhone.ActivityIndicatorStyle";
+    return @"Ti.UI.ActivityIndicatorStyle";
 }
 
-MAKE_SYSTEM_PROP(PLAIN,UIActivityIndicatorViewStyleWhite);
-MAKE_SYSTEM_PROP(BIG,UIActivityIndicatorViewStyleWhiteLarge);
-MAKE_SYSTEM_PROP(DARK,UIActivityIndicatorViewStyleGray);
-MAKE_SYSTEM_PROP(BIG_DARK,3);
+MAKE_SYSTEM_PROP(PLAIN, UIActivityIndicatorViewStyleWhite);
+MAKE_SYSTEM_PROP(BIG, UIActivityIndicatorViewStyleWhiteLarge);
+MAKE_SYSTEM_PROP(DARK, UIActivityIndicatorViewStyleGray);
 
 @end
 

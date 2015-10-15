@@ -84,8 +84,9 @@ public class TableViewProxy extends ViewProxy
 	public TableViewProxy()
 	{
 		super();
-		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
-		// eventManager.addOnEventChangeListener(this);
+        defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
+        defaultValues.put(TiC.PROPERTY_FILTER_ATTRIBUTE, TiC.PROPERTY_TITLE);
+        defaultValues.put(TiC.PROPERTY_FILTER_CASE_INSENSITIVE, true);
 	}
 
 	public TableViewProxy(TiContext tiContext)
@@ -884,7 +885,7 @@ public class TableViewProxy extends ViewProxy
 	@Kroll.method
 	public void scrollToIndex(int index, @Kroll.argument(optional = true) KrollDict options)
 	{
-		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+//		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_INDEX);
 		// Message msg = getUIHandler().obtainMessage(MSG_SCROLL_TO_INDEX);
 		message.arg1 = index;

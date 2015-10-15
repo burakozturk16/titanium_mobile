@@ -1,12 +1,13 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2013-2015 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
 #ifdef USE_TI_UIREFRESHCONTROL
-#ifdef USE_TI_UIIOSATTRIBUTEDSTRING
-#import "TiUIiOSAttributedStringProxy.h"
+
+#if defined (USE_TI_UIATTRIBUTEDSTRING)
+#import "TiUIAttributedStringProxy.h"
 #endif
 #import "TiUIRefreshControlProxy.h"
 #import "TiUtils.h"
@@ -59,17 +60,21 @@
 
 -(void)setTitle:(id)args
 {
-#ifdef USE_TI_UIIOSATTRIBUTEDSTRING
-    ENSURE_SINGLE_ARG_OR_NIL(args, TiUIiOSAttributedStringProxy);
+
     [self replaceValue:args forKey:@"title" notification:NO];
+	ENSURE_SINGLE_ARG_OR_NIL(args, NSObject);
     RELEASE_TO_NIL(_attributedString);
-    if (args != nil) {
+#if defined (USE_TI_UIATTRIBUTEDSTRING)
+    if (IS_OF_CLASS(args, TiUIAttributedStringProxy)) {
         _attributedString = [[args attributedString] copy];
-    }
-    TiThreadPerformOnMainThread(^{
-        [self refreshControl];
-    }, NO);
+    } else
 #endif
+    if (IS_OF_CLASS(args, NSString)) {
+       _attributedString = [[NSAttributedString alloc] initWithString:args];
+    }
+	TiThreadPerformOnMainThread(^{
+		[self refreshControl];
+	}, NO);
 }
 
 -(void)setTintColor:(id)args

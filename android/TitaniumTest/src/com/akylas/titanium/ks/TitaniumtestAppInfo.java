@@ -13,15 +13,6 @@ public final class TitaniumtestAppInfo implements ITiAppInfo
 	private static final String LCAT = "AppInfo";
 	
 	public TitaniumtestAppInfo(TiApplication app) {
-		TiProperties properties = app.getSystemProperties();
-		TiProperties appProperties = app.getAppProperties();
-					
-					properties.setString("ti.ui.defaultunit", "dp");
-					appProperties.setString("ti.ui.defaultunit", "dp");
-					properties.setBool("ti.android.bug2373.finishfalseroot", true);
-					appProperties.setBool("ti.android.bug2373.finishfalseroot", true);
-					properties.setBool("ti.android.fastdev", false);
-                    appProperties.setBool("ti.android.fastdev", false);
 	}
 	
 	public String getId() {
@@ -80,5 +71,10 @@ public final class TitaniumtestAppInfo implements ITiAppInfo
     @Override
     public String getBuildType() {
         return "device";
+    }
+
+    @Override
+    public long getBuildDate() {
+        return System.currentTimeMillis();
     }
 }

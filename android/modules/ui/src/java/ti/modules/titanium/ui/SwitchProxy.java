@@ -35,9 +35,12 @@ public class SwitchProxy extends ViewProxy
 	public SwitchProxy()
 	{
 		super();
-
-		setProperty(TiC.PROPERTY_VALUE, false);
-		setProperty(TiC.PROPERTY_STYLE, AndroidModule.SWITCH_STYLE_SWITCH);
+        defaultValues.put(TiC.PROPERTY_VALUE, false);
+        defaultValues.put(TiC.PROPERTY_STYLE, AndroidModule.SWITCH_STYLE_SWITCH);
+        
+        //there seems to be a bug with the latest appcompat. Without a background the
+        //switch is not showing
+        defaultValues.put(TiC.PROPERTY_BACKGROUND_COLOR, "transparent");
 	}
 
 	public SwitchProxy(TiContext tiContext)

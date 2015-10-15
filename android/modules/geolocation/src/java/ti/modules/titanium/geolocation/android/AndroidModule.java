@@ -8,9 +8,12 @@
 package ti.modules.titanium.geolocation.android;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.KrollModule;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -263,16 +266,51 @@ public class AndroidModule extends KrollModule
 		}
 	}
 
+	private LocationRuleProxy ruleFromObject(Object object) {
+        if (object instanceof HashMap) {
+            LocationRuleProxy result =(LocationRuleProxy)  KrollProxy.createProxy(LocationRuleProxy.class, null,
+                    new Object[] { object }, null);
+            result.updateKrollObjectProperties();
+            return result;
+        }
+        if (object instanceof LocationRuleProxy) {
+            return (LocationRuleProxy) object;
+        }
+        return null;
+	}
 	/**
 	 * Adds the specified location rule to the list of manual location rules.
 	 * 
 	 * @param locationRule		the location rule to add
 	 */
 	@Kroll.method
-	public void addLocationRule(LocationRuleProxy locationRule)
+	public void addLocationRule(Object value)
 	{
-		manualLocationRules.add(locationRule);
+		Object[] array;
+        if (value instanceof Object[]) {
+            array  = (Object[]) value;
+        }else {
+            array  = new Object[]{value};
+        }
+        List<LocationRuleProxy> toAdd = new ArrayList<LocationRuleProxy>();
+        for (int i = 0; i < array.length; i++) {
+            LocationRuleProxy ruleProxy  = ruleFromObject(array[i]);
+            if (ruleProxy != null && !manualLocationRules.contains(ruleProxy)) {
+                toAdd.add(ruleProxy);
+            }
+        }
+        int addCount = toAdd.size();
+        if (addCount > 0) {
+            manualLocationRules.addAll(toAdd);
+        }
 	}
+	
+	@Kroll.method
+    public void setLocationRules(Object value)
+    {
+        this.removeAllLocationRules();
+        this.addLocationRule(value);
+    }
 
 	/**
 	 * Removed the specified location rule from the list of manual location rules.
@@ -280,12 +318,31 @@ public class AndroidModule extends KrollModule
 	 * @param locationRule		the location rule to remove
 	 */
 	@Kroll.method
-	public void removeLocationRule(LocationRuleProxy locationRule)
+	public void removeLocationRule(Object value)
 	{
-		int locationRuleIndex = manualLocationRules.indexOf(locationRule);
-		if (locationRuleIndex > -1) {
-			manualLocationRules.remove(locationRuleIndex);
-		}
+	    if (value == null) return;
+        Object[] array;
+        if (value instanceof Object[]) {
+            array  = (Object[]) value;
+        }else {
+            array  = new Object[]{value};
+        }
+        List<LocationRuleProxy> toRemove = new ArrayList<LocationRuleProxy>();
+        for (int i = 0; i < array.length; i++) {
+            Object rule = array[i] ;
+            if (rule instanceof LocationRuleProxy) {
+                toRemove.add((LocationRuleProxy) rule);
+            }
+        }
+        if (toRemove.size() > 0) {
+            manualLocationRules.removeAll(toRemove);
+        }
+	}
+
+	@Kroll.method
+	public void removeAllLocationRules()
+	{
+		manualLocationRules.clear();
 	}
 
 	@Override

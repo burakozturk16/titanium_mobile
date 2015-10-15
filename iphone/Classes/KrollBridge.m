@@ -4,7 +4,7 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#import "TiBase.h"
+#import "TiToJS.h"
 #import "KrollBridge.h"
 #import "KrollCallback.h"
 #import "KrollObject.h"
@@ -15,22 +15,24 @@
 #import "ApplicationMods.h"
 #import <libkern/OSAtomic.h>
 #import "KrollContext.h"
-#import "TiDebugger.h"
 #import "TiConsole.h"
 #import "TiExceptionHandler.h"
 #import "APSAnalytics.h"
+#import "TiFileSystemHelper.h"
 
 #ifdef KROLL_COVERAGE
 # include "KrollCoverage.h"
 #endif
-
+#ifndef USE_JSCORE_FRAMEWORK
+#import "TiDebugger.h"
+#endif
 extern BOOL const TI_APPLICATION_ANALYTICS;
 extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 extern NSString * const TI_APPLICATION_GUID;
 extern NSString * const TI_APPLICATION_BUILD_TYPE;
 
 NSString * TitaniumModuleRequireFormat = @"(function(exports){"
-		"var __OXP=exports;var module={'exports':exports};var __dirname=\"%@\";var __filename=\"%@\";\n%@;\n"
+		"var __OXP=exports;var module={'exports':exports};var __dirname=\"%@\";var __filename=\"%@\";%@;\n"
 		"if(module.exports !== __OXP){return module.exports;}"
 		"return exports;})({})";
 
@@ -52,10 +54,9 @@ void TiBindingRunLoopAnnounceStart(TiBindingRunLoop runLoop);
 	[module setHost:host_];
 	[module _setBaseURL:baseURL_];
 	
-	pageContext = pageContext_;
-	
 	if (self = [super initWithTarget:module context:context_])
 	{
+		pageContext = pageContext_;
 		modules = [[NSMutableDictionary alloc] init];
 		host = [host_ retain];
 		[(KrollBridge *)pageContext_ registerProxy:module krollObject:self];
@@ -68,12 +69,15 @@ void TiBindingRunLoopAnnounceStart(TiBindingRunLoop runLoop);
 		
 		if (TI_APPLICATION_ANALYTICS)
 		{
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
             APSAnalytics *sharedAnalytics = [APSAnalytics sharedInstance];
             if (TI_APPLICATION_BUILD_TYPE != nil || (TI_APPLICATION_BUILD_TYPE.length > 0)) {
                 [sharedAnalytics performSelector:@selector(setBuildType:) withObject:TI_APPLICATION_BUILD_TYPE];
             }
             [sharedAnalytics performSelector:@selector(setSDKVersion:) withObject:[NSString stringWithFormat:@"ti.%@",[module performSelector:@selector(version)]]];
 			[sharedAnalytics enableWithAppKey:TI_APPLICATION_GUID andDeployType:TI_APPLICATION_DEPLOYTYPE];
+#pragma clang diagnostic pop
 		}
 	}
 	return self;
@@ -231,7 +235,7 @@ CFMutableSetRef	krollBridgeRegistry = nil;
 		OSSpinLockLock(&krollBridgeRegistryLock);
 		CFSetAddValue(krollBridgeRegistry, self);
 		OSSpinLockUnlock(&krollBridgeRegistryLock);
-		TiThreadPerformOnMainThread(^{[self registerForMemoryWarning];}, NO);
+		TiThreadPerformBlockOnMainThread(^{[self registerForMemoryWarning];}, NO);
 	}
 	return self;
 }
@@ -246,7 +250,7 @@ CFMutableSetRef	krollBridgeRegistry = nil;
     }
     
     BOOL keepWarning = YES;    
-    int proxiesCount = CFDictionaryGetCount(registeredProxies);
+    signed long proxiesCount = CFDictionaryGetCount(registeredProxies);
     OSSpinLockUnlock(&proxyLock);
         
     //During a memory panic, we may not get the chance to copy proxies.
@@ -264,7 +268,7 @@ CFMutableSetRef	krollBridgeRegistry = nil;
                 break;
             }
             
-            int newCount = CFDictionaryGetCount(registeredProxies);
+            signed long newCount = CFDictionaryGetCount(registeredProxies);
             OSSpinLockUnlock(&proxyLock);
 
             if (newCount != proxiesCount)
@@ -438,39 +442,47 @@ CFMutableSetRef	krollBridgeRegistry = nil;
 	}
 	
 	const char *urlCString = [[url_ absoluteString] UTF8String];
-	
-	TiStringRef jsCode = TiStringCreateWithCFString((CFStringRef) jcode);
+
+    TiStringRef jsCode = TiStringCreateWithCFString((CFStringRef) jcode);
 	TiStringRef jsURL = TiStringCreateWithUTF8CString(urlCString);
 	
-	// validate script
-	if (![TI_APPLICATION_DEPLOYTYPE isEqualToString:@"production"]) {
-		TiCheckScriptSyntax(jsContext,jsCode,jsURL,1,&exception);
-	}
-	
-	// only continue if we don't have any exceptions from above
 	if (exception == NULL) {
+#ifndef USE_JSCORE_FRAMEWORK
         if ([[self host] debugMode]) {
             TiDebuggerBeginScript(context_,urlCString);
         }
-		
+
 		TiEvalScript(jsContext, jsCode, NULL, jsURL, 1, &exception);
-		
         if ([[self host] debugMode]) {
             TiDebuggerEndScript(context_);
         }
-		if (exception == NULL) {
+#else
+        TiEvalScript(jsContext, jsCode, NULL, jsURL, 1, &exception);
+#endif
+        if (exception == NULL) {
             evaluationError = NO;
+        } else {
+            evaluationError = YES;
         }
 	}
 	if (exception != NULL) {
 		id excm = [KrollObject toID:context value:exception];
 		evaluationError = YES;
-		[[TiExceptionHandler defaultExceptionHandler] reportScriptError:[TiUtils scriptErrorValue:excm]];
+        TiScriptError* error = [TiUtils scriptErrorValue:excm];
+        NSInteger lineNb = error.lineNo;
+        if (lineNb > 0 && [error.sourceURL isEqualToString:[url_ absoluteString]]) {
+            NSArray* lines = [jcode componentsSeparatedByString:@"\n"];
+            if (lineNb < [lines count]) {
+                error.sourceLine = [[lines objectAtIndex:lineNb - 1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+            }
+        }
+        
+        
+		[[TiExceptionHandler defaultExceptionHandler] reportScriptError:error];
 	}
 	
 	TiStringRelease(jsCode);
 	TiStringRelease(jsURL);
-    
     [pool release];
 }
 
@@ -796,10 +808,21 @@ CFMutableSetRef	krollBridgeRegistry = nil;
 
 	// Get the relative path to the Resources directory
 	NSString *relativePath = [sourceURL path];
-	relativePath = [relativePath stringByReplacingOccurrencesOfString:[[[NSBundle mainBundle] resourceURL] path] withString:@""];
-	relativePath = [[relativePath substringFromIndex:1] stringByDeletingLastPathComponent];
+    NSString *basePath = [[TiFileSystemHelper resourcesDirectory] stringByStandardizingPath];
+    
+    
+    NSRange range = [relativePath rangeOfString:basePath];
+    if (range.location!=NSNotFound)
+    {
+        relativePath = [relativePath substringFromIndex:range.location + range.length];
+    }
+    if ([relativePath hasPrefix:@"/"])
+    {
+        relativePath = [relativePath substringFromIndex:1];
+    }
 
-	NSString *dirname = [relativePath length] == 0 ? @"." : relativePath;
+	relativePath = [relativePath stringByDeletingLastPathComponent];
+
 	/*
 	 * This is for parity with android, if the file is located in the Resources, then __dirname returns "."
 	 * otherwise the __dirname returns the folder names separated by "/"
@@ -809,6 +832,7 @@ CFMutableSetRef	krollBridgeRegistry = nil;
 	 */
 	
 	NSString *filename = [sourceURL lastPathComponent];
+    NSString *dirname = [relativePath length] == 0 ? filename : relativePath;
 	NSString *js = [[NSString alloc] initWithFormat:TitaniumModuleRequireFormat, dirname, filename,code];
 
 	/* This most likely should be integrated with normal code flow, but to
@@ -984,21 +1008,21 @@ loadNativeJS:
 	{
         NSString* urlPath = (filepath != nil) ? filepath : fullPath;
 		NSURL *url_ = [TiHost resourceBasedURL:urlPath baseURL:NULL];
-       	const char *urlCString = [[url_ absoluteString] UTF8String];
         KrollWrapper* wrapper = nil;
-        
+       	const char *urlCString = [[url_ absoluteString] UTF8String];
+#ifndef USE_JSCORE_FRAMEWORK
         if ([[self host] debugMode] && ![module isJSModule]) {
             TiDebuggerBeginScript([self krollContext],urlCString);
         }
-        
-		NSString * dataContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+#endif
+        NSString * dataContents = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 		wrapper = [self loadCommonJSModule:dataContents withSourceURL:url_];
         [dataContents release];
-		
+#ifndef USE_JSCORE_FRAMEWORK
         if ([[self host] debugMode] && ![module isJSModule]) {
             TiDebuggerEndScript([self krollContext]);
         }
-        
+#endif
 		if (![wrapper respondsToSelector:@selector(replaceValue:forKey:notification:)]) {
             [self setCurrentURL:oldURL];
 			@throw [NSException exceptionWithName:@"org.appcelerator.kroll" 
@@ -1050,7 +1074,13 @@ loadNativeJS:
 		return module;
 	}
 	
-	@throw [NSException exceptionWithName:@"org.appcelerator.kroll" reason:[NSString stringWithFormat:@"Couldn't find module: %@",path] userInfo:nil];
+    NSString *arch = [TiUtils currentArchitecture];
+    if (moduleClass) {
+        @throw [NSException exceptionWithName:@"org.test.kroll" reason:[NSString stringWithFormat:@"Couldn't find module: %@ for architecture: %@", path, arch] userInfo:nil];
+    } else {
+        NSLog([NSString stringWithFormat:@"[ERROR] Couldn't find js module: %@", path]);
+        return nil;
+    }
 }
 
 + (NSArray *)krollBridgesUsingProxy:(id)proxy
@@ -1058,7 +1088,7 @@ loadNativeJS:
 	NSMutableArray * results = nil;
 
 	OSSpinLockLock(&krollBridgeRegistryLock);
-	int bridgeCount = CFSetGetCount(krollBridgeRegistry);
+	signed long bridgeCount = CFSetGetCount(krollBridgeRegistry);
 	KrollBridge * registryObjects[bridgeCount];
 	CFSetGetValues(krollBridgeRegistry, (const void **)registryObjects);
 	
@@ -1086,7 +1116,7 @@ loadNativeJS:
 + (NSArray *)krollContexts
 {
 	OSSpinLockLock(&krollBridgeRegistryLock);
-	int bridgeCount = CFSetGetCount(krollBridgeRegistry);
+	signed long bridgeCount = CFSetGetCount(krollBridgeRegistry);
 	KrollBridge * registryObjects[bridgeCount];
 	CFSetGetValues(krollBridgeRegistry, (const void **)registryObjects);
 
@@ -1109,7 +1139,7 @@ loadNativeJS:
 
 	bool result=NO;
 	OSSpinLockLock(&krollBridgeRegistryLock);
-	int bridgeCount = CFSetGetCount(krollBridgeRegistry);
+	signed long bridgeCount = CFSetGetCount(krollBridgeRegistry);
 	KrollBridge * registryObjects[bridgeCount];
 	CFSetGetValues(krollBridgeRegistry, (const void **)registryObjects);
 	for (int currentBridgeIndex = 0; currentBridgeIndex < bridgeCount; currentBridgeIndex++)
@@ -1137,17 +1167,19 @@ loadNativeJS:
 
 	KrollBridge * result=nil;
 	OSSpinLockLock(&krollBridgeRegistryLock);
-	int bridgeCount = CFSetGetCount(krollBridgeRegistry);
+	signed long bridgeCount = CFSetGetCount(krollBridgeRegistry);
 	KrollBridge * registryObjects[bridgeCount];
 	CFSetGetValues(krollBridgeRegistry, (const void **)registryObjects);
 	for (int currentBridgeIndex = 0; currentBridgeIndex < bridgeCount; currentBridgeIndex++)
 	{
 		KrollBridge * currentBridge = registryObjects[currentBridgeIndex];
+#ifdef TI_USE_KROLL_THREAD
 		if ([[[currentBridge krollContext] threadName] isEqualToString:threadName])
 		{
 			result = [[currentBridge retain] autorelease];
 			break;
 		}
+#endif
 	}
 	OSSpinLockUnlock(&krollBridgeRegistryLock);
 
