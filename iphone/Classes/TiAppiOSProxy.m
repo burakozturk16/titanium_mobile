@@ -183,7 +183,7 @@
         return nil;
     }
     
-    TiAppiOSSearchableIndexProxy *proxy = [[[TiAppiOSSearchableIndexProxy alloc]init] autorelease];
+    TiAppiOSSearchableIndexProxy *proxy = [[[TiAppiOSSearchableIndexProxy alloc] init] autorelease];
     return proxy;
 }
 
@@ -198,22 +198,23 @@
         return [result autorelease];
     }
     
-    ENSURE_SINGLE_ARG(args,NSDictionary);
-    
-    NSString* uniqueIdentifier = nil;
-    ENSURE_ARG_FOR_KEY(uniqueIdentifier, args, @"uniqueIdentifier", NSString);
-    
-    NSString* domainIdentifier = nil;
-    ENSURE_ARG_FOR_KEY(domainIdentifier, args, @"domainIdentifier", NSString);
-    
-    TiAppiOSSearchableItemAttributeSetProxy *attributeSet = nil;
-    ENSURE_ARG_FOR_KEY(attributeSet, args, @"attributeSet", TiAppiOSSearchableItemAttributeSetProxy);
-    
-    TiAppiOSSearchableItemProxy *proxy = [[[TiAppiOSSearchableItemProxy alloc]
-                                           initWithUniqueIdentifier:uniqueIdentifier
-                                           withDomainIdentifier:domainIdentifier
-                                           withAttributeSet:attributeSet.attributes] autorelease];
-    return proxy;
+//    ENSURE_SINGLE_ARG(args,NSDictionary);
+//    
+//    NSString* uniqueIdentifier = nil;
+//    ENSURE_ARG_FOR_KEY(uniqueIdentifier, args, @"uniqueIdentifier", NSString);
+//    
+//    NSString* domainIdentifier = nil;
+//    ENSURE_ARG_FOR_KEY(domainIdentifier, args, @"domainIdentifier", NSString);
+//    
+//    TiAppiOSSearchableItemAttributeSetProxy *attributeSet = nil;
+//    ENSURE_ARG_FOR_KEY(attributeSet, args, @"attributeSet", TiAppiOSSearchableItemAttributeSetProxy);
+//    
+//    TiAppiOSSearchableItemProxy *proxy = [[[TiAppiOSSearchableItemProxy alloc]
+//                                           initWithUniqueIdentifier:uniqueIdentifier
+//                                           withDomainIdentifier:domainIdentifier
+//                                           withAttributeSet:attributeSet.attributes] autorelease];
+//    return proxy;
+    return [[[TiAppiOSSearchableItemAttributeSetProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 
 -(id)createSearchableItemAttributeSet:(id)args
@@ -226,16 +227,17 @@
         TiThreadPerformOnMainThread(^{result = [[self createSearchableItemAttributeSet:args] retain];}, YES);
         return [result autorelease];
     }
-    ENSURE_SINGLE_ARG(args,NSDictionary);
-    NSString* itemContentType = nil;
-    ENSURE_ARG_FOR_KEY(itemContentType, args, @"itemContentType", NSString);
+//    ENSURE_SINGLE_ARG(args,NSDictionary);
+//    NSString* itemContentType = nil;
+//    ENSURE_ARG_FOR_KEY(itemContentType, args, @"itemContentType", NSString);
+//    
+//    NSMutableDictionary *props = [NSMutableDictionary dictionaryWithDictionary:args];
+//    [props removeObjectForKey:@"itemContentType"]; //remove to avoid duplication
     
-    NSMutableDictionary *props = [NSMutableDictionary dictionaryWithDictionary:args];
-    [props removeObjectForKey:@"itemContentType"]; //remove to avoid duplication
-    
-    TiAppiOSSearchableItemAttributeSetProxy *proxy = [[[TiAppiOSSearchableItemAttributeSetProxy alloc] initWithItemContentType:itemContentType withProps:props] autorelease];
-
-    return proxy;
+//    TiAppiOSSearchableItemAttributeSetProxy *proxy = [[[TiAppiOSSearchableItemAttributeSetProxy alloc] initWithItemContentType:itemContentType withProps:props] autorelease];
+//
+//    return proxy;
+    return [[[TiAppiOSSearchableItemAttributeSetProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 
 #endif
@@ -976,6 +978,11 @@
 -(CFStringRef)UTTYPE_XML
 {
 	return kUTTypeXML;
+}
+
+-(CFStringRef)UTTYPE_JSON
+{
+    return kUTTypeJSON;
 }
 
 -(CFStringRef)UTTYPE_SOURCE_CODE

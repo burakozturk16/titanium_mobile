@@ -2313,6 +2313,11 @@ iOSBuilder.prototype.checkIfNeedToRecompile = function checkIfNeedToRecompile() 
 		return false;
 	}.call(this);
 
+	if (!!this.cli.argv.xcode) {
+		this.forceCleanBuild = false;
+		this.forceRebuild = false;
+		return false;
+	}
 	if (!this.forceCleanBuild && this.deployType !== 'development') {
 		this.logger.info(__('Forcing rebuild: deploy type is %s, so need to recompile ApplicationRouting.m', this.deployType));
 		this.forceCleanBuild = true;
@@ -3778,7 +3783,7 @@ iOSBuilder.prototype.copyTitaniumLibraries = function copyTitaniumLibraries() {
 	}, this);
 	libDir = path.join(this.buildDir, 'libexternals');
 	this.copyDirSync(path.join(this.platformPath, 'libexternals'), libDir, {
-		forceSymlink:true
+		forceSymlink:this.symlinkLibrariesOnCopy
 	});
 	this.unmarkBuildDirFiles(libDir);
 };

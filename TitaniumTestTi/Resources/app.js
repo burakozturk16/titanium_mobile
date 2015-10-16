@@ -6,7 +6,8 @@ var textColor = 'black';
 var navGroup;
 var openWinArgs;
 var html =
-	'  SUCCESS  <big><font face="mapme">' +String.fromCharCode(0xe6b0) + '</font></big>  <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:1px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été <a href="test">conçu</a> à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
+	'  SUCCESS  <big><font face="mapme">' + String.fromCharCode(0xe6b0) +
+	'</font></big>  <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:1px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été <a href="test">conçu</a> à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
 // html = '<span
 // style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:3px;padding-bottom:3px;line-height:2em;">
 // SUCCESS </span><br><span
@@ -3005,11 +3006,11 @@ var firstWindow = createWin({
 	navBarHidden: true,
 	barColor: 'transparent',
 	toolbar: [Ti.UI.createButton({
-			properties:{
+			properties: {
 				title: 'test',
 			},
-			events:{
-				click:function(){
+			events: {
+				click: function() {
 					firstWindow.listView.editing = !firstWindow.listView.editing;
 				}
 			}
@@ -3018,26 +3019,26 @@ var firstWindow = createWin({
 });
 var headerView2 = new View({
 	properties: {
-							layout: 'vertical',
-							height: 'SIZE'
-						},
-						childTemplates: [{
-							bindId:'label',
-							type: 'Ti.UI.Label',
-							properties: {
-								backgroundColor: 'red',
-								height:20,
-								font: {
-									weight: 'thin'
-								},
-								text: 'HeaderView created from Dict'
-							}
-						}]
+		layout: 'vertical',
+		height: 'SIZE'
+	},
+	childTemplates: [{
+		bindId: 'label',
+		type: 'Ti.UI.Label',
+		properties: {
+			backgroundColor: 'red',
+			height: 20,
+			font: {
+				weight: 'thin'
+			},
+			text: 'HeaderView created from Dict'
+		}
+	}]
 });
 
 firstWindow
 	.add({
-		bindId:'listView',
+		bindId: 'listView',
 		type: 'Ti.UI.ListView',
 		properties: {
 
@@ -3049,7 +3050,7 @@ firstWindow
 			// style:1,
 			allowsSelection: false,
 			allowsMultipleSelectionDuringEditing: true,
-			canEdit:true,
+			canEdit: true,
 			// searchView: {
 			// type: 'Ti.UI.SearchBar',
 			// properties: {
@@ -6056,4 +6057,36 @@ function windowLevelTest() {
 Ti.App.on('significanttimechange', sdebug);
 // setTimeout(windowLevelTest, 1000);
 // scrollableViewTest();
-
+var indexer = Ti.App.iOS.createSearchableIndex();
+if (indexer.isSupported()) {
+	Ti.App.iOS.on('continueactivity', function(e) {
+		sdebug(e);
+	});
+	indexer.addToDefaultSearchableIndex([{
+		identifier: "4",
+		domainIdentifier: "akylas.sink",
+		attributeSet: {
+			contentType: 'test',
+			title: "Test1",
+			contentDescription: "description1",
+			supportsPhoneCall: true,
+			supportsNavigation: true,
+			keywords: ["akylas"]
+		}
+	}, {
+		identifier: "5",
+		domainIdentifier: "akylas.sink",
+		attributeSet: {
+			contentType: 'test',
+			title: "Test2",
+			contentDescription: "description2",
+			// keywords: ["Test2", "akylas"]
+		}
+	}], function(e) {
+		if (e.success) {
+			alert("Press the home button and now search for your keywords");
+		} else {
+			alert("Errored: " + JSON.stringify(e.error));
+		}
+	});
+}

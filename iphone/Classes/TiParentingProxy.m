@@ -206,8 +206,12 @@
 {
     ENSURE_SINGLE_ARG_OR_NIL(child, TiProxy)
     if (child == nil) return;
-    [self rememberProxy:child];
     pthread_rwlock_wrlock(&childrenLock);
+    if ([children containsObject:child]) {
+        pthread_rwlock_unlock(&childrenLock);
+        return;
+    }
+    [self rememberProxy:child];
     if (children==nil)
     {
         children = [[NSMutableArray alloc] initWithObjects:child,nil];

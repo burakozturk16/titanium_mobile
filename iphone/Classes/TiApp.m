@@ -963,7 +963,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
 #if IS_XCODE_7
     if( [userActivity.activityType isEqualToString:CSSearchableItemActionType]){
         if([userActivity userInfo] !=nil){
-            [dict setObject:[[userActivity userInfo] objectForKey:CSSearchableItemActivityIdentifier] forKey:@"searchableItemActivityIdentifier"];
+            [dict setObject:[[userActivity userInfo] objectForKey:CSSearchableItemActivityIdentifier] forKey:@"identifier"];
         }
     }
 #endif
